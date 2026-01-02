@@ -29,7 +29,6 @@
             -webkit-tap-highlight-color: transparent; 
             user-select: none; 
             font-size: 12px;
-            /* Correction pour la hauteur mobile */
             height: 100vh;
             height: 100dvh;
         }
@@ -42,7 +41,6 @@
             height: 100dvh; 
             background-color: var(--color-bg); 
             position: relative; display: flex; flex-direction: column; overflow: hidden; 
-            /* Protection contre le chevauchement en haut (encoche) */
             padding-top: env(safe-area-inset-top);
         }
 
@@ -74,26 +72,26 @@
         .pitch-circle { position: absolute; top: 50%; left: 50%; width: 80px; height: 80px; border: 1px solid var(--pitch-line); border-radius: 50%; transform: translate(-50%, -50%); }
 
         .player-card {
-            position: absolute; width: 66px; height: 105px;
+            position: absolute; width: 50px; height: 78px; 
             background: linear-gradient(135deg, #1e293b, #0f172a);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 6px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.7);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.7);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer; z-index: 20;
             overflow: hidden;
         }
-        .player-card.malus { border-color: #ef4444; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
-        .card-ovr { font-family: 'Teko', sans-serif; font-size: 26px; font-weight: 700; color: #f97316; line-height: 1; }
-        .card-pos { font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: -2px; }
-        .card-age { font-size: 7px; color: #475569; font-weight: 700; margin-bottom: 2px; }
-        .card-energy { width: 80%; height: 3px; background: #334155; border-radius: 2px; margin-top: 3px; position: relative; overflow: hidden; }
+        .player-card.malus { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6); }
+        .card-ovr { font-family: 'Teko', sans-serif; font-size: 20px; font-weight: 700; color: #f97316; line-height: 1; }
+        .card-pos { font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: -1px; }
+        .card-age { font-size: 6px; color: #475569; font-weight: 700; margin-bottom: 1px; }
+        .card-energy { width: 75%; height: 2px; background: #334155; border-radius: 1px; margin-top: 2px; position: relative; overflow: hidden; }
         .energy-fill { height: 100%; transition: width 0.3s; }
         
         .card-name { 
             width: 100%; background: rgba(0,0,0,0.85); 
-            padding: 4px 0; text-align: center; font-size: 9px; 
+            padding: 2px 0; text-align: center; font-size: 7px; 
             font-weight: 600; color: white; margin-top: auto; 
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
@@ -442,7 +440,7 @@
 
         </main>
 
-        <!-- NAVIGATION (CORRIGÉE POUR MOBILE) -->
+        <!-- NAVIGATION -->
         <nav class="bg-[#0f172a] border-t border-slate-800 grid grid-cols-6 items-center z-40 shrink-0">
             <button onclick="app.goToView('inbox')" id="nav-inbox" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all">
                 <span id="icon-layout-nav"></span><span class="text-[9px] font-bold uppercase tracking-tighter">QG</span>
@@ -553,13 +551,14 @@
             { id: crypto.randomUUID(), name: "I. Doumbia", pos: "MID", ovr: 76, age: 26, role: 'sub', slot: null, energy: 100 }
         ];
 
+        // Position du GK à 80% pour visibilité
         const FORMATIONS = {
-            '4-3-3': { coords:[{x:41,y:88},{x:8,y:60},{x:30,y:65},{x:52,y:65},{x:74,y:60},{x:20,y:40},{x:41,y:45},{x:62,y:40},{x:8,y:15},{x:41,y:10},{x:74,y:15}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","FWD","FWD","FWD"]},
-            '4-4-2': { coords:[{x:41,y:88},{x:8,y:60},{x:30,y:65},{x:52,y:65},{x:74,y:60},{x:8,y:38},{x:30,y:42},{x:52,y:42},{x:74,y:38},{x:25,y:10},{x:57,y:10}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD","FWD"]},
-            '3-5-2': { coords:[{x:41,y:88},{x:15,y:65},{x:41,y:68},{x:67,y:65},{x:5,y:42},{x:25,y:46},{x:41,y:52},{x:57,y:46},{x:77,y:42},{x:30,y:10},{x:52,y:10}], zones: ["GK","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD","FWD"]},
-            '4-2-3-1': { coords:[{x:41,y:88},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:30,y:48},{x:52,y:48},{x:10,y:30},{x:41,y:32},{x:72,y:30},{x:41,y:10}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
-            '4-1-4-1': { coords:[{x:41,y:88},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:41,y:50},{x:10,y:35},{x:30,y:37},{x:52,y:37},{x:72,y:35},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
-            '5-4-1': { coords:[{x:41,y:88},{x:5,y:62},{x:23,y:65},{x:41,y:68},{x:59,y:65},{x:77,y:62},{x:10,y:38},{x:30,y:40},{x:52,y:40},{x:72,y:38},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD"]}
+            '4-3-3': { coords:[{x:41,y:80},{x:8,y:60},{x:30,y:65},{x:52,y:65},{x:74,y:60},{x:20,y:40},{x:41,y:45},{x:62,y:40},{x:8,y:15},{x:41,y:10},{x:74,y:15}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","FWD","FWD","FWD"]},
+            '4-4-2': { coords:[{x:41,y:80},{x:8,y:60},{x:30,y:65},{x:52,y:65},{x:74,y:60},{x:8,y:38},{x:30,y:42},{x:52,y:42},{x:74,y:38},{x:25,y:10},{x:57,y:10}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD","FWD"]},
+            '3-5-2': { coords:[{x:41,y:80},{x:15,y:65},{x:41,y:68},{x:67,y:65},{x:5,y:42},{x:25,y:46},{x:41,y:52},{x:57,y:46},{x:77,y:42},{x:30,y:10},{x:52,y:10}], zones: ["GK","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD","FWD"]},
+            '4-2-3-1': { coords:[{x:41,y:80},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:30,y:48},{x:52,y:48},{x:10,y:30},{x:41,y:32},{x:72,y:30},{x:41,y:10}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
+            '4-1-4-1': { coords:[{x:41,y:80},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:41,y:50},{x:10,y:35},{x:30,y:37},{x:52,y:37},{x:72,y:35},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
+            '5-4-1': { coords:[{x:41,y:80},{x:5,y:62},{x:23,y:65},{x:41,y:68},{x:59,y:65},{x:77,y:62},{x:10,y:38},{x:30,y:40},{x:52,y:40},{x:72,y:38},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD"]}
         };
 
         const MATCH_COMMS = [
@@ -574,14 +573,14 @@
             "Tentative de loin ! Ça frôle le cadre adverse.", "Relance courte et maîtrisée.", 
             "Fatigue visible chez certains cadres de l'équipe.", "Le quart d'heure de vérité approche.", 
             "Geste technique superbe qui élimine un défenseur !", "Pressing haut étouffant pour l'adversaire.", 
-            "Sortie autoritaire sur le corner adverse.", "Transition offensive rapide lancée par le milieu.", 
-            "La pluie commence à tomber sur la pelouse.", "Erreur de relance... attention au contre !", 
+            "Sortie autoritaire on le corner adverse.", "Transition offensive rapide lancée par le milieu.", 
+            "La pluie commence à tomber on la pelouse.", "Erreur de relance... attention au contre !", 
             "Le stade entier retient son souffle.", "Coup de sifflet important de l'arbitre central.", 
             "Défense en bloc bas pour préserver le score.", "Longue transversale magnifique vers l'ailier.", 
-            "Crampons affûtés sur ce tacle glissé.", "Le génie tactique du coach est mis à l'épreuve.", 
+            "Crampons affûtés on ce tacle glissé.", "Le génie tactique du coach est mis à l'épreuve.", 
             "Vent de panique dans la défense adverse.", "Solidité exemplaire de la part des latéraux.", 
-            "Match de guerriers aujourd'hui sur le terrain !", "Une-deux superbe dans les petits espaces.", 
-            "Le poteau sauve le gardien sur cette frappe !", "Contrôle orienté de classe internationale.", 
+            "Match de guerriers aujourd'hui on le terrain !", "Une-deux superbe dans les petits espaces.", 
+            "Le poteau sauve le gardien on cette frappe !", "Contrôle orienté de classe internationale.", 
             "L'adversaire commence à douter sérieusement.", "Supporters et joueurs ne font qu'un.", 
             "Duel aérien remporté avec autorité par Ndicka.", "Coup-franc excentré qui peut amener le danger.", 
             "Ballon sorti en touche sous la pression.", "Le portier motive bruyamment ses troupes.", 
@@ -589,63 +588,37 @@
             "Dégagement aux poings salvateur du gardien.", "Suspense total dans cette fin de rencontre.", 
             "Le match bascule dans une dimension tactique.", "Dernier assaut désespéré avant le sifflet !", 
             "Le manager effectue ses derniers ajustements.", "Le marquage à la culotte est impitoyable.", 
-            "Une véritable partie de d'échecs sur le gazon.", "Les drapeaux orange-blanc-vert s'agitent partout !", 
-            "Un supporter traverse le terrain ! Interruption de jeu.", "Le stade rugit sur ce tacle salvateur.", 
+            "Une véritable partie de d'échecs on le gazon.", "Les drapeaux orange-blanc-vert s'agitent partout !", 
+            "Un supporter traverse le terrain ! Interruption de jeu.", "Le stade rugit on ce tacle salvateur.", 
             "Le physique commence à prendre le dessus.", "Un exploit individuel est nécessaire pour débloquer le score.", 
-            "L'arbitre consulte son assistant sur cette faute.", "Temps additionnel annoncé, tout peut encore arriver !", 
+            "L'arbitre consulte son assistant on cette faute.", "Temps additionnel annoncé, tout peut encore arriver !", 
             "Une frappe enroulée qui lèche le montant.", "Sortie de but pour le gardien adverse.", 
             "Le marquage est impitoyable dans la zone de vérité.", "L'arbitre appelle les deux capitaines au calme.", 
-            "La transversale tremble encore !", "Changement tactique visible sur le terrain.", 
-            "Le public se lève sur cette action de classe.", "Faute signalée à l'entrée de la surface de réparation.", 
+            "La transversale tremble encore !", "Changement tactique visible on le terrain.", 
+            "Le public se lève on cette action de classe.", "Faute signalée à l'entrée de la surface de réparation.", 
             "Relance rapide à la main du gardien vers son latéral.", "CIV pousse fort dans les dernières minutes !", 
             "Dégagement en catastrophe par la défense adverse.", "Interception magnifique au milieu de terrain.", 
             "Le rythme s'accélère en cette fin de période.", "CIV invincibles aujourd'hui avec ce bloc compact !", 
-            "Le stade retient son souffle sur ce corner direct.", "Exploit individuel à suivre ?", 
+            "Le stade retient son souffle on ce corner direct.", "Exploit individuel à suivre ?", 
             "Tir non cadré, ça passe largement au-dessus.", "Défense en bloc bas pour conserver le score.", 
             "Belle transversale qui change l'aile.", "Coup de sifflet pour une position de hors-jeu.", 
             "Le portier plonge dans les pieds de l'attaquant.", "CIV multiplie les passes courtes au milieu.", 
             "L'adversaire ne parvient plus à sortir de son camp.", "Contact rugueux, l'arbitre sort le carton jaune !", 
-            "Le stade est en fusion sur chaque dribble réussi.", "La possession est outrageusement ivoirienne.", 
-            "L'attaquant s'emmêle les pinceaux au moment de tirer.", "Parade réflexe incroyable sur la ligne !", 
+            "Le stade est en fusion on chaque dribble réussi.", "La possession est outrageusement ivoirienne.", 
+            "L'attaquant s'emmêle les pinceaux au moment de tirer.", "Parade réflexe incroyable on la ligne !", 
             "Le coach adverse semble totalement désemparé.", "Ambiance de fête dans le stade, on entend les tambours !", 
-            "Le pressing haut étouffe complètement la relance adverse.", "Quelle vision de jeu sur cette passe en profondeur !", 
+            "Le pressing haut étouffe complètement la relance adverse.", "Quelle vision de jeu on cette passe en profondeur !", 
             "Corner à suivre pour les Eléphants.", "Le gardien s'impose dans les airs avec autorité.", 
             "Friction entre deux joueurs, l'arbitre intervient vite.", "Une prestation solide qui rassure les supporters.", 
             "Tout le stade pousse pour l'ouverture du score !", "CIV est en démonstration technique aujourd'hui.", 
             "Ballon dégagé loin devant pour souffler un peu.", "Le rideau défensif est infranchissable pour le moment.", 
-            "CIV dicte son tempo avec une sérénité totale.", "Le manager ivoirien reste calme sur son banc.", 
+            "CIV dicte son tempo avec une sérénité totale.", "Le manager ivoirien reste calme on son banc.", 
             "L'odeur de la victoire commence à monter dans le stade.", "Quel régal pour les yeux ces combinaisons !", 
             "L'arbitre vérifie le ballon avant de relancer.", "Les remplaçants terminent leur échauffement.", 
-            "Un vent de panique souffle sur les buts adverses.", "Le milieu de terrain est un véritable champ de bataille.", 
+            "Un vent de panique souffle on les buts adverses.", "Le milieu de terrain est un véritable champ de bataille.", 
             "CIV fait preuve d'une maturité tactique impressionnante.", "Chaque touche de balle est un délice.", 
             "L'adversaire tente le tout pour le tout.", "Le stade est plein comme un oeuf pour ce choc.", 
-            "Une frappe enroulée qui lèche le montant.", "Sortie de but pour le gardien adverse.", 
-            "Le marquage est impitoyable dans la zone de vérité.", "L'arbitre appelle les deux capitaines au calme.", 
-            "La transversale tremble encore !", "Changement tactique visible sur le terrain.", 
-            "Le public se lève sur cette action de classe.", "Faute signalée à l'entrée de la surface de réparation.", 
-            "Relance rapide à la main du gardien vers son latéral.", "CIV pousse fort dans les dernières minutes !", 
-            "Dégagement en catastrophe par la défense adverse.", "Interception magnifique au milieu de terrain.", 
-            "Le rythme s'accélère en cette fin de période.", "CIV invincibles aujourd'hui avec ce bloc compact !", 
-            "Le stade retient son souffle sur ce corner direct.", "Exploit individuel à suivre ?", 
-            "Tir non cadré, ça passe largement au-dessus.", "Défense en bloc bas pour conserver le score.", 
-            "Belle transversale qui change l'aile.", "Coup de sifflet pour une position de hors-jeu.", 
-            "Le portier plonge dans les pieds de l'attaquant.", "CIV multiplie les passes courtes au milieu.", 
-            "L'adversaire ne parvient plus à sortir de son camp.", "Contact rugueux, l'arbitre sort le carton jaune !", 
-            "Le stade est en fusion sur chaque dribble réussi.", "La possession est outrageusement ivoirienne.", 
-            "L'attaquant s'emmêle les pinceaux au moment de tirer.", "Parade réflexe incroyable sur la ligne !", 
-            "Le coach adverse semble totalement désemparé.", "Ambiance de fête dans le stade, on entend les tambours !", 
-            "Le pressing haut étouffe complètement la relance adverse.", "Quelle vision de jeu sur cette passe en profondeur !", 
-            "Corner à suivre pour les Eléphants.", "Le gardien s'impose dans les airs avec autorité.", 
-            "Friction entre deux joueurs, l'arbitre intervient vite.", "Une prestation solide qui rassure les supporters.", 
-            "Tout le stade pousse pour l'ouverture du score !", "CIV est en démonstration technique aujourd'hui.", 
-            "Ballon dégagé loin devant pour souffler un peu.", "Le rideau défensif est infranchissable pour le moment.", 
-            "CIV dicte son tempo avec une sérénité totale.", "Le manager ivoirien reste calme sur son banc.", 
-            "L'odeur de la victoire commence à monter dans le stade.", "Quel régal pour les yeux ces combinaisons !", 
-            "L'arbitre vérifie le ballon avant de relancer.", "Les remplaçants terminent leur échauffement.", 
-            "Un vent de panique souffle sur les buts adverses.", "Le milieu de terrain est un véritable champ de bataille.", 
-            "CIV fait preuve d'une maturité tactique impressionnante.", "Chaque touche de balle est un délice.", 
-            "L'adversaire tente le tout pour le tout.", "Le stade est plein comme un oeuf pour ce choc.", 
-            "Une frappe surpuissante qui finit dans les nuages.", "Le gardien relance très loin sur son attaquant.", 
+            "Une frappe surpuissante qui finit dans les nuages.", "Le gardien relance très loin on son attaquant.", 
             "CIV reste en place malgré la pression adverse.", "Un tacle de dernier recours qui sauve l'équipe.", 
             "Le talent brut s'exprime enfin dans ce match.", "CIV gère parfaitement son avance pour le moment.",
             "Tacle assassin, mais l'arbitre ne bronche pas !", "Le gardien semble avoir un problème à la cuisse.",
@@ -656,35 +629,35 @@
             "La pelouse est un billard aujourd'hui.", "Le stade Ebimpé vibre à l'unisson.",
             "L'arbitre central discute avec son quatrième officiel.", "Le banc de touche bouillonne d'impatience.",
             "Une relance dans l'axe très risquée, mais ça passe.", "Le public siffle copieusement l'adversaire.",
-            "Chaque corner est vécu comme un penalty par le stade.", "Le marquage est en zone sur cette action.",
-            "Quelle détente verticale sur ce duel de la tête !", "Le match est haché par de nombreuses petites fautes.",
+            "Chaque corner est vécu comme un penalty par le stade.", "Le marquage est en zone on cette action.",
+            "Quelle détente verticale on ce duel de la tête !", "Le match est haché par de nombreuses petites fautes.",
             "L'adversaire joue le contre à fond.", "Le bloc équipe est parfaitement coordonné.",
             "Un petit pont humiliant au milieu de terrain !", "Le défenseur dégage en touche sans réfléchir.",
             "Le meneur de jeu dicte le tempo du match.", "Les duels sont à la limite de la correction physique.",
-            "Le gardien adverse gagne du temps sur son dégagement.", "L'arbitre demande de recommencer le coup-franc.",
-            "Une frappe de mule qui finit dans le petit filet extérieur !", "Le stade rugit de plaisir sur ce geste technique.",
+            "Le gardien adverse gagne du temps on son dégagement.", "L'arbitre demande de recommencer le coup-franc.",
+            "Une frappe de mule qui finit dans le petit filet extérieur !", "Le stade rugit de plaisir on ce geste technique.",
             "Le sélectionneur ivoirien appelle un remplaçant.", "Le capitaine réunit ses joueurs pour les motiver.",
             "Une erreur d'inattention qui aurait pu coûter cher.", "Le danger vient de partout pour l'adversaire !",
             "Le match entre dans sa phase critique.", "Un festival offensif se prépare peut-être.",
             "Le portier s'envole littéralement pour détourner ce cuir.", "L'ambiance est digne d'une finale de Coupe du Monde !",
             "Le jeu est arrêté pour soigner un joueur à terre.", "Le sélectionneur consulte ses notes tactiques.",
             "Un tacle millimétré qui soulève les foules.", "La possession tourne à la démonstration.",
-            "L'adversaire n'a plus touché le ballon depuis 3 minutes.", "Un centre-tir vicieux qui termine sur la barre !",
+            "L'adversaire n'a plus touché le ballon depuis 3 minutes.", "Un centre-tir vicieux qui termine on la barre !",
             "Le sifflet final approche, la tension est à son comble.", "Chaque passe est un poignard pour la défense adverse.",
             "Le génie de Yao Baba Ange Emmanuel opère encore.", "Une solidité à toute épreuve pour les Eléphants.",
             "La victoire se dessine petit à petit.", "Le stade est en transe complète !",
             "Une sortie de balle propre malgré le pressing adverse.", "Le jeu s'accélère on l'aile droite.",
             "Un centre fort devant le but qui ne trouve personne.", "Le gardien capte le ballon en deux temps.",
             "La défense adverse est au bord de la rupture.", "Un véritable cauchemar pour le latéral gauche adverse.",
-            "Le match est d'une intensité rare pour un tournoi continental.", "Les joueurs donnent tout sur le rectangle vert.",
+            "Le match est d'une intensité rare pour un tournoi continental.", "Les joueurs donnent tout on le rectangle vert.",
             "Le maillot est mouillé, les guerriers sont là !", "Une passe aveugle qui déstabilise tout le bloc.",
-            "Le ballon semble collé aux pieds de l'attaquant.", "Un sauvetage sur la ligne de but, incroyable !",
-            "Le poteau rentrant ? Non, ça sort ! Quel dommage.", "La CIV est en contrôle total de l'événement.",
+            "Le ballon semble collé aux pieds de l'attaquant.", "Un sauvetage on la ligne de but, incroyable !",
+            "Le poteau rentrant ? No, ça sort ! Quel dommage.", "La CIV est en contrôle total de l'événement.",
             "Une prestation qui fera date dans l'histoire de la nation.", "Le public ne s'arrête jamais de chanter.",
             "Un duel de Titans au milieu de la pelouse.", "Le sifflet retentit, mais c'est une faute pour nous !",
             "Le portier motive sa défense en criant fort.", "Le marquage est plus serré que jamais.",
             "Un éclair de génie pourrait tout débloquer.", "La CIV pousse, pousse et repousse encore !",
-            "L'adversaire est acculé sur son propre but.", "Un dégagement désespéré en corner.",
+            "L'adversaire est acculé on son propre but.", "Un dégagement désespéré en corner.",
             "La montre tourne, les coeurs battent la chamade.", "Le staff technique est debout on le banc.",
             "Une communication parfaite entre les défenseurs centraux.", "Le portier ne prend aucun risque on cette frappe.",
             "Un changement tactique payant semble s'opérer.", "Le talent est partout aujourd'hui on le terrain.",
@@ -756,7 +729,7 @@
                     instructions: { style: 'possession', pressing: 'normal' },
                     rareScoutUsed: false, news: [{id: Date.now(), text: "Lancement de la dynastie par Yao Baba Ange Emmanuel !"}],
                     infra: {
-                        stadium: { level: 1, cost: 10, bonus: 0.2 },
+                        stadium: { level: 1, cost: 10, bonus: 0.5 },
                         training: { level: 1, cost: 5, bonus: 1 },
                         medical: { level: 1, cost: 8, bonus: 5 }
                     }
@@ -999,14 +972,19 @@
                     } else { p.energy = Math.min(100, (p.energy||0) + 20); }
                 });
                 
-                const bonusStadium = this.state.infra.stadium.level * 0.1;
-                const earnings = (win ? 1.5 : (draw ? 0.5 : 0.2)) + bonusStadium;
+                // --- AMELIORATION STADE : Bonus de 0.5M par niveau ---
+                const bonusStadium = (this.state.infra.stadium.level - 1) * 0.5;
+                const baseEarnings = win ? 2.0 : (draw ? 0.8 : 0.4);
+                const earnings = baseEarnings + bonusStadium;
+                
                 this.state.budget += earnings;
                 this.state.teamXP += win ? 100 : 20;
 
                 this.updateStd(this.state.standings['Côte d\'Ivoire'], this.match.score[0], this.match.score[1]);
                 this.updateStd(this.state.standings[this.match.opp.n], this.match.score[1], this.match.score[0]);
-                this.simulateOthers(); this.state.matchIndex++; this.save(); this.updateUI();
+                this.simulateOthers(); this.state.matchIndex++; 
+                this.save(); // Sauvegarde le nouveau budget
+                this.updateUI(); // Met à jour l'affichage budget immédiatement
                 this.generateReport(win, this.match.score, this.match.opp.n);
             }
 
@@ -1189,9 +1167,9 @@
                 const list = document.getElementById('infra-list'); if(!list) return;
                 list.innerHTML = '';
                 const infras = [
-                    { id: 'stadium', name: 'Stade National', desc: 'Augmente les revenus par match (+0.1M/lvl)', icon: '🏟️' },
-                    { id: 'training', name: 'Centre Pro', desc: 'Améliore le gain d\'OVR à l\'entraînement', icon: '⚽' },
-                    { id: 'medical', name: 'Clinique Sportive', desc: 'Réduit la fatigue après match (-1.5/lvl)', icon: '🏥' }
+                    { id: 'stadium', name: 'Stade National', desc: 'Bonus revenus match (+0.5M/niv.)', icon: '🏟️' },
+                    { id: 'training', name: 'Centre Pro', desc: 'Améliore le gain OVR Boost (+1/niv.)', icon: '⚽' },
+                    { id: 'medical', name: 'Clinique Sportive', desc: 'Réduit la fatigue après match (-1.5/niv.)', icon: '🏥' }
                 ];
                 infras.forEach(inf => {
                     const data = this.state.infra[inf.id];
@@ -1218,11 +1196,14 @@
                 const infra = this.state.infra[id];
                 if (this.state.budget < infra.cost) return this.toast("Budget insuffisant !");
                 if (infra.level >= 5) return this.toast("Niveau maximum atteint.");
+                
                 this.state.budget -= infra.cost;
                 infra.level++;
                 infra.cost *= 1.8;
+                
+                this.save(); // Sauvegarde immédiate
                 this.renderInfra();
-                this.updateUI();
+                this.updateUI(); // Met à jour le HUD
                 this.toast(`${id.toUpperCase()} amélioré au niveau ${infra.level} !`);
             }
 
@@ -1252,11 +1233,15 @@
                 if(this.state.budget<0.2) return this.toast("Manque de budget !"); 
                 this.state.budget-=0.2; 
                 const p=this.state.players.find(x=>x.id===id); 
-                const gain = 1 + (this.state.infra.training.level * 0.5);
-                p.ovr += Math.round(gain); 
+                
+                // --- AMELIORATION BOOST : 1 + niveau du Centre Pro ---
+                const gain = 1 + this.state.infra.training.level;
+                p.ovr += gain; 
+                
                 this.renderTraining(); 
+                this.save(); // Sauvegarde le budget déduit et le nouvel OVR
                 this.updateUI(); 
-                this.toast(`${p.name} progresse vite !`); 
+                this.toast(`${p.name} progresse vite (+${gain} OVR) !`); 
             }
 
             renderScout() {
@@ -1270,7 +1255,10 @@
                 this.state.budget -= cost;
                 if (type === 'elite') { this.state.rareScoutUsed = true; this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 18, ovr: 81 + Math.floor(Math.random()*6), role: 'sub', energy: 100 }); }
                 else { for(let i=0; i<5; i++) { this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 17 + Math.floor(Math.random()*5), ovr: 58 + Math.floor(Math.random()*15), role: 'sub', energy: 100 }); } }
-                this.renderScout(); this.updateUI(); this.toast("Nouveau rapport scout !");
+                this.save();
+                this.renderScout(); 
+                this.updateUI(); 
+                this.toast("Nouveau rapport scout !");
             }
             recruit(id) { const idx = this.state.scoutPool.findIndex(x => x.id === id); if (idx > -1) { this.state.players.push(this.state.scoutPool.splice(idx, 1)[0]); this.renderScout(); this.save(); this.toast("Joueur intégré à l'effectif !"); } }
 
@@ -1310,23 +1298,16 @@
                 const t = document.getElementById('feedback-toast'); 
                 const msg = document.getElementById('toast-msg'); 
                 if(!t || !msg) return;
-                
                 msg.innerText = m;
                 t.classList.remove('hidden');
-                // Force layout reflow for animation
                 void t.offsetWidth;
                 t.classList.remove('opacity-0', 'translate-y-4');
                 t.classList.add('opacity-100', 'translate-y-0');
-
-                // Clear previous timeout if any
                 if(this.toastTimeout) clearTimeout(this.toastTimeout);
-                
                 this.toastTimeout = setTimeout(() => {
                     t.classList.remove('opacity-100', 'translate-y-0');
                     t.classList.add('opacity-0', 'translate-y-4');
-                    setTimeout(() => {
-                        t.classList.add('hidden');
-                    }, 500);
+                    setTimeout(() => { t.classList.add('hidden'); }, 500);
                 }, 2500);
             }
             
@@ -1381,4 +1362,5 @@
         window.onload = () => { window.app = new EliteManager(); };
     </script>
 </body>
+</html>
 </html>
