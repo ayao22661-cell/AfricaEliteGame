@@ -467,6 +467,42 @@
                 <div class="p-4 flex-1 overflow-y-auto no-scrollbar grid grid-cols-2 gap-3 content-start" id="swap-candidates-list">
                     </div>
             </div>
+            
+            <div id="preview-modal" class="absolute inset-0 z-[200] bg-slate-950/95 hidden flex flex-col backdrop-blur-xl">
+                <div class="p-6 text-center shrink-0 bg-gradient-to-b from-slate-900 to-transparent">
+                    <h2 class="font-teko text-6xl text-white uppercase italic leading-none drop-shadow-lg">Feuille de Match</h2>
+                    <div class="flex items-center justify-center gap-3 mt-1">
+                        <span class="text-orange-500 font-bold text-lg">CIV</span>
+                        <span class="text-slate-600 text-[10px] font-bold">VS</span>
+                        <span class="text-white font-bold text-lg" id="preview-opp-code">ADV</span>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto px-4 pb-32 no-scrollbar">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-slate-900/50 rounded-2xl p-2 border border-orange-500/20">
+                            <div class="text-center mb-3 border-b border-white/5 pb-2">
+                                <div class="text-[9px] text-orange-500 uppercase font-bold tracking-widest">TITULAIRES</div>
+                            </div>
+                            <div id="preview-home-list" class="space-y-1"></div>
+                        </div>
+
+                        <div class="bg-slate-900/50 rounded-2xl p-2 border border-slate-700/50">
+                             <div class="text-center mb-3 border-b border-white/5 pb-2">
+                                <div class="text-[9px] text-slate-400 uppercase font-bold tracking-widest">ADVERSAIRE</div>
+                            </div>
+                            <div id="preview-away-list" class="space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-900 border-t border-slate-800 absolute bottom-0 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                    <button onclick="app.kickOff()" class="w-full py-4 bg-white hover:bg-orange-500 hover:text-white text-slate-900 rounded-xl font-bold uppercase tracking-widest transition-all shadow-xl text-sm flex items-center justify-center gap-2">
+                        <span id="icon-play-preview"></span> DONNER LE COUP D'ENVOI
+                    </button>
+                </div>
+            </div>
+
             <!-- VUES SECONDAIRES -->
             <div id="view-training" class="view-section hidden h-full overflow-y-auto no-scrollbar">
                 <div class="p-5" id="training-content"></div>
@@ -572,29 +608,144 @@
 
         const NATIONS_DB = [
             {n: 'Côte d\'Ivoire', code: 'CIV', ovr: 85, style: 'Offensif', star: 'F. Kessié', starPos: 'MID'},
-           {n: 'Sénégal', code: 'SEN', ovr: 86, style: 'Impact', star: 'S. Mané', starPos: 'FWD', scorers: ['N. Jackson', 'I. Sarr', 'H. Diallo']},
-            {n: 'Maroc', code: 'MAR', ovr: 87, style: 'Tiki-Taka', star: 'A. Hakimi', starPos: 'DEF', scorers: ['Y. En-Nesyri', 'H. Ziyech', 'B. Diaz']},
-            {n: 'Égypte', code: 'EGY', ovr: 84, style: 'Contre', star: 'M. Salah', starPos: 'FWD', scorers: ['Trezeguet', 'M. Mohamed', 'O. Marmoush']},
-            {n: 'Nigeria', code: 'NGA', ovr: 84, style: 'Vertical', star: 'V. Osimhen', starPos: 'FWD', scorers: ['A. Lookman', 'V. Boniface', 'A. Iwobi']},
-            {n: 'Algérie', code: 'ALG', ovr: 83, style: 'Technique', star: 'R. Mahrez', starPos: 'MID', scorers: ['B. Bounedjah', 'Y. Belaïli', 'H. Aouar']},
-            {n: 'Cameroun', code: 'CMR', ovr: 82, style: 'Puissance', star: 'V. Aboubakar', starPos: 'FWD', scorers: ['K. Toko Ekambi', 'B. Mbeumo', 'Z. Anguissa']},
-            {n: 'Tunisie', code: 'TUN', ovr: 81, style: 'Bloc Bas', star: 'Y. Msakni', starPos: 'MID', scorers: ['E. Skhiri', 'H. Rafia', 'S. Jaziri']},
-            {n: 'Mali', code: 'MLI', ovr: 81, style: 'Pressing', star: 'Y. Bissouma', starPos: 'MID', scorers: ['S. Koita', 'L. Sinayoko', 'K. Doumbia']},
-            {n: 'RD Congo', code: 'RDC', ovr: 79, style: 'Dribbles', star: 'C. Mbemba', starPos: 'DEF', scorers: ['Y. Wissa', 'C. Bakambu', 'G. Kakuta']},
-            {n: 'Burkina Faso', code: 'BFA', ovr: 79, style: 'Vitesse', star: 'E. Tapsoba', starPos: 'DEF', scorers: ['B. Traoré', 'D. Ouattara', 'I. Kaboré']},
-            {n: 'Afrique du Sud', code: 'RSA', ovr: 78, style: 'Collectif', star: 'P. Tau', starPos: 'FWD', scorers: ['T. Zwane', 'L. Foster', 'T. Mokoena']},
-            {n: 'Ghana', code: 'GHA', ovr: 78, style: 'Impact', star: 'M. Kudus', starPos: 'MID', scorers: ['I. Williams', 'J. Ayew', 'A. Semenyo']},
-            {n: 'Guinée', code: 'GUI', ovr: 77, style: 'Créativité', star: 'S. Guirassy', starPos: 'FWD', scorers: ['M. Bayo', 'N. Keita', 'A. Camara']},
-            {n: 'Cap-Vert', code: 'CPV', ovr: 76, style: 'Transition', star: 'R. Mendes', starPos: 'FWD', scorers: ['Bébé', 'J. Cabral', 'G. Rodrigues']},
-            {n: 'Angola', code: 'ANG', ovr: 76, style: 'Bloc Bas', star: 'G. Dala', starPos: 'FWD', scorers: ['Mabululu', 'Fredy', 'Zini']},
-            {n: 'Zambie', code: 'ZAM', ovr: 73, style: 'Vitesse', star: 'P. Daka', starPos: 'FWD', scorers: ['F. Sakala', 'K. Kangwa', 'L. Banda']},
-            {n: 'Guinée Eq.', code: 'GNQ', ovr: 75, style: 'Explosivité', star: 'E. Nsue', starPos: 'FWD', scorers: ['I. Salvador', 'P. Ganet', 'J. Miranda']},
-            {n: 'Mauritanie', code: 'MTN', ovr: 73, style: 'Lutte', star: 'A. Kamara', starPos: 'FWD', scorers: ['H. Tanjy', 'P. Ba', 'I. Thiam']},
-            {n: 'Ouganda', code: 'UGA', ovr: 71, style: 'Direct', star: 'F. Miya', starPos: 'MID', scorers: ['E. Okwi', 'M. Bayo', 'K. Aucho']},
-            {n: 'Gambie', code: 'GAM', ovr: 72, style: 'Défensif', star: 'M. Barrow', starPos: 'FWD', scorers: ['A. Jallow', 'E. Colley', 'A. Ceesay']},
-            {n: 'Namibie', code: 'NAM', ovr: 71, style: 'Solidité', star: 'P. Shalulile', starPos: 'FWD', scorers: ['D. Hotto', 'P. Tjiueza', 'A. Iimbondi']},
-            {n: 'Tanzanie', code: 'TAN', ovr: 70, style: 'Courage', star: 'M. Samatta', starPos: 'FWD', scorers: ['S. Msuva', 'F. Salum', 'N. Miroshi']},
-            {n: 'Mozambique', code: 'MOZ', ovr: 70, style: 'Vitesse', star: 'G. Catamo', starPos: 'MID', scorers: ['Witi', 'Clésio', 'Stanley Ratifo']}
+          {
+                n: 'Sénégal', code: 'SEN', ovr: 86, style: 'Impact', 
+                star: 'S. Mané', starPos: 'FWD', 
+                topDef: 'K. Koulibaly', topMid: 'P.M. Sarr', topAtt: 'S. Mané',
+                scorers: ['N. Jackson', 'I. Sarr', 'H. Diallo']
+            },
+            {
+                n: 'Maroc', code: 'MAR', ovr: 87, style: 'Tiki-Taka', 
+                star: 'A. Hakimi', starPos: 'DEF', 
+                topDef: 'A. Hakimi', topMid: 'S. Amrabat', topAtt: 'Y. En-Nesyri',
+                scorers: ['Y. En-Nesyri', 'H. Ziyech', 'B. Diaz']
+            },
+            {
+                n: 'Égypte', code: 'EGY', ovr: 84, style: 'Contre', 
+                star: 'M. Salah', starPos: 'FWD', 
+                topDef: 'A. Hegazi', topMid: 'M. Elneny', topAtt: 'M. Salah',
+                scorers: ['Trezeguet', 'M. Mohamed', 'O. Marmoush']
+            },
+            {
+                n: 'Nigeria', code: 'NGA', ovr: 84, style: 'Vertical', 
+                star: 'V. Osimhen', starPos: 'FWD', 
+                topDef: 'W. Troost-Ekong', topMid: 'A. Iwobi', topAtt: 'V. Osimhen',
+                scorers: ['A. Lookman', 'V. Boniface', 'A. Iwobi']
+            },
+            {
+                n: 'Algérie', code: 'ALG', ovr: 83, style: 'Technique', 
+                star: 'R. Mahrez', starPos: 'MID', 
+                topDef: 'A. Mandi', topMid: 'I. Bennacer', topAtt: 'R. Mahrez',
+                scorers: ['B. Bounedjah', 'Y. Belaïli', 'H. Aouar']
+            },
+            {
+                n: 'Cameroun', code: 'CMR', ovr: 82, style: 'Puissance', 
+                star: 'V. Aboubakar', starPos: 'FWD', 
+                topDef: 'Castelletto', topMid: 'Z. Anguissa', topAtt: 'V. Aboubakar',
+                scorers: ['K. Toko Ekambi', 'B. Mbeumo', 'Z. Anguissa']
+            },
+            {
+                n: 'Tunisie', code: 'TUN', ovr: 81, style: 'Bloc Bas', 
+                star: 'Y. Msakni', starPos: 'MID', 
+                topDef: 'M. Talbi', topMid: 'E. Skhiri', topAtt: 'Y. Msakni',
+                scorers: ['E. Skhiri', 'H. Rafia', 'S. Jaziri']
+            },
+            {
+                n: 'Mali', code: 'MLI', ovr: 81, style: 'Pressing', 
+                star: 'Y. Bissouma', starPos: 'MID', 
+                topDef: 'H. Traoré', topMid: 'Y. Bissouma', topAtt: 'L. Sinayoko',
+                scorers: ['S. Koita', 'L. Sinayoko', 'K. Doumbia']
+            },
+            {
+                n: 'RD Congo', code: 'RDC', ovr: 79, style: 'Dribbles', 
+                star: 'C. Mbemba', starPos: 'DEF', 
+                topDef: 'C. Mbemba', topMid: 'S. Moutoussamy', topAtt: 'Y. Wissa',
+                scorers: ['Y. Wissa', 'C. Bakambu', 'G. Kakuta']
+            },
+            {
+                n: 'Burkina Faso', code: 'BFA', ovr: 79, style: 'Vitesse', 
+                star: 'E. Tapsoba', starPos: 'DEF', 
+                topDef: 'E. Tapsoba', topMid: 'B. Touré', topAtt: 'B. Traoré',
+                scorers: ['B. Traoré', 'D. Ouattara', 'I. Kaboré']
+            },
+            {
+                n: 'Ghana', code: 'GHA', ovr: 78, style: 'Impact', 
+                star: 'M. Kudus', starPos: 'MID', 
+                topDef: 'M. Salisu', topMid: 'M. Kudus', topAtt: 'I. Williams',
+                scorers: ['I. Williams', 'J. Ayew', 'A. Semenyo']
+            },
+            {
+                n: 'Afrique du Sud', code: 'RSA', ovr: 78, style: 'Collectif', 
+                star: 'P. Tau', starPos: 'FWD', 
+                topDef: 'Mvala', topMid: 'T. Mokoena', topAtt: 'P. Tau',
+                scorers: ['T. Zwane', 'L. Foster', 'T. Mokoena']
+            },
+            {
+                n: 'Guinée', code: 'GUI', ovr: 77, style: 'Créativité', 
+                star: 'S. Guirassy', starPos: 'FWD', 
+                topDef: 'M. Diakhaby', topMid: 'N. Keita', topAtt: 'S. Guirassy',
+                scorers: ['M. Bayo', 'N. Keita', 'A. Camara']
+            },
+            {
+                n: 'Cap-Vert', code: 'CPV', ovr: 76, style: 'Transition', 
+                star: 'R. Mendes', starPos: 'FWD', 
+                topDef: 'Logan Costa', topMid: 'J. Monteiro', topAtt: 'R. Mendes',
+                scorers: ['Bébé', 'J. Cabral', 'G. Rodrigues']
+            },
+            {
+                n: 'Angola', code: 'ANG', ovr: 76, style: 'Bloc Bas', 
+                star: 'G. Dala', starPos: 'FWD', 
+                topDef: 'K. Gaspar', topMid: 'Fredy', topAtt: 'G. Dala',
+                scorers: ['Mabululu', 'Fredy', 'Zini']
+            },
+            {
+                n: 'Zambie', code: 'ZAM', ovr: 73, style: 'Vitesse', 
+                star: 'P. Daka', starPos: 'FWD', 
+                topDef: 'Sunzu', topMid: 'K. Kangwa', topAtt: 'P. Daka',
+                scorers: ['F. Sakala', 'K. Kangwa', 'L. Banda']
+            },
+            {
+                n: 'Guinée Eq.', code: 'GNQ', ovr: 75, style: 'Explosivité', 
+                star: 'E. Nsue', starPos: 'FWD', 
+                topDef: 'S. Coco', topMid: 'P. Ganet', topAtt: 'E. Nsue',
+                scorers: ['I. Salvador', 'P. Ganet', 'J. Miranda']
+            },
+            {
+                n: 'Mauritanie', code: 'MTN', ovr: 73, style: 'Lutte', 
+                star: 'A. Kamara', starPos: 'FWD', 
+                topDef: 'L. Ba', topMid: 'G. Fofana', topAtt: 'A. Kamara',
+                scorers: ['H. Tanjy', 'P. Ba', 'I. Thiam']
+            },
+            {
+                n: 'Gambie', code: 'GAM', ovr: 72, style: 'Défensif', 
+                star: 'M. Barrow', starPos: 'FWD', 
+                topDef: 'O. Colley', topMid: 'A. Jallow', topAtt: 'M. Barrow',
+                scorers: ['A. Jallow', 'E. Colley', 'A. Ceesay']
+            },
+            {
+                n: 'Namibie', code: 'NAM', ovr: 71, style: 'Solidité', 
+                star: 'P. Shalulile', starPos: 'FWD', 
+                topDef: 'L. Haukongo', topMid: 'P. Tjiueza', topAtt: 'P. Shalulile',
+                scorers: ['D. Hotto', 'P. Tjiueza', 'A. Iimbondi']
+            },
+            {
+                n: 'Tanzanie', code: 'TAN', ovr: 70, style: 'Courage', 
+                star: 'M. Samatta', starPos: 'FWD', 
+                topDef: 'I. Hamad', topMid: 'N. Miroshi', topAtt: 'M. Samatta',
+                scorers: ['S. Msuva', 'F. Salum', 'N. Miroshi']
+            },
+            {
+                n: 'Mozambique', code: 'MOZ', ovr: 70, style: 'Vitesse', 
+                star: 'G. Catamo', starPos: 'MID', 
+                topDef: 'Reinildo', topMid: 'G. Catamo', topAtt: 'Witi',
+                scorers: ['Witi', 'Clésio', 'Stanley Ratifo']
+            },
+            {
+                n: 'Ouganda', code: 'UGA', ovr: 71, style: 'Direct', 
+                star: 'F. Miya', starPos: 'MID', 
+                topDef: 'H. Lwaliwa', topMid: 'K. Aucho', topAtt: 'F. Miya',
+                scorers: ['E. Okwi', 'M. Bayo', 'K. Aucho']
+            }
         ];
 
         const INITIAL_PLAYERS = [
@@ -1005,31 +1156,163 @@
                 } else { return this.state.knockout[this.state.stage] || this.state.standings['Sénégal']; }
             }
 
-            startMatch() {
-                if (this.state.players.filter(p => p.role === 'starter').length < 11) return this.toast("11 joueurs requis !");
+            generateOpponent11(opp) {
+                const squad = [];
+                const formations = ['4-3-3', '4-4-2', '3-5-2'];
+                const form = formations[Math.floor(Math.random() * formations.length)];
+                
+                // Structure basique par ligne selon la formation
+                let structure = { GK: 1, DEF: 4, MID: 3, FWD: 3 }; 
+                if (form === '4-4-2') structure = { GK: 1, DEF: 4, MID: 4, FWD: 2 };
+                if (form === '3-5-2') structure = { GK: 1, DEF: 3, MID: 5, FWD: 2 };
+
+                // Fonction pour créer un joueur IA
+                const makePlayer = (pos, isStar = false, starName = null) => {
+                    let ovr = opp.ovr + (Math.floor(Math.random() * 6) - 3); // OVR varié
+                    if (isStar) ovr += 3; // Les stars sont plus fortes
+                    return {
+                        name: starName || this.generateRealName(),
+                        pos: pos,
+                        ovr: ovr,
+                        isStar: isStar
+                    };
+                };
+
+                // 1. On identifie les stars réelles à placer
+                const keyPlayers = [
+                    { name: opp.star, pos: opp.starPos },
+                    { name: opp.topDef, pos: 'DEF' },
+                    { name: opp.topMid, pos: 'MID' },
+                    { name: opp.topAtt, pos: 'FWD' }
+                ];
+                
+                // Dédoublonnage (ex: si la Star est aussi le Top Attaquant)
+                const uniqueKeys = [];
+                const seenNames = new Set();
+                keyPlayers.forEach(p => {
+                    if(!seenNames.has(p.name)) {
+                        uniqueKeys.push(p);
+                        seenNames.add(p.name);
+                    }
+                });
+
+                // 2. Remplissage de l'équipe
+                squad.push(makePlayer('GK')); structure.GK--; // Gardien
+
+                // Placement des Stars
+                uniqueKeys.forEach(key => {
+                    if (structure[key.pos] > 0) {
+                        squad.push(makePlayer(key.pos, true, key.name));
+                        structure[key.pos]--;
+                    }
+                });
+
+                // Combler les trous avec des joueurs générés
+                ['DEF', 'MID', 'FWD'].forEach(pos => {
+                    while (structure[pos] > 0) {
+                        squad.push(makePlayer(pos));
+                        structure[pos]--;
+                    }
+                });
+
+                // Tri pour l'affichage (GK - DEF - MID - FWD)
+                const order = { 'GK': 1, 'DEF': 2, 'MID': 3, 'FWD': 4 };
+                return squad.sort((a,b) => order[a.pos] - order[b.pos]);
+            }
+
+           startMatch() {
+                // 1. Vérifications
+                const starters = this.state.players.filter(p => p.role === 'starter');
+                if (starters.length < 11) return this.toast("11 joueurs requis !");
+                
                 const opp = this.getOpponent();
                 if (!opp) return this.toast("Erreur tirage.");
                 
+                // 2. Génération de l'adversaire (Le fameux Onze)
+                const oppXI = this.generateOpponent11(opp);
+                
+                // 3. Préparation des données du match (SANS lancer le timer)
                 this.match = { 
-                    active: true, time: 0, score: [0, 0], opp: opp, 
-                    timer: setInterval(() => this.tick(), 1000), 
+                    active: false, // Pas encore actif !
+                    time: 0, score: [0, 0], 
+                    opp: opp, 
+                    oppSquad: oppXI,
+                    timer: null, 
                     tactic: 'bal', speechBoost: 1.0, 
                     stats: { shots: 0, shotsAway: 0 },
                     penalties: null
                 };
+
+                // 4. Remplissage de l'interface "Face-à-Face"
+                const pModal = document.getElementById('preview-modal');
+                const pHome = document.getElementById('preview-home-list');
+                const pAway = document.getElementById('preview-away-list');
+                const pCode = document.getElementById('preview-opp-code');
                 
+                if(pCode) pCode.innerText = opp.code;
+                
+                // Remplir ma liste (CIV)
+                pHome.innerHTML = '';
+                // Tri par position pour l'affichage (GK d'abord)
+                const posOrder = { 'GK': 1, 'DEF': 2, 'MID': 3, 'FWD': 4 };
+                starters.sort((a,b) => posOrder[a.pos] - posOrder[b.pos]).forEach(p => {
+                    pHome.innerHTML += `
+                        <div class="flex items-center justify-between p-2 rounded bg-slate-800/50 border border-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[8px] font-bold text-orange-500 w-5">${p.pos}</span>
+                                <span class="text-[10px] font-bold text-white truncate max-w-[80px]">${p.name.split(' ').pop()}</span>
+                            </div>
+                            <div class="font-teko text-lg text-white">${p.ovr}</div>
+                        </div>`;
+                });
+
+                // Remplir liste ADVERSAIRE
+                pAway.innerHTML = '';
+                oppXI.forEach(p => {
+                    // Design spécial pour les STARS adverses (Bordure dorée ou brillante)
+                    const isStar = p.isStar ? 'border-yellow-500/30 bg-yellow-500/10' : 'border-white/5 bg-slate-800/50';
+                    const nameColor = p.isStar ? 'text-yellow-100' : 'text-slate-300';
+                    const icon = p.isStar ? '⭐' : '';
+                    
+                    pAway.innerHTML += `
+                        <div class="flex items-center justify-between p-2 rounded border ${isStar}">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold ${nameColor} truncate max-w-[80px]">${p.name} ${icon}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-teko text-lg text-white">${p.ovr}</span>
+                                <span class="text-[8px] font-bold text-slate-500 w-5 text-right">${p.pos}</span>
+                            </div>
+                        </div>`;
+                });
+
+                // 5. Afficher le modal
+                if(pModal) pModal.classList.remove('hidden');
+            }
+
+            kickOff() {
+                // 1. Fermer le modal de preview
+                const pModal = document.getElementById('preview-modal');
+                if(pModal) pModal.classList.add('hidden');
+                
+                // 2. Activer le match (Lancement du Timer)
+                this.match.active = true;
+                this.match.timer = setInterval(() => this.tick(), 1000);
+                
+                // 3. Reset de l'interface du match
                 const sHome = document.getElementById('score-home'); if(sHome) sHome.innerText = '0';
                 const sAway = document.getElementById('score-away'); if(sAway) sAway.innerText = '0';
                 const mTimer = document.getElementById('match-timer'); if(mTimer) mTimer.innerText = '00:00';
-                const mBadge = document.getElementById('match-opp-badge'); if(mBadge) mBadge.innerText = opp.code;
-                const stHome = document.getElementById('stats-shots-home'); if(stHome) stHome.innerText = '0';
-                const stAway = document.getElementById('stats-shots-away'); if(stAway) stAway.innerText = '0';
+                const mBadge = document.getElementById('match-opp-badge'); if(mBadge) mBadge.innerText = this.match.opp.code;
                 
                 const cLog = document.getElementById('commentary-log'); if(cLog) cLog.innerHTML = '';
                 const htO = document.getElementById('ht-overlay'); if(htO) htO.classList.remove('active');
                 
+                // 4. Aller à la vue match
                 this.goToView('match');
                 this.updateMatchInstructionsUI();
+                
+                this.addCommentary(` COUP D'ENVOI ! La Côte d'Ivoire affronte le ${this.match.opp.n}.`);
             }
 
             tick() {
@@ -1778,4 +2061,5 @@
 </body>
 
 </html>
+
 
