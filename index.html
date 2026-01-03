@@ -1113,7 +1113,7 @@
                 if(bDisplay) bDisplay.innerText = this.state.budget.toFixed(1) + " M€";
                 if(xDisplay) xDisplay.innerText = this.state.teamXP + " XP";
                 if(hSubtitle) hSubtitle.innerText = "SAISON " + this.state.year;
-                if(xBar) xBar.style.width = Math.min(100, (this.state.teamXP / 5000) * 100) + "%";
+                if(xBar) xBar.style.width = Math.min(100, (this.state.teamXP / 25000) * 100) + "%";
                 
                 this.injectIcons();
             }
@@ -1566,7 +1566,7 @@
                 const earnings = baseEarnings + bonusStadium;
                 
                 this.state.budget += earnings;
-                this.state.teamXP += isWin ? 100 : (isDraw ? 40 : 10);
+                this.state.teamXP += isWin ? 30 : (isDraw ? 10 : 5);
 
                 this.updateStd(this.state.standings['Côte d\'Ivoire'], scoreHome, scoreAway);
                 this.updateStd(this.state.standings[this.match.opp.n], scoreAway, scoreHome);
@@ -1621,7 +1621,7 @@
                     }
                    else if (this.state.stage === 'finale') { 
                         // Cas où la CIV gagne la finale
-                        this.state.trophies++; this.state.budget += 25.0; this.state.teamXP += 3000;
+                        this.state.trophies++; this.state.budget += 25.0; this.state.teamXP += 1500;
                         if(!this.state.pastWinners) this.state.pastWinners = [];
                         this.state.pastWinners.push({ year: this.state.year, n: "Côte d'Ivoire" });
                         
@@ -1646,7 +1646,7 @@
                 const all16 = [...q, ...best3];
                 if (!all16.includes('Côte d\'Ivoire')) { this.simulateRest(); return; }
                 this.state.stage = '8iemes'; this.state.matchIndex = 0;
-                this.state.budget += 3.0; this.state.teamXP += 300;
+                this.state.budget += 3.0; this.state.teamXP += 100;
                 const oppN = all16.filter(n=>n!=='Côte d\'Ivoire')[Math.floor(Math.random()*(all16.length-1))];
                 this.state.knockout['8iemes'] = this.state.standings[oppN];
                 this.toast("QUALIFIÉ POUR LES 8ÈMES !");
@@ -1656,7 +1656,7 @@
                 const ph = ['groups', '8iemes', 'quarts', 'demis', 'finale'];
                 this.state.stage = ph[ph.indexOf(this.state.stage) + 1];
                 const bonusB = { quarts: 6.0, demis: 12.0, finale: 20.0 };
-                const bonusX = { quarts: 600, demis: 1200, finale: 2000 };
+                const bonusX = { quarts: 300, demis: 600, finale: 1000 };
                 this.state.budget += bonusB[this.state.stage] || 0;
                 this.state.teamXP += bonusX[this.state.stage] || 0;
                 const r = NATIONS_DB.filter(n=>n.n!=='Côte d\'Ivoire').sort(()=>Math.random()-0.5)[0];
@@ -2303,4 +2303,5 @@
 </body>
 
 </html>
+
 
