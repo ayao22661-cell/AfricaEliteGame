@@ -333,7 +333,12 @@
                     </div>
                     <span class="text-white font-teko text-xl uppercase tracking-widest italic" id="match-ticker">Sifflet Initial...</span>
                 </div>
-                
+
+            <div class="px-4 pt-3 pb-1 bg-slate-950 shrink-0">
+                    <div id="match-assistant-msg" class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 shadow-lg">
+                        </div>
+                </div>
+
                 <div id="commentary-log" class="flex-1 overflow-y-auto space-y-2 p-6 flex flex-col h-full text-slate-400 text-[11px] no-scrollbar italic"></div>
 
                 <div class="bg-slate-900 p-4 pb-12 border-t border-slate-800 shrink-0 shadow-2xl">
@@ -950,7 +955,7 @@
             infraStadium: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><path d="M6 12v-4c0-1 1-2 2-2h8c1 0 2 1 2 2v4"/><path d="M4 18h16"/><path d="M4 12v6"/><path d="M20 12v6"/></svg>`,
             infraTraining: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M15 17a5 5 0 0 0-6 0"/></svg>`,
             infraMedical: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5h-2l-3 14H6l-3-4H2"/><path d="M12 2v4"/><path d="M12 16v3"/></svg>`,
-            
+            assistant: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400 inline-block align-middle mb-0.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>`,
             // --- ICONES STAFF ---
             briefcase: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,
             whistle: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><path d="M11 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`,
@@ -1358,8 +1363,81 @@
                 this.addCommentary(`${SVGS.mega} COUP D'ENVOI ! La Côte d'Ivoire affronte le ${this.match.opp.n}.`);
             }
 
+            updateMatchAdvice() {
+                const box = document.getElementById('match-assistant-msg');
+                if (!box) return;
+
+                const t = this.match.time;
+                const s = this.match.score;
+                const diff = s[0] - s[1]; // Positif = on gagne, Négatif = on perd
+                
+                // On récupère la possession actuelle (depuis le DOM ou le calcul)
+                const possText = document.getElementById('poss-val-home').innerText;
+                const poss = parseInt(possText) || 50;
+
+                let msg = "";
+                let urgency = "normal"; // normal, warning, critical
+
+                // --- LOGIQUE DE L'ASSISTANT ---
+
+                // 1. DÉBUT DE MATCH (0-15min)
+                if (t < 15) {
+                    msg = "Phase d'observation. Restez bien en place et faites circuler le ballon.";
+                }
+                // 2. FIN DE MATCH (80min+)
+                else if (t > 80) {
+                    if (diff === 0) {
+                        msg = "Le match nul se joue maintenant. Un exploit individuel ou on ferme la boutique ?";
+                        urgency = "warning";
+                    } else if (diff === 1) {
+                        msg = "On tient le score ! Passez en mode DÉFENSIF et gagnez du temps.";
+                        urgency = "warning";
+                    } else if (diff === -1) {
+                        msg = "C'est maintenant ou jamais ! Passez en ASSAUT TOTAL !";
+                        urgency = "critical";
+                    } else if (diff <= -2) {
+                        msg = "C'est compliqué... Essayons de sauver l'honneur au moins.";
+                    } else {
+                        msg = "Le match est plié. Gérez la fatigue des cadres.";
+                    }
+                }
+                // 3. SCÉNARIOS SPÉCIFIQUES (Reste du match)
+                else {
+                    if (poss < 40) {
+                        msg = "On court après le ballon ! Augmentez le PRESSING ou jouez en CONTRE.";
+                        urgency = "warning";
+                    } else if (poss > 65 && diff <= 0) {
+                        msg = "Possession stérile. Il faut prendre plus de risques offensifs (ASSAUT).";
+                    } else if (diff < 0) {
+                        msg = "On est menés. Ne paniquez pas, mais il faut monter le bloc d'un cran.";
+                    } else if (diff > 0) {
+                        msg = "On contrôle. Forcez-les à sortir pour les piquer en contre.";
+                    } else {
+                        msg = "Match équilibré. C'est la bataille du milieu de terrain qui décidera tout.";
+                    }
+                }
+
+                // Affichage avec couleurs dynamiques
+                const colorClass = urgency === 'critical' ? 'text-red-400' : (urgency === 'warning' ? 'text-orange-400' : 'text-blue-300');
+                
+                box.innerHTML = `
+                    <div class="flex items-start gap-3 animate-pulse-slow">
+                        <div class="mt-0.5 p-1.5 bg-slate-800 rounded-full border border-slate-600 shadow-sm shrink-0">
+                            ${SVGS.assistant}
+                        </div>
+                        <div>
+                            <div class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Conseil Adjoint</div>
+                            <div class="text-[10px] font-medium leading-tight ${colorClass} italic">"${msg}"</div>
+                        </div>
+                    </div>
+                `;
+            }
+
             tick() {
                 if (!this.match.active) return; this.match.time++;
+                if (this.match.time % 5 === 0 || this.match.time === 1) {
+                    this.updateMatchAdvice();
+                }
                 const timerEl = document.getElementById('match-timer');
                 if(timerEl) timerEl.innerText = (this.match.time < 10 ? '0' : '') + this.match.time + ":00";
                 
@@ -2320,3 +2398,4 @@
 </body>
 
 </html>
+
