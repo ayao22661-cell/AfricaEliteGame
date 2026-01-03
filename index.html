@@ -950,6 +950,11 @@
             infraStadium: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><path d="M6 12v-4c0-1 1-2 2-2h8c1 0 2 1 2 2v4"/><path d="M4 18h16"/><path d="M4 12v6"/><path d="M20 12v6"/></svg>`,
             infraTraining: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M15 17a5 5 0 0 0-6 0"/></svg>`,
             infraMedical: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5h-2l-3 14H6l-3-4H2"/><path d="M12 2v4"/><path d="M12 16v3"/></svg>`,
+            
+            // --- ICONES STAFF ---
+            briefcase: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,
+            whistle: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><path d="M11 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`,
+            heartpulse: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
 
             // --- NOUVELLES ICONES "PREMIUM" (RE-DESSINÉES) ---
             
@@ -1015,7 +1020,14 @@
                         stadium: { level: 1, cost: 10, bonus: 0.5 },
                         training: { level: 1, cost: 5, bonus: 1 },
                         medical: { level: 1, cost: 8, bonus: 5 }
+                    } ,
+
+                    staff: {
+                        director: { level: 1, salary: 2.0, name: "Directeur Sportif", desc: "Réduit les coûts de recrutement (-10%/niv)." },
+                        assistant: { level: 1, salary: 1.5, name: "Entraîneur Adjoint", desc: "Booste le gain d'XP d'équipe (+10%/niv)." },
+                        fitness: { level: 1, salary: 1.0, name: "Préparateur Physique", desc: "Remplaçants récupèrent mieux (+5%/niv)." }
                     }
+                    
                 };
             }
 
@@ -1765,6 +1777,23 @@
             }
 
             startNextSeason() {
+                 
+                // --- PAIEMENT DES SALAIRES DU STAFF ---
+                let totalSalaries = 0;
+                if (this.state.staff) {
+                    Object.values(this.state.staff).forEach(s => totalSalaries += s.salary);
+                }
+                
+                this.state.budget -= totalSalaries;
+                
+                // Si le budget est négatif, on remet à 0 mais on avertit (ou Game Over si tu veux être méchant)
+                if (this.state.budget < 0) {
+                    this.state.budget = 0;
+                    this.state.news.unshift({id: Date.now(), text: ` FAILLITE ÉVITÉE : La selection a dû être renfloué par l'État pour payer les salaires.`});
+                } else {
+                    this.state.news.unshift({id: Date.now(), text: ` FINANCES : ${totalSalaries.toFixed(1)}M€ versés pour les salaires du staff technique.`});
+                }
+
                 this.state.year += 2; this.state.seasonsPlayed++;
                 this.state.matchIndex = 0; this.state.stage = 'groups'; this.state.rareScoutUsed = false;
                 
@@ -1864,13 +1893,15 @@
                 }
             }
 
-            renderInfra() {
+           renderInfra() {
                 const list = document.getElementById('infra-list'); 
                 if(!list) return;
                 
                 list.innerHTML = '';
                 
-                // On utilise les références aux SVG définis dans la constante SVGS
+                // --- SECTION 1 : INFRASTRUCTURES (BÂTIMENTS) ---
+                list.innerHTML += `<div class="mb-4 flex items-center gap-2"><div class="h-px bg-slate-700 flex-1"></div><span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Bâtiments</span><div class="h-px bg-slate-700 flex-1"></div></div>`;
+                
                 const infras = [
                     { id: 'stadium', name: 'Stade National', desc: 'Bonus revenus match (+0.5M/niv.)', icon: SVGS.infraStadium },
                     { id: 'training', name: 'Centre Pro', desc: 'Améliore le gain OVR Boost (+1/niv.)', icon: SVGS.infraTraining },
@@ -1879,39 +1910,82 @@
 
                 infras.forEach(inf => {
                     const data = this.state.infra[inf.id];
+                    list.innerHTML += this.createUpgradeCard(inf.id, inf.name, data, inf.desc, inf.icon, 'infra');
+                });
+
+                // --- SECTION 2 : STAFF TECHNIQUE (SALAIRES) ---
+                list.innerHTML += `<div class="mt-8 mb-4 flex items-center gap-2"><div class="h-px bg-slate-700 flex-1"></div><span class="text-[10px] text-orange-500 font-bold uppercase tracking-widest">Staff & Salaires</span><div class="h-px bg-slate-700 flex-1"></div></div>`;
+
+                const staffs = [
+                    { id: 'director', icon: SVGS.briefcase },
+                    { id: 'assistant', icon: SVGS.whistle },
+                    { id: 'fitness', icon: SVGS.heartpulse }
+                ];
+
+                staffs.forEach(st => {
+                    const data = this.state.staff[st.id];
+                    // Le coût d'amélioration est unique (recrutement), le salaire est récurrent
+                    const upgradeCost = data.level * 2.5; 
                     
                     list.innerHTML += `
-                        <div class="infra-card group relative overflow-hidden transition-all duration-300 hover:bg-slate-800/80">
+                        <div class="infra-card group relative overflow-hidden transition-all duration-300 hover:bg-slate-800/80 border-l-4 border-l-blue-500">
                             <div class="flex justify-between items-start z-10 relative">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-500 shadow-xl group-hover:scale-110 group-hover:border-orange-500/50 transition-all duration-300">
-                                        ${inf.icon}
+                                    <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-blue-400 shadow-xl">
+                                        ${st.icon}
                                     </div>
                                     <div>
-                                        <div class="text-white font-bold uppercase text-xs tracking-wider font-teko text-xl leading-none">${inf.name}</div>
-                                        <div class="text-[9px] text-slate-500 uppercase font-bold mt-1">Niveau ${data.level} / 5</div>
+                                        <div class="text-white font-bold uppercase text-xs tracking-wider font-teko text-xl leading-none">${data.name}</div>
+                                        <div class="text-[9px] text-blue-400 uppercase font-bold mt-1">Niveau ${data.level} / 5</div>
                                     </div>
                                 </div>
-                                <div class="text-white font-teko text-xl font-bold bg-slate-900 px-3 py-1 rounded-lg border border-slate-700 shadow-inner text-orange-500">
-                                    ${data.cost.toFixed(1)} M€
+                                <div class="flex flex-col items-end">
+                                    <div class="text-[9px] text-slate-400 uppercase font-bold mb-0.5">Salaire / An</div>
+                                    <div class="text-white font-teko text-xl font-bold bg-slate-900 px-3 py-0.5 rounded-lg border border-red-500/30 text-red-400">
+                                        -${data.salary.toFixed(1)} M€
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="mt-4 mb-2 h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
-                                <div class="h-full bg-gradient-to-r from-orange-700 to-orange-500 transition-all duration-1000" style="width: ${(data.level/5)*100}%"></div>
-                            </div>
-
-                            <p class="text-[9px] text-slate-400 leading-tight mb-4 italic pl-1 border-l-2 border-slate-700">
-                                ${inf.desc}
+                            <p class="text-[9px] text-slate-400 leading-tight my-4 italic pl-1 border-l-2 border-slate-700">
+                                ${data.desc}
                             </p>
                             
-                            <button onclick="app.upgradeInfra('${inf.id}')" 
-                                class="w-full py-3 bg-slate-900 border border-slate-700 hover:bg-orange-600 hover:border-orange-500 hover:text-white rounded-xl text-[10px] font-bold uppercase transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 ${data.level >= 5 ? 'opacity-40 pointer-events-none grayscale' : ''}">
-                                ${data.level >= 5 ? 'Niveau Maximum Atteint' : 'Améliorer la structure'}
+                            <button onclick="app.upgradeStaff('${st.id}')" 
+                                class="w-full py-3 bg-slate-900 border border-slate-700 hover:bg-blue-600 hover:border-blue-500 hover:text-white rounded-xl text-[10px] font-bold uppercase transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 ${data.level >= 5 ? 'opacity-40 pointer-events-none grayscale' : ''}">
+                                ${data.level >= 5 ? 'Niveau Max' : `Promouvoir (Coût: ${upgradeCost.toFixed(1)} M€)`}
                             </button>
                         </div>
                     `;
                 });
+            }
+
+            // Helper pour éviter la duplication de code pour les infras
+            createUpgradeCard(id, name, data, desc, icon, type) {
+                return `
+                    <div class="infra-card group relative overflow-hidden transition-all duration-300 hover:bg-slate-800/80">
+                        <div class="flex justify-between items-start z-10 relative">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-500 shadow-xl group-hover:scale-110 transition-all duration-300">
+                                    ${icon}
+                                </div>
+                                <div>
+                                    <div class="text-white font-bold uppercase text-xs tracking-wider font-teko text-xl leading-none">${name}</div>
+                                    <div class="text-[9px] text-slate-500 uppercase font-bold mt-1">Niveau ${data.level} / 5</div>
+                                </div>
+                            </div>
+                            <div class="text-white font-teko text-xl font-bold bg-slate-900 px-3 py-1 rounded-lg border border-slate-700 shadow-inner text-orange-500">
+                                ${data.cost.toFixed(1)} M€
+                            </div>
+                        </div>
+                        <div class="mt-4 mb-2 h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
+                            <div class="h-full bg-gradient-to-r from-orange-700 to-orange-500" style="width: ${(data.level/5)*100}%"></div>
+                        </div>
+                        <p class="text-[9px] text-slate-400 leading-tight mb-4 italic pl-1 border-l-2 border-slate-700">${desc}</p>
+                        <button onclick="app.upgradeInfra('${id}')" class="w-full py-3 bg-slate-900 border border-slate-700 hover:bg-orange-600 hover:border-orange-500 hover:text-white rounded-xl text-[10px] font-bold uppercase transition-all shadow-lg active:scale-95 ${data.level >= 5 ? 'opacity-40 pointer-events-none grayscale' : ''}">
+                            ${data.level >= 5 ? 'Max' : 'Améliorer'}
+                        </button>
+                    </div>`;
             }
 
             upgradeInfra(id) {
@@ -1928,6 +2002,24 @@
                 this.updateUI(); // Met à jour le HUD
                 this.toast(`${id.toUpperCase()} amélioré au niveau ${infra.level} !`);
             }
+
+            upgradeStaff(id) {
+                const s = this.state.staff[id];
+                const cost = s.level * 2.5; // Le coût de promotion augmente
+                
+                if (this.state.budget < cost) return this.toast("Budget insuffisant pour la promotion !");
+                if (s.level >= 5) return this.toast("Niveau maximum atteint.");
+                
+                this.state.budget -= cost;
+                s.level++;
+                s.salary += 1.5; // Le salaire augmente de 1.5M par niveau ! C'est le piège :)
+                
+                this.save();
+                this.renderInfra();
+                this.updateUI();
+                this.toast(`${s.name} promu ! Salaire augmenté.`);
+            }
+
 
        renderCalendar() {
                 const c = document.getElementById('calendar-content'); 
@@ -2211,3 +2303,4 @@
 </body>
 
 </html>
+
