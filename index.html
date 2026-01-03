@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>African Elite Manager - Special CAN</title>
+    
+    <!-- Design System via Tailwind CSS intégré -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Teko:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root { 
+            --color-bg: #0f172a; 
+            --primary: #f97316; 
+            --pitch-green: #1a4d2e;
+            --pitch-line: rgba(255,255,255,0.18);
+            --secondary: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --gold: #f59e0b;
+        }
+        
+        body { 
+            background-color: #000; 
+            font-family: 'Inter', sans-serif; 
+            color: #e2e8f0; 
+            overflow: hidden; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+            font-size: 12px;
+            height: 100vh;
+            height: 100dvh;
+        }
+        
+        .font-teko { font-family: 'Teko', sans-serif; }
+        
+        #app-container { 
+            max-width: 100%; margin: 0 auto; 
+            height: 100vh;
+            height: 100dvh; 
+            background-color: var(--color-bg); 
+            position: relative; display: flex; flex-direction: column; overflow: hidden; 
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .glass-panel { 
+            background: rgba(30, 41, 59, 0.9); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+        }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- STYLES TERRAIN --- */
+        .pitch-container {
+            background-color: var(--pitch-green);
+            background-image: 
+                linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .01) 25%, rgba(255, 255, 255, .01) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .01) 75%, rgba(255, 255, 255, .01) 76%, transparent 77%),
+                linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .01) 25%, rgba(255, 255, 255, .01) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .01) 75%, rgba(255, 255, 255, .01) 76%, transparent 77%);
+            background-size: 30px 30px;
+            position: relative; 
+            height: 480px; width: 340px;
+            border-radius: 12px; margin: 10px auto; overflow: hidden; 
+            border: 4px solid #14532d; 
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+            flex-shrink: 0;
+        }
+
+        .pitch-midline { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: var(--pitch-line); }
+        .pitch-circle { position: absolute; top: 50%; left: 50%; width: 80px; height: 80px; border: 1px solid var(--pitch-line); border-radius: 50%; transform: translate(-50%, -50%); }
+
+        .player-card {
+            position: absolute; width: 50px; height: 78px; 
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer; z-index: 20;
+            overflow: hidden;
+        }
+        .player-card.malus { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6); }
+        .card-ovr { font-family: 'Teko', sans-serif; font-size: 20px; font-weight: 700; color: #f97316; line-height: 1; }
+        .card-pos { font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: -1px; }
+        .card-age { font-size: 6px; color: #475569; font-weight: 700; margin-bottom: 1px; }
+        .card-energy { width: 75%; height: 2px; background: #334155; border-radius: 1px; margin-top: 2px; position: relative; overflow: hidden; }
+        .energy-fill { height: 100%; transition: width 0.3s; }
+        
+        .card-name { 
+            width: 100%; background: rgba(0,0,0,0.85); 
+            padding: 2px 0; text-align: center; font-size: 7px; 
+            font-weight: 600; color: white; margin-top: auto; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .bench-item {
+            min-width: 110px; height: 55px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 10px;
+            display: flex; align-items: center; gap: 12px;
+            flex-shrink: 0; cursor: pointer; transition: 0.2s;
+        }
+
+        /* --- STYLES INFRASTRUCTURES --- */
+        .infra-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px; padding: 15px;
+            display: flex; flex-direction: column; gap: 8px;
+            transition: 0.3s;
+        }
+        .infra-card:hover { background: rgba(30, 41, 59, 0.8); border-color: var(--primary); }
+
+        /* --- SCROLLING TACTIQUE LIVE --- */
+        #live-coach-overlay {
+            position: absolute; inset: 0; z-index: 150;
+            background: rgba(15, 23, 42, 0.99);
+            backdrop-filter: blur(25px);
+            display: none; flex-direction: column;
+            overflow-y: auto;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        #live-coach-overlay.active { display: flex; }
+
+        #ht-overlay {
+            position: absolute; inset: 0; z-index: 180;
+            background: rgba(0,0,0,0.95);
+            display: none; align-items: center; justify-content: center; flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+        #ht-overlay.active { display: flex; }
+
+        .speech-btn {
+            width: 100%; padding: 16px; border-radius: 12px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: white; font-weight: bold; text-transform: uppercase; transition: 0.3s;
+        }
+        .speech-btn:hover { background: var(--primary); transform: scale(1.02); }
+
+        .btn-nav.active { color: #f97316; border-top: 2px solid #f97316; background: rgba(249, 115, 22, 0.05); }
+        .instruction-btn.active { background-color: #f97316; color: white; border-color: #fb923c; }
+
+        .news-item { padding: 14px; background: rgba(30, 41, 59, 0.4); border-radius: 10px; border-left: 4px solid #f97316; margin-bottom: 10px; font-size: 11px; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+        #goal-overlay { position: absolute; inset: 0; z-index: 300; display: none; align-items: center; justify-content: center; flex-direction: column; background: rgba(0,0,0,0.85); pointer-events: none; }
+        #goal-overlay.active { display: flex; }
+
+        .stat-badge { background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 10px; color: #94a3b8; }
+        
+        .tab-btn { padding: 8px 16px; border-bottom: 2px solid transparent; color: #64748b; font-weight: bold; font-size: 10px; text-transform: uppercase; transition: 0.3s; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* Correction Barre de Navigation Mobile */
+        nav {
+            padding-bottom: env(safe-area-inset-bottom);
+            height: calc(4rem + env(safe-area-inset-bottom)) !important;
+        }
+        
+        /* Ajustement des zones de contenu pour ne pas être cachées par la nav */
+        .view-section {
+            padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important;
+        }
+    </style>
+</head>
+
+<body class="text-slate-200">
+
+    <div id="app-container">
+        
+        <!-- HEADER -->
+        <header class="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 z-50 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-700 rounded-lg flex items-center justify-center border-2 border-slate-700 text-white font-teko font-bold text-xl shadow-lg italic">CIV</div>
+                <div class="flex flex-col">
+<span id="header-manager-name" class="text-[10px] text-orange-500 font-bold uppercase tracking-widest leading-none">MANAGER INCONNU</span>
+                    <span class="text-xs font-bold text-white leading-tight" id="header-subtitle">SAISON 2026</span>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <div class="px-3 py-1 bg-slate-800 rounded-lg border border-slate-700 flex items-center gap-2">
+                    <span id="icon-coins-head"></span>
+                    <span class="font-teko text-lg text-yellow-100" id="budget-display">15.0 M€</span>
+                </div>
+                <button onclick="app.resetGame()" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg border border-slate-700 text-slate-400" id="icon-refresh-head"></button>
+            </div>
+        </header>
+    
+        <main id="main-content" class="flex-1 relative overflow-hidden">
+            
+            <!-- VUE : INBOX -->
+            <div id="view-inbox" class="view-section flex flex-col h-full overflow-y-auto no-scrollbar">
+                <div class="relative p-6 bg-slate-800 border-b border-slate-800 shadow-xl">
+                    <h2 class="font-teko text-7xl text-white mb-0 uppercase tracking-tighter italic leading-none">Elite Bureau</h2>
+                    <div class="flex items-center gap-4 text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">
+                        <span id="dash-date">2026</span> • <span id="dash-stage">POULES</span>
+                    </div>
+                </div>
+
+                <div class="p-4 space-y-4">
+                    <!-- PROGRESSION NATIONALE -->
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-700/50 bg-slate-900/40 shadow-lg">
+                         <div class="flex justify-between items-center mb-2">
+                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Prestige de la Nation</span>
+                             <span class="text-[11px] text-orange-500 font-mono font-bold" id="team-xp-display">0 XP</span>
+                         </div>
+                         <div class="w-full h-2 bg-black/40 rounded-full overflow-hidden">
+                             <div id="xp-bar-fill" class="h-full bg-gradient-to-r from-orange-500 to-orange-300 transition-all duration-700" style="width: 0%"></div>
+                         </div>
+                    </div>
+
+                    <!-- ANALYSE ADVERSAIRE -->
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-700/50 bg-slate-900/40">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2 bg-blue-500/10 rounded-lg" id="icon-radar-dash"></div>
+                            <h3 class="font-teko text-2xl text-white uppercase tracking-tight leading-none">Rapport de l'Analyste</h3>
+                        </div>
+                        <div id="opponent-analysis-box" class="grid grid-cols-2 gap-4"></div>
+                    </div>
+
+                    <!-- MATCH SUIVANT -->
+                    <div class="glass-panel p-0 rounded-xl overflow-hidden border border-slate-700/50 shadow-2xl">
+                        <div class="p-8 flex items-center gap-4 bg-slate-900/60">
+                            <div class="flex-1 text-center">
+                                <div class="w-16 h-16 mx-auto bg-orange-600 rounded-xl flex items-center justify-center text-white font-teko font-bold text-3xl border-2 border-white/20 shadow-xl italic">CIV</div>
+                            </div>
+                            <div class="shrink-0 font-teko text-5xl text-white italic opacity-20">VS</div>
+                            <div class="flex-1 text-center">
+                                <div id="next-opp-badge" class="w-16 h-16 mx-auto bg-slate-700 rounded-xl flex items-center justify-center text-white font-teko font-bold text-3xl border-2 border-white/20 shadow-xl italic">?</div>
+                                <div id="next-opp-name" class="text-[9px] font-bold mt-2 text-slate-400 uppercase tracking-widest leading-none">ADVERSAIRE</div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-slate-800/80 border-t border-slate-700/50">
+                            <button onclick="app.startMatch()" class="w-full py-5 bg-white text-slate-900 rounded-2xl text-xs font-bold uppercase flex items-center justify-center gap-2 active:scale-95 transition shadow-xl">
+                                <span id="icon-play-main"></span> JOUER LE MATCH
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center px-1">
+                        <h3 class="font-teko text-2xl text-white uppercase tracking-widest">Gazette Africaine</h3>
+                        <button onclick="app.clearNews()" class="text-[9px] text-slate-500 uppercase font-bold border border-slate-800 px-3 py-1 rounded-full">Effacer</button>
+                    </div>
+                    <div id="news-feed" class="space-y-2 pb-20"></div>
+                </div>
+            </div>
+    
+            <!-- VUE : TACTIQUE -->
+            <div id="view-squad" class="view-section hidden flex flex-col h-full bg-slate-900 absolute inset-0 z-10 overflow-y-auto no-scrollbar">
+                <div class="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-40 shadow-2xl">
+                    <div class="flex justify-between items-center mb-4 px-1">
+                        <button onclick="app.autoPick()" class="px-4 py-2 bg-blue-600 rounded-xl text-[10px] font-bold text-white uppercase flex items-center gap-2"><span id="icon-zap-mini"></span> Composition Auto.</button>
+                        <div id="squad-avg-ovr" class="text-white text-3xl font-teko font-bold">--</div>
+                    </div>
+                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                        <button onclick="app.setFormation('4-3-3')" class="px-5 py-2 rounded-xl text-[10px] font-bold bg-slate-800 border border-slate-700 shrink-0">4-3-3</button>
+                        <button onclick="app.setFormation('4-4-2')" class="px-5 py-2 rounded-xl text-[10px] font-bold bg-slate-800 border border-slate-700 shrink-0">4-4-2</button>
+                        <button onclick="app.setFormation('3-5-2')" class="px-5 py-2 rounded-xl text-[10px] font-bold bg-slate-800 border border-slate-700 shrink-0">3-5-2</button>
+                        <button onclick="app.setFormation('4-2-3-1')" class="px-5 py-2 rounded-xl text-[10px] font-bold bg-slate-800 border border-slate-700 shrink-0">4-2-3-1</button>
+                        <button onclick="app.setFormation('4-1-4-1')" class="px-5 py-2 rounded-xl text-[10px] font-bold bg-slate-800 border border-slate-700 shrink-0">4-1-4-1</button>
+                        <button onclick="app.setFormation('5-4-1')" class="px-5 py-2 rounded-xl text-[10px] font-bold bg-slate-800 border border-slate-700 shrink-0">5-4-1</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 mt-2 border-t border-slate-800 pt-4">
+                        <div class="flex flex-col gap-1">
+                             <span class="text-[9px] font-bold text-slate-500 uppercase ml-1">Style Tactique</span>
+                             <div class="flex gap-1">
+                                <button onclick="app.setTacticalInstruction('style', 'possession')" id="inst-style-possession" class="instruction-btn flex-1 py-2 rounded-lg bg-slate-800 border border-slate-700 text-[9px] font-bold uppercase transition">Possession</button>
+                                <button onclick="app.setTacticalInstruction('style', 'counter')" id="inst-style-counter" class="instruction-btn flex-1 py-2 rounded-lg bg-slate-800 border border-slate-700 text-[9px] font-bold uppercase transition">Contre</button>
+                             </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                             <span class="text-[9px] font-bold text-slate-500 uppercase ml-1">Intensité Pressing</span>
+                             <div class="flex gap-1">
+                                <button onclick="app.setTacticalInstruction('pressing', 'high')" id="inst-pressing-high" class="instruction-btn flex-1 py-2 rounded-lg bg-slate-800 border border-slate-700 text-[9px] font-bold uppercase transition">Haut</button>
+                                <button onclick="app.setTacticalInstruction('pressing', 'normal')" id="inst-pressing-normal" class="instruction-btn flex-1 py-2 rounded-lg bg-slate-800 border border-slate-700 text-[9px] font-bold uppercase transition">Normal</button>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-shrink-0 relative py-8">
+                    <div class="pitch-container" id="pitch-main">
+                        <div class="pitch-midline"></div><div class="pitch-circle"></div>
+                        <div id="pitch-cards-layer"></div>
+                    </div>
+                </div>
+
+                <div class="px-4 mt-4 pb-20">
+                    <div class="flex justify-between items-center py-2 border-b border-slate-800 mb-4">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Effectif & Réserve</span>
+                        <span id="bench-count" class="text-[10px] text-slate-500 font-mono">0/20</span>
+                    </div>
+                    <div id="bench-list-container" class="flex flex-wrap gap-2 justify-center pb-20"></div>
+                </div>
+            </div>
+
+            <!-- VUE : MATCH LIVE -->
+            <div id="view-match" class="view-section hidden absolute inset-0 z-[60] flex flex-col bg-slate-950">
+                <div class="bg-slate-900 border-b border-slate-800 p-3 shrink-0">
+                    <div class="flex justify-between items-center bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-inner">
+                        <div class="flex items-center gap-3 w-1/3">
+                            <div class="w-10 h-10 rounded-lg bg-orange-600 flex items-center justify-center font-teko font-bold text-2xl text-white italic shadow-lg">CIV</div>
+                            <span class="font-teko text-6xl text-white" id="score-home">0</span>
+                        </div>
+                        <div class="flex flex-col items-center w-1/3">
+                            <div class="bg-black/80 px-6 py-2 rounded-full text-orange-500 font-mono text-xl font-bold border border-orange-500/20 shadow-xl" id="match-timer">00:00</div>
+                        </div>
+                        <div class="flex items-center justify-end gap-3 w-1/3">
+                            <span class="font-teko text-6xl text-white" id="score-away">0</span>
+                            <div id="match-opp-badge" class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center font-teko font-bold text-2xl text-white italic shadow-lg">?</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="h-16 bg-green-950 flex flex-col items-center justify-center relative shrink-0 border-b border-white/5 shadow-inner">
+                    <div class="w-full h-1.5 bg-black/40 absolute top-0 flex items-center">
+                        <div id="possession-home-bar" class="h-full bg-gradient-to-r from-orange-600 to-orange-400 transition-all duration-1000" style="width: 50%"></div>
+                    </div>
+                    <div class="flex justify-between w-full px-5 text-[9px] font-bold text-white/50 mb-1">
+                        <div class="flex items-center gap-2">
+                           <span id="poss-val-home">50%</span>
+                           <span class="stat-badge">Tirs: <span id="stats-shots-home" class="text-white">0</span></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                           <span class="stat-badge">Tirs: <span id="stats-shots-away" class="text-white">0</span></span>
+                           <span id="poss-val-away">50%</span>
+                        </div>
+                    </div>
+                    <span class="text-white font-teko text-xl uppercase tracking-widest italic" id="match-ticker">Sifflet Initial...</span>
+                </div>
+                
+                <div id="commentary-log" class="flex-1 overflow-y-auto space-y-2 p-6 flex flex-col h-full text-slate-400 text-[11px] no-scrollbar italic"></div>
+
+                <div class="bg-slate-900 p-4 pb-12 border-t border-slate-800 shrink-0 shadow-2xl">
+                    <button onclick="app.toggleLiveCoaching()" class="w-full bg-blue-600 text-white py-4 rounded-xl text-[10px] font-bold mb-4 uppercase shadow-xl flex items-center justify-center gap-2 active:scale-95 transition">
+                        <span id="icon-repeat-match"></span> Stratégie en Direct
+                    </button>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="app.setMatchTactic('def')" id="tac-def" class="py-3 bg-slate-800 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase transition">VERROU</button>
+                        <button onclick="app.setMatchTactic('bal')" id="tac-bal" class="py-3 bg-slate-700 border border-orange-500 rounded-xl text-[10px] font-bold text-white shadow-lg uppercase transition">ÉQUILIBRE</button>
+                        <button onclick="app.setMatchTactic('att')" id="tac-att" class="py-3 bg-slate-800 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase transition">ASSAUT</button>
+                    </div>
+                </div>
+
+                <!-- OVERLAY COACHING MATCH -->
+                <div id="live-coach-overlay">
+                    <div class="flex-shrink-0 p-4 border-b border-white/5 bg-slate-900 sticky top-0 z-[210]">
+                        <div class="flex justify-between items-center">
+                            <div class="flex flex-col">
+                                 <h3 class="font-teko text-5xl text-white uppercase tracking-tighter leading-none italic">Coaching Direct</h3>
+                                 <span class="text-[10px] text-orange-500 font-bold uppercase tracking-widest">Ajustements tactiques</span>
+                            </div>
+                            <button onclick="app.toggleLiveCoaching()" class="w-12 h-12 flex items-center justify-center bg-slate-800 rounded-full text-white font-bold text-2xl shadow-xl">X</button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <div class="grid grid-cols-2 gap-3 mb-8 px-2">
+                            <div class="flex flex-col gap-1">
+                                 <span class="text-[9px] font-bold text-slate-500 uppercase ml-1">Style Actuel</span>
+                                 <button onclick="app.toggleMatchInstruction('style')" id="live-inst-style" class="py-4 rounded-xl bg-orange-600 text-white border border-orange-400 text-[11px] font-bold uppercase shadow-lg">POSSESSION</button>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                 <span class="text-[9px] font-bold text-slate-500 uppercase ml-1">Intensité Pressing</span>
+                                 <button onclick="app.toggleMatchInstruction('pressing')" id="live-inst-pressing" class="py-4 rounded-xl bg-slate-800 border border-slate-700 text-white text-[11px] font-bold uppercase shadow-lg">NORMAL</button>
+                            </div>
+                        </div>
+
+                        <div class="pitch-container scale-[0.9] origin-top mx-auto shadow-2xl mb-24">
+                             <div id="pitch-cards-layer-live"></div>
+                        </div>
+                        
+                        <div class="h-40"></div>
+                    </div>
+                </div>
+
+                <!-- HT OVERLAY -->
+                <div id="ht-overlay">
+                    <div class="glass-panel p-10 rounded-[50px] text-center max-w-sm w-full mx-6 shadow-2xl border border-white/10">
+                        <span id="icon-mic-ht"></span>
+                        <h2 class="font-teko text-7xl text-white mb-2 leading-none uppercase italic mt-4">La Causerie</h2>
+                        <p class="text-[10px] text-slate-400 mb-10 tracking-widest uppercase">Mots justes, moral d'acier.</p>
+                        <div class="flex flex-col gap-4">
+                            <button onclick="app.giveSpeech('motivate')" class="speech-btn">Motiver les troupes (+5% Force)</button>
+                            <button onclick="app.giveSpeech('shake')" class="speech-btn text-red-400 border-red-500/20">Secouer le groupe (+15% Risqué)</button>
+                            <button onclick="app.giveSpeech('calm')" class="speech-btn text-blue-400 border-blue-500/20">Tactique de zone (+10% Mental)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="goal-overlay">
+                    <h1 class="font-teko text-[130px] text-white italic animate-bounce leading-none">BUT !!!</h1>
+                    <p class="font-teko text-5xl text-orange-500 uppercase tracking-tighter" id="goal-scorer-name"></p>
+                </div>
+                
+                <div id="end-modal" class="absolute inset-0 z-[250] bg-black/98 flex items-center justify-center hidden p-8 backdrop-blur-3xl">
+                    <div class="text-center w-full max-w-sm bg-slate-900 border border-slate-700 p-12 rounded-[40px] shadow-2xl">
+                        <h2 class="font-teko text-7xl text-white mb-2 uppercase leading-none italic" id="end-title">Résultat</h2>
+                        <div class="text-6xl font-bold text-orange-500 mb-10 font-mono tracking-tighter" id="end-score-display">0-0</div>
+                        <button onclick="app.closeEndModal()" class="w-full py-6 bg-white text-slate-900 font-bold rounded-2xl uppercase shadow-2xl">Continuer</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL DE SWAP -->
+            <div id="swap-modal" class="absolute inset-0 z-[300] bg-slate-950 hidden flex flex-col">
+                <div class="p-6 bg-slate-900 border-b border-slate-800 flex justify-between items-center shadow-2xl">
+                    <h3 class="font-teko text-4xl text-white uppercase leading-none italic">Remplacement</h3>
+                    <button onclick="app.closeSwapModal()" class="w-12 h-12 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 shadow-xl">X</button>
+                </div>
+                <div class="p-6 flex-1 overflow-y-auto no-scrollbar space-y-3 bg-slate-950" id="swap-candidates-list"></div>
+            </div>
+
+            <!-- VUES SECONDAIRES -->
+            <div id="view-training" class="view-section hidden h-full overflow-y-auto no-scrollbar">
+                <div class="p-5" id="training-content"></div>
+            </div>
+            
+            <div id="view-calendar" class="view-section hidden h-full overflow-y-auto no-scrollbar">
+                <div class="p-5" id="calendar-content"></div>
+            </div>
+            
+            <div id="view-scout" class="view-section hidden h-full overflow-y-auto no-scrollbar">
+                <div class="p-5" id="scout-content"></div>
+            </div>
+
+            <!-- NOUVELLE VUE : INFRASTRUCTURES -->
+            <div id="view-infra" class="view-section hidden h-full overflow-y-auto no-scrollbar">
+                <div class="p-6">
+                    <h2 class="font-teko text-6xl text-white uppercase italic mb-2 leading-none">Infrastructures</h2>
+                    <p class="text-[10px] text-slate-500 mb-8 uppercase tracking-widest font-bold">Bâtir l'avenir de la nation.</p>
+                    <div id="infra-list" class="grid grid-cols-1 gap-4"></div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- NAVIGATION -->
+        <nav class="bg-[#0f172a] border-t border-slate-800 grid grid-cols-6 items-center z-40 shrink-0">
+            <button onclick="app.goToView('inbox')" id="nav-inbox" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all">
+                <span id="icon-layout-nav"></span><span class="text-[9px] font-bold uppercase tracking-tighter">QG</span>
+            </button>
+            <button onclick="app.goToView('squad')" id="nav-squad" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all">
+                <span id="icon-shield-nav"></span><span class="text-[9px] font-bold uppercase tracking-tighter">Tactique</span>
+            </button>
+            <button onclick="app.goToView('training')" id="nav-training" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all">
+                <span id="icon-zap-nav"></span><span class="text-[9px] font-bold uppercase tracking-tighter">Pro</span>
+            </button>
+            <button onclick="app.goToView('calendar')" id="nav-calendar" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all">
+                <span id="icon-trophy-nav"></span><span class="text-[9px] font-bold uppercase tracking-tighter">CAF</span>
+            </button>
+            <button onclick="app.goToView('scout')" id="nav-scout" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all">
+                <span id="icon-search-nav"></span><span class="text-[9px] font-bold uppercase tracking-tighter">Scout</span>
+            </button>
+            <button onclick="app.goToView('infra')" id="nav-infra" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all">
+                <span id="icon-home-nav"></span><span class="text-[9px] font-bold uppercase tracking-tighter">Ville</span>
+            </button>
+        </nav>
+        <div id="welcome-modal" class="absolute inset-0 z-[1000] bg-slate-950 flex flex-col items-center justify-center p-8 hidden">
+        <div class="w-full max-w-sm text-center">
+            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl flex items-center justify-center border-4 border-slate-800 shadow-2xl mb-8">
+                <span class="font-teko text-4xl text-white italic">CIV</span>
+            </div>
+            <h1 class="font-teko text-6xl text-white uppercase italic leading-none mb-2">Nouvelle Ère</h1>
+            <p class="text-xs text-slate-400 mb-8 uppercase tracking-widest">La fédération attend votre signature.</p>
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-xl">
+                <label class="block text-[9px] font-bold text-slate-500 uppercase mb-2 text-left">Nom du Manager</label>
+                <input type="text" id="input-manager-name" placeholder="Ex: DIDIER DROGBA" class="w-full bg-slate-950 border border-slate-700 text-white p-4 rounded-xl text-center font-teko text-2xl uppercase focus:border-orange-500 focus:outline-none mb-4 placeholder-slate-700 transition">
+                <button onclick="app.submitManagerName()" class="w-full py-4 bg-white text-slate-900 rounded-xl text-xs font-bold uppercase shadow-lg active:scale-95 transition">
+                    Signer le contrat
+                </button>
+            </div>
+        </div>
+    </div>
+
+        <div id="feedback-toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-8 py-4 rounded-2xl shadow-2xl z-[500] text-[11px] font-bold hidden opacity-0 transition-all transform translate-y-4">
+            <span id="toast-msg">Action effectuée</span>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * AFRICAN ELITE MANAGER PRO v9.6 - THE LEGACY
+         * DEVELOPED FOR TOTAL REALISM & IMMERSION
+         * 1100+ LINES OF CODE
+         */
+
+        const FIRST_NAMES_DB = [
+            "Koffi", "Yao", "Moussa", "Didier", "Yaya", "Seydou", "Abdoulaye", "Sékou", "Jean-Luc", "Bakary", 
+            "Ismael", "Franck", "Oumar", "Lassina", "Serge", "Emmanuel", "Simon", "Ibrahim", "Tidiane", "Junior", 
+            "Max-Alain", "Wilfried", "Nicolas", "Eric", "Sébastien", "Jeremie", "Christian", "Jean-Philippe", 
+            "Guelor", "Chancel", "Cedric", "Gaël", "Wilfried", "Jonathan", "Evan", "Seko", "Odilon", "Ousmane", 
+            "Boubacar", "Adama", "Mamadou", "Ismaël", "Lassina", "Karim", "Amath", "Idrissa", "Salif", "Kalidou", 
+            "Sadio", "Achraf", "Hakim", "Sofyan", "Yassine", "Nayef", "Romain", "Selim", "Amine", "Walid", "Jawad", 
+            "Yahya", "Vincent", "Karl", "Andre", "Youssouf", "Moussa", "Ibrahima", "Lamine", "Moussa", "Habib", 
+            "Abdou", "Cheick", "Amadou", "Souleymane", "Modibo", "Tamsir", "Fodé", "Boulaye", "Bamba", "Opa", 
+            "Sény", "Formose", "Ismaïla", "Krepin", "Pape", "Iliman", "Famara", "Nicolas", "Alfred", "Mory", 
+            "Mohamed", "Ahmed", "Mahmoud", "Mostafa", "Omar", "Trezeguet", "Zizo", "Marwan", "Emam", "Ali",
+            "Bassem", "Hamdi", "Hussein", "Afsha", "Kahraba", "Sherif", "Yasser", "Rami", "Gomaa", "Hegazi",
+            "Sidi", "Demba", "Pathé", "Bouna", "Zalmani", "Ayoub", "Munir", "Ilyas", "Anass", "Bilal", "Youssef"
+        ];
+
+        const LAST_NAMES_DB = [
+            "Touré", "Konan", "Kouamé", "Bamba", "Keita", "Drogba", "Kessié", "Fofana", "Ndicka", "Kossounou", 
+            "Diallo", "Haller", "Zaha", "Cornet", "Adingra", "Gradel", "Aurier", "Bailly", "Pepe", "Singote", 
+            "Diomandé", "Kouassi", "Saré", "Cissé", "Traoré", "Coulibaly", "Ouattara", "Tiéhi", "Gouaméné", 
+            "Kalou", "Mbemba", "Bakambu", "Wissa", "Guela", "Doué", "Kolo", "Yaya", "Kaboré", "Traoré", "Gakpa", 
+            "Sangaré", "Mendy", "Koulibaly", "Gueye", "Sarr", "Diallo", "Hakimi", "Ziyech", "Amrabat", "Bounou", 
+            "Aguerd", "Saïss", "Amallah", "Harit", "Regragui", "El Yamiq", "Attiat-Allah", "Aboubakar", 
+            "Toko Ekambi", "Onana", "Fofana", "Bissouma", "Camara", "Lamine", "Niakhaté", "Diallo", "Gueye", 
+            "Kouyaté", "Matar", "Dieng", "Jackson", "Dia", "Ballo-Touré", "Sabaly", "Ciss", "Jakobs", 
+            "Seck", "Mendy", "Kamara", "Haidara", "Samassékou", "Dorgeles", "Koïta", "Sacko", "Falaye",
+            "Salah", "Elneny", "Mohamed", "Marmoush", "Hany", "Fathi", "Tawfik", "Hamed", "Sobhi", "Abdelmonem",
+            "Ounahi", "Mazraoui", "Boufal", "En-Nesyri", "Ezzalzouli", "Amine", "Adli", "Saibari", "Richards"
+        ];
+
+        const NATIONS_DB = [
+            {n: 'Côte d\'Ivoire', code: 'CIV', ovr: 85, style: 'Offensif', star: 'F. Kessié', starPos: 'MID'},
+            {n: 'Sénégal', code: 'SEN', ovr: 86, style: 'Impact', star: 'S. Mané', starPos: 'FWD'},
+            {n: 'Maroc', code: 'MAR', ovr: 87, style: 'Tiki-Taka', star: 'A. Hakimi', starPos: 'DEF'},
+            {n: 'Égypte', code: 'EGY', ovr: 84, style: 'Contre', star: 'M. Salah', starPos: 'FWD'},
+            {n: 'Nigeria', code: 'NGA', ovr: 84, style: 'Vertical', star: 'V. Osimhen', starPos: 'FWD'},
+            {n: 'Algérie', code: 'ALG', ovr: 83, style: 'Technique', star: 'R. Mahrez', starPos: 'MID'},
+            {n: 'Cameroun', code: 'CMR', ovr: 82, style: 'Puissance', star: 'V. Aboubakar', starPos: 'FWD'},
+            {n: 'Tunisie', code: 'TUN', ovr: 81, style: 'Bloc Bas', star: 'Y. Msakni', starPos: 'MID'},
+            {n: 'Mali', code: 'MLI', ovr: 81, style: 'Pressing', star: 'Y. Bissouma', starPos: 'MID'},
+            {n: 'RD Congo', code: 'RDC', ovr: 79, style: 'Dribbles', star: 'C. Mbemba', starPos: 'DEF'},
+            {n: 'Burkina Faso', code: 'BFA', ovr: 79, style: 'Vitesse', star: 'E. Tapsoba', starPos: 'DEF'},
+            {n: 'Afrique du Sud', code: 'RSA', ovr: 78, style: 'Collectif', star: 'P. Tau', starPos: 'FWD'},
+            {n: 'Ghana', code: 'GHA', ovr: 78, style: 'Impact', star: 'M. Kudus', starPos: 'MID'},
+            {n: 'Guinée', code: 'GUI', ovr: 77, style: 'Créativité', star: 'S. Guirassy', starPos: 'FWD'},
+            {n: 'Cap-Vert', code: 'CPV', ovr: 76, style: 'Transition', star: 'R. Mendes', starPos: 'FWD'},
+            {n: 'Angola', code: 'ANG', ovr: 76, style: 'Bloc Bas', star: 'G. Dala', starPos: 'FWD'},
+            {n: 'Zambie', code: 'ZAM', ovr: 73, style: 'Vitesse', star: 'P. Daka', starPos: 'FWD'},
+            {n: 'Guinée Eq.', code: 'GNQ', ovr: 75, style: 'Explosivité', star: 'E. Nsue', starPos: 'FWD'},
+            {n: 'Mauritanie', code: 'MTN', ovr: 73, style: 'Lutte', star: 'A. Kamara', starPos: 'FWD'},
+            {n: 'Ouganda', code: 'UGA', ovr: 71, style: 'Direct', star: 'F. Miya', starPos: 'MID'},
+            {n: 'Gambie', code: 'GAM', ovr: 72, style: 'Défensif', star: 'M. Barrow', starPos: 'FWD'},
+            {n: 'Namibie', code: 'NAM', ovr: 71, style: 'Solidité', star: 'P. Shalulile', starPos: 'FWD'},
+            {n: 'Tanzanie', code: 'TAN', ovr: 70, style: 'Courage', star: 'M. Samatta', starPos: 'FWD'},
+            {n: 'Mozambique', code: 'MOZ', ovr: 70, style: 'Vitesse', star: 'G. Catamo', starPos: 'MID'}
+        ];
+
+        const INITIAL_PLAYERS = [
+            { id: crypto.randomUUID(), name: "Y. Fofana", pos: "GK", ovr: 84, age: 24, role: 'starter', slot: 0, energy: 100 },
+            { id: crypto.randomUUID(), name: "G. Konan", pos: "DEF", ovr: 80, age: 29, role: 'starter', slot: 1, energy: 100 },
+            { id: crypto.randomUUID(), name: "E. Ndicka", pos: "DEF", ovr: 87, age: 25, role: 'starter', slot: 2, energy: 100 },
+            { id: crypto.randomUUID(), name: "O. Kossounou", pos: "DEF", ovr: 85, age: 23, role: 'starter', slot: 3, energy: 100 },
+            { id: crypto.randomUUID(), name: "G. Doué", pos: "DEF", ovr: 79, age: 22, role: 'starter', slot: 4, energy: 100 },
+            { id: crypto.randomUUID(), name: "F. Kessié", pos: "MID", ovr: 88, age: 28, role: 'starter', slot: 5, energy: 100 },
+            { id: crypto.randomUUID(), name: "S. Fofana", pos: "MID", ovr: 85, age: 29, role: 'starter', slot: 6, energy: 100 },
+            { id: crypto.randomUUID(), name: "I. Sangaré", pos: "MID", ovr: 83, age: 27, role: 'starter', slot: 7, energy: 100 },
+            { id: crypto.randomUUID(), name: "W. Zaha", pos: "FWD", ovr: 83, age: 32, role: 'starter', slot: 8, energy: 100 },
+            { id: crypto.randomUUID(), name: "S. Haller", pos: "FWD", ovr: 84, age: 30, role: 'starter', slot: 9, energy: 100 },
+            { id: crypto.randomUUID(), name: "A. Adingra", pos: "FWD", ovr: 85, age: 22, role: 'starter', slot: 10, energy: 100 },
+            { id: crypto.randomUUID(), name: "B. Sangaré", pos: "GK", ovr: 77, age: 35, role: 'sub', slot: null, energy: 100 },
+            { id: crypto.randomUUID(), name: "W. Boly", pos: "DEF", ovr: 81, age: 33, role: 'sub', slot: null, energy: 100 },
+            { id: crypto.randomUUID(), name: "J. Seri", pos: "MID", ovr: 80, age: 33, role: 'sub', slot: null, energy: 100 },
+            { id: crypto.randomUUID(), name: "M. Gradel", pos: "FWD", ovr: 79, age: 36, role: 'sub', slot: null, energy: 100 },
+            { id: crypto.randomUUID(), name: "O. Diakité", pos: "FWD", ovr: 81, age: 21, role: 'sub', slot: null, energy: 100 },
+            { id: crypto.randomUUID(), name: "O. Diomande", pos: "DEF", ovr: 84, age: 21, role: 'sub', slot: null, energy: 100 },
+            { id: crypto.randomUUID(), name: "I. Doumbia", pos: "MID", ovr: 76, age: 26, role: 'sub', slot: null, energy: 100 }
+        ];
+
+        // Position du GK à 80% pour visibilité
+        const FORMATIONS = {
+            '4-3-3': { coords:[{x:41,y:80},{x:8,y:60},{x:30,y:65},{x:52,y:65},{x:74,y:60},{x:20,y:40},{x:41,y:45},{x:62,y:40},{x:8,y:15},{x:41,y:10},{x:74,y:15}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","FWD","FWD","FWD"]},
+            '4-4-2': { coords:[{x:41,y:80},{x:8,y:60},{x:30,y:65},{x:52,y:65},{x:74,y:60},{x:8,y:38},{x:30,y:42},{x:52,y:42},{x:74,y:38},{x:25,y:10},{x:57,y:10}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD","FWD"]},
+            '3-5-2': { coords:[{x:41,y:80},{x:15,y:65},{x:41,y:68},{x:67,y:65},{x:5,y:42},{x:25,y:46},{x:41,y:52},{x:57,y:46},{x:77,y:42},{x:30,y:10},{x:52,y:10}], zones: ["GK","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD","FWD"]},
+            '4-2-3-1': { coords:[{x:41,y:80},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:30,y:48},{x:52,y:48},{x:10,y:30},{x:41,y:32},{x:72,y:30},{x:41,y:10}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
+            '4-1-4-1': { coords:[{x:41,y:80},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:41,y:50},{x:10,y:35},{x:30,y:37},{x:52,y:37},{x:72,y:35},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
+            '5-4-1': { coords:[{x:41,y:80},{x:5,y:62},{x:23,y:65},{x:41,y:68},{x:59,y:65},{x:77,y:62},{x:10,y:38},{x:30,y:40},{x:52,y:40},{x:72,y:38},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD"]}
+        };
+
+        const MATCH_COMMS = [
+            "L'intensité monte d'un cran au milieu de terrain.", "L'arbitre surveille de près les duels physiques.", 
+            "Le public scande le nom des Eléphants !", "Interception propre de la charnière centrale.", 
+            "Belle relance vers l'avant, le jeu s'écarte.", "Le coach donne de la voix sur le bord de touche.", 
+            "Contact rugueux au milieu, l'arbitre ne dit rien.", "L'ambiance est électrique aujourd'hui.", 
+            "Débordement rapide on l'aile, centre à venir !", "Coup-franc dangereux à suivre à l'entrée de la surface.", 
+            "Le bloc défensif ivoirien est difficile à percer.", "Le rythme s'accélère soudainement.", 
+            "Parade exceptionnelle du portier !", "Faute tactique intelligente pour casser le contre.", 
+            "Le ballon circule bien entre les lignes.", "Supporters en liesse dans les tribunes !", 
+            "Tentative de loin ! Ça frôle le cadre adverse.", "Relance courte et maîtrisée.", 
+            "Fatigue visible chez certains cadres de l'équipe.", "Le quart d'heure de vérité approche.", 
+            "Geste technique superbe qui élimine un défenseur !", "Pressing haut étouffant pour l'adversaire.", 
+            "Sortie autoritaire on le corner adverse.", "Transition offensive rapide lancée par le milieu.", 
+            "La pluie commence à tomber on la pelouse.", "Erreur de relance... attention au contre !", 
+            "Le stade entier retient son souffle.", "Coup de sifflet important de l'arbitre central.", 
+            "Défense en bloc bas pour préserver le score.", "Longue transversale magnifique vers l'ailier.", 
+            "Crampons affûtés on ce tacle glissé.", "Le génie tactique du coach est mis à l'épreuve.", 
+            "Vent de panique dans la défense adverse.", "Solidité exemplaire de la part des latéraux.", 
+            "Match de guerriers aujourd'hui on le terrain !", "Une-deux superbe dans les petits espaces.", 
+            "Le poteau sauve le gardien on cette frappe !", "Contrôle orienté de classe internationale.", 
+            "L'adversaire commence à douter sérieusement.", "Supporters et joueurs ne font qu'un.", 
+            "Duel aérien remporté avec autorité par Ndicka.", "Coup-franc excentré qui peut amener le danger.", 
+            "Ballon sorti en touche sous la pression.", "Le portier motive bruyamment ses troupes.", 
+            "Chants de victoire qui descendent des travées !", "Occasion gâchée par un manque de précision.", 
+            "Dégagement aux poings salvateur du gardien.", "Suspense total dans cette fin de rencontre.", 
+            "Le match bascule dans une dimension tactique.", "Dernier assaut désespéré avant le sifflet !", 
+            "Le manager effectue ses derniers ajustements.", "Le marquage à la culotte est impitoyable.", 
+            "Une véritable partie de d'échecs on le gazon.", "Les drapeaux orange-blanc-vert s'agitent partout !", 
+            "Un supporter traverse le terrain ! Interruption de jeu.", "Le stade rugit on ce tacle salvateur.", 
+            "Le physique commence à prendre le dessus.", "Un exploit individuel est nécessaire pour débloquer le score.", 
+            "L'arbitre consulte son assistant on cette faute.", "Temps additionnel annoncé, tout peut encore arriver !", 
+            "Une frappe enroulée qui lèche le montant.", "Sortie de but pour le gardien adverse.", 
+            "Le marquage est impitoyable dans la zone de vérité.", "L'arbitre appelle les deux capitaines au calme.", 
+            "La transversale tremble encore !", "Changement tactique visible on le terrain.", 
+            "Le public se lève on cette action de classe.", "Faute signalée à l'entrée de la surface de réparation.", 
+            "Relance rapide à la main du gardien vers son latéral.", "CIV pousse fort dans les dernières minutes !", 
+            "Dégagement en catastrophe par la défense adverse.", "Interception magnifique au milieu de terrain.", 
+            "Le rythme s'accélère en cette fin de période.", "CIV invincibles aujourd'hui avec ce bloc compact !", 
+            "Le stade retient son souffle on ce corner direct.", "Exploit individuel à suivre ?", 
+            "Tir non cadré, ça passe largement au-dessus.", "Défense en bloc bas pour conserver le score.", 
+            "Belle transversale qui change l'aile.", "Coup de sifflet pour une position de hors-jeu.", 
+            "Le portier plonge dans les pieds de l'attaquant.", "CIV multiplie les passes courtes au milieu.", 
+            "L'adversaire ne parvient plus à sortir de son camp.", "Contact rugueux, l'arbitre sort le carton jaune !", 
+            "Le stade est en fusion on chaque dribble réussi.", "La possession est outrageusement ivoirienne.", 
+            "L'attaquant s'emmêle les pinceaux au moment de tirer.", "Parade réflexe incroyable on la ligne !", 
+            "Le coach adverse semble totalement désemparé.", "Ambiance de fête dans le stade, on entend les tambours !", 
+            "Le pressing haut étouffe complètement la relance adverse.", "Quelle vision de jeu on cette passe en profondeur !", 
+            "Corner à suivre pour les Eléphants.", "Le gardien s'impose dans les airs avec autorité.", 
+            "Friction entre deux joueurs, l'arbitre intervient vite.", "Une prestation solide qui rassure les supporters.", 
+            "Tout le stade pousse pour l'ouverture du score !", "CIV est en démonstration technique aujourd'hui.", 
+            "Ballon dégagé loin devant pour souffler un peu.", "Le rideau défensif est infranchissable pour le moment.", 
+            "CIV dicte son tempo avec une sérénité totale.", "Le manager ivoirien reste calme on son banc.", 
+            "L'odeur de la victoire commence à monter dans le stade.", "Quel régal pour les yeux ces combinaisons !", 
+            "L'arbitre vérifie le ballon avant de relancer.", "Les remplaçants terminent leur échauffement.", 
+            "Un vent de panique souffle on les buts adverses.", "Le milieu de terrain est un véritable champ de bataille.", 
+            "CIV fait preuve d'une maturité tactique impressionnante.", "Chaque touche de balle est un délice.", 
+            "L'adversaire tente le tout pour le tout.", "Le stade est plein comme un oeuf pour ce choc.", 
+            "Une frappe surpuissante qui finit dans les nuages.", "Le gardien relance très loin on son attaquant.", 
+            "CIV reste en place malgré la pression adverse.", "Un tacle de dernier recours qui sauve l'équipe.", 
+            "Le talent brut s'exprime enfin dans ce match.", "CIV gère parfaitement son avance pour le moment.",
+            "Tacle assassin, mais l'arbitre ne bronche pas !", "Le gardien semble avoir un problème à la cuisse.",
+            "Les supporters allument des fumigènes, quelle ambiance !", "L'arbitre regarde sa montre, la pression monte.",
+            "Le sélectionneur adverse gesticule dans tous les sens.", "Le ballon a heurté le photographe derrière le but !",
+            "Une chevauchée fantastique qui se termine en corner.", "La CIV impose un défi physique énorme.",
+            "Le milieu de terrain adverse explose sous le pressing.", "Quel contrôle de la poitrine orienté, magnifique !",
+            "La pelouse est un billard aujourd'hui.", "Le stade Ebimpé vibre à l'unisson.",
+            "L'arbitre central discute avec son quatrième officiel.", "Le banc de touche bouillonne d'impatience.",
+            "Une relance dans l'axe très risquée, mais ça passe.", "Le public siffle copieusement l'adversaire.",
+            "Chaque corner est vécu comme un penalty par le stade.", "Le marquage est en zone on cette action.",
+            "Quelle détente verticale on ce duel de la tête !", "Le match est haché par de nombreuses petites fautes.",
+            "L'adversaire joue le contre à fond.", "Le bloc équipe est parfaitement coordonné.",
+            "Un petit pont humiliant au milieu de terrain !", "Le défenseur dégage en touche sans réfléchir.",
+            "Le meneur de jeu dicte le tempo du match.", "Les duels sont à la limite de la correction physique.",
+            "Le gardien adverse gagne du temps on son dégagement.", "L'arbitre demande de recommencer le coup-franc.",
+            "Une frappe de mule qui finit dans le petit filet extérieur !", "Le stade rugit de plaisir on ce geste technique.",
+            "Le sélectionneur ivoirien appelle un remplaçant.", "Le capitaine réunit ses joueurs pour les motiver.",
+            "Une erreur d'inattention qui aurait pu coûter cher.", "Le danger vient de partout pour l'adversaire !",
+            "Le match entre dans sa phase critique.", "Un festival offensif se prépare peut-être.",
+            "Le portier s'envole littéralement pour détourner ce cuir.", "L'ambiance est digne d'une finale de Coupe du Monde !",
+            "Le jeu est arrêté pour soigner un joueur à terre.", "Le sélectionneur consulte ses notes tactiques.",
+            "Un tacle millimétré qui soulève les foules.", "La possession tourne à la démonstration.",
+            "L'adversaire n'a plus touché le ballon depuis 3 minutes.", "Un centre-tir vicieux qui termine on la barre !",
+            "Le sifflet final approche, la tension est à son comble.", "Chaque passe est un poignard pour la défense adverse.",
+            "Le génie de Yao Baba Ange Emmanuel opère encore.", "Une solidité à toute épreuve pour les Eléphants.",
+            "La victoire se dessine petit à petit.", "Le stade est en transe complète !",
+            "Une sortie de balle propre malgré le pressing adverse.", "Le jeu s'accélère on l'aile droite.",
+            "Un centre fort devant le but qui ne trouve personne.", "Le gardien capte le ballon en deux temps.",
+            "La défense adverse est au bord de la rupture.", "Un véritable cauchemar pour le latéral gauche adverse.",
+            "Le match est d'une intensité rare pour un tournoi continental.", "Les joueurs donnent tout on le rectangle vert.",
+            "Le maillot est mouillé, les guerriers sont là !", "Une passe aveugle qui déstabilise tout le bloc.",
+            "Le ballon semble collé aux pieds de l'attaquant.", "Un sauvetage on la ligne de but, incroyable !",
+            "Le poteau rentrant ? No, ça sort ! Quel dommage.", "La CIV est en contrôle total de l'événement.",
+            "Une prestation qui fera date dans l'histoire de la nation.", "Le public ne s'arrête jamais de chanter.",
+            "Un duel de Titans au milieu de la pelouse.", "Le sifflet retentit, mais c'est une faute pour nous !",
+            "Le portier motive sa défense en criant fort.", "Le marquage est plus serré que jamais.",
+            "Un éclair de génie pourrait tout débloquer.", "La CIV pousse, pousse et repousse encore !",
+            "L'adversaire est acculé on son propre but.", "Un dégagement désespéré en corner.",
+            "La montre tourne, les coeurs battent la chamade.", "Le staff technique est debout on le banc.",
+            "Une communication parfaite entre les défenseurs centraux.", "Le portier ne prend aucun risque on cette frappe.",
+            "Un changement tactique payant semble s'opérer.", "Le talent est partout aujourd'hui on le terrain.",
+            "La fierté d'un peuple repose on ces 11 hommes.", "Une leçon de football est en cours.",
+            "Le score ne reflète pas encore la domination.", "Le gardien adverse réalise le match de sa vie.",
+            "Une glissade malheureuse qui redonne le ballon.", "Le pressing est coordonné comme une symphonie.",
+            "Le public scande 'Allez les Eléphants' !", "Une frappe en pivot qui passe de peu à côté.",
+            "Le sélectionneur encourage ses troupes du geste.", "Une interception vitale pour empêcher le face-à-face.",
+            "Le jeu se déporte on l'autre aile rapidement.", "Une transversale de 50 mètres, un régal !",
+            "Le latéral monte pour apporter le surnombre.", "Un repli défensif exemplaire de l'attaquant.",
+            "Le manager regarde sa montre, le stress monte.", "Une ambiance de feu, le stade est en éruption !",
+            "Le match est d'une propreté technique absolue.", "Une faute intelligente qui coupe le rythme adverse.",
+            "Le gardien sort loin de ses buts pour dégager au pied.", "Une sérénité olympienne pour la défense ivoirienne.",
+            "Le talent brut fait la différence on cette action.", "La CIV est plus proche que jamais du but !",
+            "L'adversaire ne sait plus comment réagir tactiquement.", "Un vent d'optimisme souffle on les tribunes.",
+            "Le match bascule dans la légende.", "Chaque seconde compte désormais.",
+            "Un engagement de tous les instants.", "La sueur et les larmes pour la victoire.",
+            "Le sifflet final sera une délivrance ou un drame.", "La CIV montre pourquoi elle est l'élite africaine.",
+            "Une vision de jeu digne des plus grands meneurs.", "Le ballon circule avec une fluidité déconcertante.",
+            "L'adversaire est totalement asphyxié par le pressing.", "Un arrêt réflexe de classe mondiale !",
+            "Le stade est debout pour applaudir cette action.", "Une débauche d'énergie incroyable.",
+            "Le manager Yao Baba peut être fier de ses hommes.", "La tactique est respectée à la lettre.",
+            "Un exploit est possible en toute fin de match !", "Le sifflet de l'arbitre est le seul maître ici.",
+            "La gloire attend les vainqueurs de ce choc.", "Le football africain est à son sommet aujourd'hui.",
+            "Une maîtrise technique qui laisse pantois.", "L'adversaire tente un changement de dernière minute.",
+            "Le portier réclame plus de concentration à ses gars.", "Un tacle propre qui récupère le ballon proprement.",
+            "Le jeu est fluide, plaisant et très rapide.", "La CIV dicte sa loi on la pelouse du jour."
+        ];
+
+        // --- NOUVEAUX TABLEAUX DE COMMENTAIRES DYNAMIQUES ---
+        const COMMS_WINNING = [
+            "Le plan tactique de {MANAGER} fonctionne à merveille !",
+            "Quelle masterclass de {MANAGER} aujourd'hui !",
+            "Les supporters chantent le nom de {MANAGER} dans les tribunes !",
+            "{MANAGER} reste impassible, mais son équipe déroule.",
+            "La patte {MANAGER} se fait sentir sur cette action.",
+            "C'est une leçon de football donnée par {MANAGER}.",
+            "L'adversaire n'a aucune réponse face au système de {MANAGER}."
+        ];
+
+        const COMMS_LOSING = [
+            "{MANAGER} hurle ses consignes pour réveiller les gars !",
+            "{MANAGER} semble pensif sur son banc de touche.",
+            "Il va falloir un coup de génie de {MANAGER} pour changer ça.",
+            "{MANAGER} consulte son adjoint, un changement à venir ?",
+            "Le visage fermé, {MANAGER} demande plus d'intensité."
+        ];
+
+        const COMMS_TACTICAL = {
+            def: "{MANAGER} ordonne de fermer la boutique ! Tout le monde derrière !",
+            att: "{MANAGER} fait de grands gestes : TOUT POUR L'ATTAQUE !",
+            bal: "{MANAGER} demande de calmer le jeu et de reprendre la structure.",
+            possession: "{MANAGER} veut qu'on prive l'adversaire de ballon.",
+            counter: "{MANAGER} demande des transitions foudroyantes !",
+            pressing: "Les joueurs répondent au pressing demandé par {MANAGER} !"
+        };
+
+       const SVGS = {
+            coins: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-400"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="M17.22 15.22a2 2 0 1 0-2.83 2.83"/></svg>`,
+            refresh: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>`,
+            radar: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><circle cx="12" cy="12" r="10"/><path d="M12 2v20"/><path d="M2 12h20"/><circle cx="12" cy="12" r="5"/></svg>`,
+            play: `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-slate-900"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+            shield: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+            zap: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+            search: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+            trophy: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17a1 1 0 0 0 2 0v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
+            layout: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>`,
+            repeat: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`,
+            mic: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`,
+            home: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+            
+            // --- NOUVELLES ICONES ---
+            infraStadium: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4 8 4v14"/><path d="M17 21v-8H7v8"/><path d="M9 10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>`,
+            infraTraining: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 17.5 11-11"/><path d="m2 2 20 20"/><path d="m2 13 9 9"/><path d="m13 2 9 9"/></svg>`,
+            infraMedical: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`
+        };
+
+        class EliteManager {
+            constructor() {
+                this.state = this.load() || this.initNewGame();
+                this.match = { active: false };
+                this.currentSwapSlot = null;
+                this.isLiveCoaching = false;
+                this.init();
+            }
+
+            initNewGame() {
+            
+                const ns = [...NATIONS_DB].sort(() => Math.random() - 0.5);
+                const g = this.createGroups(ns);
+                const std = this.initStd(ns, g);
+                
+                Object.keys(std).forEach(key => {
+                    std[key].starAge = 25 + Math.floor(Math.random() * 8); 
+                });
+
+                return {
+        managerName: null, year: 2026, budget: 15.0, teamXP: 0,pastWinners: [], formation: '4-3-3',
+                    players: JSON.parse(JSON.stringify(INITIAL_PLAYERS)),
+                    scoutPool: [], matchIndex: 0, standings: std,
+                    groups: g, trophies: 0, stage: 'groups',
+                    seasonsPlayed: 0, globalResults: [], knockout: {},
+                    instructions: { style: 'possession', pressing: 'normal' },
+                    rareScoutUsed: false, news: [{id: Date.now(), text: "La Fédération Ivoirienne attend la signature du nouveau manager..."}],
+                    infra: {
+                        stadium: { level: 1, cost: 10, bonus: 0.5 },
+                        training: { level: 1, cost: 5, bonus: 1 },
+                        medical: { level: 1, cost: 8, bonus: 5 }
+                    }
+                };
+            }
+
+            createGroups(ns) {
+                const g = { 'A': [], 'B': [], 'C': [], 'D': [], 'E': [], 'F': [] };
+                const keys = Object.keys(g);
+                ns.forEach((n, i) => { const k = keys[Math.floor(i / 4)]; if (k) g[k].push(n); });
+                return g;
+            }
+
+            initStd(ns, gs) {
+                const std = {};
+                ns.forEach(n => {
+                    let gL = ''; for (let g in gs) { if (gs[g].some(t => t.n === n.n)) gL = g; }
+                    std[n.n] = { n: n.n, code: n.code, p:0, w:0, d:0, l:0, gf:0, ga:0, pts:0, grp: gL, ovr: n.ovr, style: n.style, star: n.star, starPos: n.starPos };
+                });
+                return std;
+            }
+
+            init() { 
+                this.injectIcons(); 
+        this.updateUI(); 
+        
+        // VÉRIFICATION : Si pas de nom, on affiche l'écran de saisie
+        if (!this.state.managerName) {
+            const modal = document.getElementById('welcome-modal');
+            if(modal) modal.classList.remove('hidden');
+        }
+
+        setInterval(() => this.save(), 5000); 
+        this.goToView('inbox'); 
+        window.app = this;
+            }
+// --- COLLEZ CE BLOC JUSTE APRÈS LA FIN DE LA FONCTION init() ---
+            
+            submitManagerName() {
+                const input = document.getElementById('input-manager-name');
+                const val = input.value.trim().toUpperCase();
+                
+                if (val.length < 3) return this.toast("Nom trop court !");
+                
+                this.state.managerName = val;
+
+                // --- AJOUT : Création du flash info personnalisé ICI ---
+                this.state.news.unshift({
+                    id: Date.now(), 
+                    text: `OFFICIEL : Lancement de la dynastie par ${val} !`
+                });
+                //
+                
+                // On cache le modal
+                document.getElementById('welcome-modal').classList.add('hidden');
+                
+                this.save();
+                this.updateUI();
+                this.toast(`Bienvenue Coach ${val} !`);
+            }
+
+            // ---------------------------------------------------------------
+            injectIcons() {
+                for (const [id, svg] of Object.entries(SVGS)) {
+                    const els = document.querySelectorAll(`[id^="icon-${id}"]`);
+                    els.forEach(el => el.innerHTML = svg);
+                }
+            }
+
+            save() { localStorage.setItem('aem_v9_5_ultra_legacy', JSON.stringify(this.state)); }
+            load() { const s = localStorage.getItem('aem_v9_5_ultra_legacy'); return s ? JSON.parse(s) : null; }
+
+           updateUI() {
+                const bDisplay = document.getElementById('budget-display');
+                const xDisplay = document.getElementById('team-xp-display');
+                const hSubtitle = document.getElementById('header-subtitle');
+                const xBar = document.getElementById('xp-bar-fill');
+                
+                // --- AJOUT : Gestion du nom du manager ---
+                const mName = document.getElementById('header-manager-name');
+                if (mName && this.state.managerName) {
+                    mName.innerText = this.state.managerName;
+                }
+                // ----------------------------------------
+                
+                if(bDisplay) bDisplay.innerText = this.state.budget.toFixed(1) + " M€";
+                if(xDisplay) xDisplay.innerText = this.state.teamXP + " XP";
+                if(hSubtitle) hSubtitle.innerText = "SAISON " + this.state.year;
+                if(xBar) xBar.style.width = Math.min(100, (this.state.teamXP / 5000) * 100) + "%";
+                
+                this.injectIcons();
+            }
+
+            goToView(v) {
+                if (this.match.active && v !== 'match') { this.toast("Terminez le match d'abord !"); return; }
+                document.querySelectorAll('.view-section').forEach(e => e.classList.add('hidden'));
+                const targetView = document.getElementById('view-' + v);
+                if(targetView) targetView.classList.remove('hidden');
+                
+                document.querySelectorAll('.btn-nav').forEach(btn => btn.classList.remove('active'));
+                const nav = document.getElementById('nav-' + v); if(nav) nav.classList.add('active');
+                
+                if (v === 'squad') { this.renderPitch('pitch-cards-layer'); this.renderTacticalUI(); }
+                if (v === 'training') this.renderTraining();
+                if (v === 'calendar') this.renderCalendar();
+                if (v === 'scout') this.renderScout();
+                if (v === 'inbox') this.renderInbox();
+                if (v === 'infra') this.renderInfra();
+            }
+
+            clearNews() { this.state.news = []; this.renderInbox(); this.save(); this.toast("Archives vidées."); }
+
+            generateRealName() {
+                const f = FIRST_NAMES_DB[Math.floor(Math.random() * FIRST_NAMES_DB.length)];
+                const l = LAST_NAMES_DB[Math.floor(Math.random() * LAST_NAMES_DB.length)];
+                return Math.random() > 0.8 ? `${f} ${l}-Ange` : `${f} ${l}`;
+            }
+
+            renderPitch(layerId) {
+                const container = document.getElementById(layerId); if(!container) return;
+                container.innerHTML = '';
+                const form = FORMATIONS[this.state.formation];
+                for(let i=0; i<form.zones.length; i++) {
+                    const p = this.state.players.find(x => x.role === 'starter' && x.slot === i);
+                    const coord = form.coords[i];
+                    const card = document.createElement('div');
+                    const isOut = p && p.pos !== form.zones[i];
+                    card.className = isOut ? 'player-card malus' : 'player-card';
+                    card.style.left = coord.x + '%'; card.style.top = coord.y + '%';
+                    card.onclick = () => { if(!this.match.active || this.isLiveCoaching) this.openSwapModal(i); };
+                    if (p) {
+                        const ovr = isOut ? Math.round(p.ovr * 0.7) : p.ovr;
+                        const enW = p.energy || 100;
+                        const enCol = enW > 70 ? '#22c55e' : (enW > 40 ? '#f59e0b' : '#ef4444');
+                        card.innerHTML = `
+                            <div class="card-age">${p.age} ans</div>
+                            <div class="card-ovr">${ovr}</div>
+                            <div class="card-pos">${p.pos}</div>
+                            <div class="card-energy"><div class="energy-fill" style="width:${enW}%; background:${enCol}"></div></div>
+                            <div class="card-name">${p.name.split(' ').pop()}</div>
+                        `;
+                    } else { card.innerHTML = `<div class="card-ovr opacity-20">?</div>`; }
+                    container.appendChild(card);
+                }
+                if (layerId === 'pitch-cards-layer') {
+                    const bC = document.getElementById('bench-list-container'); bC.innerHTML = '';
+                    this.state.players.filter(p => p.role !== 'starter').forEach(p => {
+                        const it = document.createElement('div'); it.className = 'bench-item shadow-lg';
+                        it.innerHTML = `<div class="font-teko text-2xl text-orange-500 font-bold">${p.ovr}</div><div class="flex flex-col leading-tight"><span class="text-[9px] font-bold text-white uppercase">${p.name.split(' ').pop()}</span><span class="text-[8px] text-slate-500">${p.pos} • ${p.age} ans</span></div>`;
+                        bC.appendChild(it);
+                    });
+                    const bcCount = document.getElementById('bench-count');
+                    if(bcCount) bcCount.innerText = `${this.state.players.filter(p => p.role !== 'starter').length}/20`;
+                    const avgEl = document.getElementById('squad-avg-ovr');
+                    if(avgEl) avgEl.innerText = Math.round(this.getTeamPower());
+                }
+            }
+
+            getTeamPower() {
+                const s = this.state.players.filter(p => p.role === 'starter'); if (s.length < 1) return 0;
+                const form = FORMATIONS[this.state.formation];
+                let t = 0; s.forEach(p => { let b = (p.pos !== form.zones[p.slot]) ? p.ovr * 0.7 : p.ovr; if(p.energy < 40) b *= 0.8; t += b; });
+                return (t / 11) * (this.match.speechBoost || 1.0);
+            }
+
+            getOpponent() {
+                if (this.state.stage === 'groups') {
+                    const myG = this.state.standings['Côte d\'Ivoire'].grp;
+                    const r = this.state.groups[myG].filter(n => n.n !== 'Côte d\'Ivoire');
+                    const targetIdx = this.state.matchIndex % 3;
+                    return this.state.standings[r[targetIdx].n];
+                } else { return this.state.knockout[this.state.stage] || this.state.standings['Sénégal']; }
+            }
+
+            startMatch() {
+                if (this.state.players.filter(p => p.role === 'starter').length < 11) return this.toast("11 joueurs requis !");
+                const opp = this.getOpponent();
+                if (!opp) return this.toast("Erreur tirage.");
+                
+                this.match = { 
+                    active: true, time: 0, score: [0, 0], opp: opp, 
+                    timer: setInterval(() => this.tick(), 1000), 
+                    tactic: 'bal', speechBoost: 1.0, 
+                    stats: { shots: 0, shotsAway: 0 },
+                    penalties: null
+                };
+                
+                const sHome = document.getElementById('score-home'); if(sHome) sHome.innerText = '0';
+                const sAway = document.getElementById('score-away'); if(sAway) sAway.innerText = '0';
+                const mTimer = document.getElementById('match-timer'); if(mTimer) mTimer.innerText = '00:00';
+                const mBadge = document.getElementById('match-opp-badge'); if(mBadge) mBadge.innerText = opp.code;
+                const stHome = document.getElementById('stats-shots-home'); if(stHome) stHome.innerText = '0';
+                const stAway = document.getElementById('stats-shots-away'); if(stAway) stAway.innerText = '0';
+                
+                const cLog = document.getElementById('commentary-log'); if(cLog) cLog.innerHTML = '';
+                const htO = document.getElementById('ht-overlay'); if(htO) htO.classList.remove('active');
+                
+                this.goToView('match');
+                this.updateMatchInstructionsUI();
+            }
+
+            tick() {
+                if (!this.match.active) return; this.match.time++;
+                const timerEl = document.getElementById('match-timer');
+                if(timerEl) timerEl.innerText = (this.match.time < 10 ? '0' : '') + this.match.time + ":00";
+                
+                const myP = this.getTeamPower(); const opP = this.match.opp.ovr;
+                
+                let powerRatio = myP / opP;
+                let bPoss = 50 + (powerRatio - 1) * 20; 
+                
+                if(this.state.instructions.style === 'possession') bPoss += 8;
+                if(this.state.instructions.style === 'counter') bPoss -= 10;
+                if(this.state.instructions.pressing === 'high') bPoss += 4;
+                
+                let oscillation = Math.sin(this.match.time / 6) * 5;
+                let finalP = Math.min(85, Math.max(15, bPoss + oscillation + (Math.random()*4-2)));
+                
+                const pBar = document.getElementById('possession-home-bar'); if(pBar) pBar.style.width = finalP + "%";
+                const phEl = document.getElementById('poss-val-home'); if(phEl) phEl.innerText = Math.round(finalP) + "%";
+                const paEl = document.getElementById('poss-val-away'); if(paEl) paEl.innerText = Math.round(100 - finalP) + "%";
+
+                if (Math.random() < 0.15) {
+                    if (Math.random() * 100 < finalP) { 
+                        this.match.stats.shots++; 
+                        const sh = document.getElementById('stats-shots-home'); if(sh) sh.innerText = this.match.stats.shots; 
+                    } else { 
+                        this.match.stats.shotsAway++; 
+                        const sa = document.getElementById('stats-shots-away'); if(sa) sa.innerText = this.match.stats.shotsAway; 
+                    }
+                }
+
+                let offensiveFactor = (this.match.tactic === 'att' ? 1.7 : (this.match.tactic === 'def' ? 0.6 : 1));
+                if(this.state.instructions.style === 'counter') offensiveFactor *= 1.3;
+                let chance = 0.012 * offensiveFactor;
+                
+                if (Math.random() < chance * powerRatio) {
+                    this.match.score[0]++; 
+                    const sh = document.getElementById('score-home'); if(sh) sh.innerText = this.match.score[0];
+                    const s = this.state.players.filter(p=>p.role==='starter'); const pool = [];
+                    s.forEach(p => { let weight = 1; if(p.pos==='FWD') weight = 7; if(p.pos==='MID') weight = 2; for(let k=0; k<weight; k++) pool.push(p); });
+                    const sc = pool[Math.floor(Math.random()*pool.length)];
+                    this.showGoalAnim(sc.name); 
+                    this.addCommentary(`⚽ BUT !! ${sc.name} trouve la faille pour la CIV !`);
+                }
+                
+                if (Math.random() < chance * (1 / powerRatio)) {
+                    this.match.score[1]++; 
+                    const sa = document.getElementById('score-away'); if(sa) sa.innerText = this.match.score[1];
+                    this.addCommentary(`⚠️ But pour ${this.match.opp.n} par ${this.match.opp.star}.`);
+                }
+
+                // --- LOGIQUE COMMENTAIRES INTELLIGENTS ---
+                if (Math.random() < 0.18) {
+                    let commText = "";
+                    const isWinning = this.match.score[0] > this.match.score[1];
+                    const isLosing = this.match.score[1] > this.match.score[0];
+                    
+                    // Si on gagne : 35% de chance de parler du manager en bien
+                    if (isWinning && Math.random() < 0.35) {
+                        commText = COMMS_WINNING[Math.floor(Math.random() * COMMS_WINNING.length)];
+                    } 
+                    // Si on perd : 15% de chance de parler du manager inquiet
+                    else if (isLosing && Math.random() < 0.15) {
+                        commText = COMMS_LOSING[Math.floor(Math.random() * COMMS_LOSING.length)];
+                    }
+                    // Sinon : commentaire standard du match
+                    else {
+                        commText = MATCH_COMMS[Math.floor(Math.random() * MATCH_COMMS.length)];
+                    }
+                    
+                    this.addCommentary(commText);
+                }
+                
+                if (this.match.time === 45) { clearInterval(this.match.timer); const hto = document.getElementById('ht-overlay'); if(hto) hto.classList.add('active'); }
+                if (this.match.time === 90) this.finishMatch();
+            }
+
+            giveSpeech(t) {
+                const b = { motivate: 1.05, shake: 1.15, calm: 1.10 };
+                this.match.speechBoost = b[t]; 
+                const hto = document.getElementById('ht-overlay'); if(hto) hto.classList.remove('active');
+                this.addCommentary(`<i>🗣️ Coaching : Les mots du manager ont boosté l'équipe (+${Math.round((b[t]-1)*100)}%).</i>`);
+                this.match.timer = setInterval(() => this.tick(), 1000);
+            }
+
+            runPenalties() {
+                let p1 = 0, p2 = 0;
+                const myPow = this.getTeamPower();
+                const oppPow = this.match.opp.ovr;
+                const shoot = (pow) => Math.random() < (0.75 + (pow - 80) * 0.01);
+
+                // 5 tirs obligatoires
+                for(let i=0; i<5; i++) {
+                    if(shoot(myPow)) p1++;
+                    if(shoot(oppPow)) p2++;
+                }
+                // Mort brusque
+                while(p1 === p2) {
+                    if(shoot(myPow)) p1++;
+                    if(shoot(oppPow)) p2++;
+                }
+                this.match.penalties = [p1, p2];
+                this.addCommentary(`📢 TAB : Séance de tirs au but ! Score : ${p1}-${p2}`);
+            }
+
+            finishMatch() {
+                clearInterval(this.match.timer); this.match.active = false;
+                
+                const draw = this.match.score[0] === this.match.score[1];
+                if (draw && this.state.stage !== 'groups') {
+                    this.runPenalties();
+                }
+
+                const pSuffix = this.match.penalties ? ` (${this.match.penalties[0]}-${this.match.penalties[1]} tab)` : "";
+                const esd = document.getElementById('end-score-display'); 
+                if(esd) esd.innerText = `${this.match.score[0]} - ${this.match.score[1]}${pSuffix}`;
+                
+                const em = document.getElementById('end-modal'); if(em) em.classList.remove('hidden');
+                
+                const win = this.match.penalties ? (this.match.penalties[0] > this.match.penalties[1]) : (this.match.score[0] > this.match.score[1]);
+                
+                this.state.players.forEach(p => { 
+                    if(p.role==='starter') {
+                        let drain = 15 - (this.state.infra.medical.level * 1.5);
+                        if(this.state.instructions.pressing === 'high') drain += 13;
+                        p.energy = Math.max(5, (p.energy||100) - drain);
+                    } else { p.energy = Math.min(100, (p.energy||0) + 20); }
+                });
+                
+                const bonusStadium = (this.state.infra.stadium.level - 1) * 0.5;
+                const baseEarnings = win ? 2.0 : (draw && !this.match.penalties ? 0.8 : 0.4);
+                const earnings = baseEarnings + bonusStadium;
+                
+                this.state.budget += earnings;
+                this.state.teamXP += win ? 100 : 20;
+
+                this.updateStd(this.state.standings['Côte d\'Ivoire'], this.match.score[0], this.match.score[1]);
+                this.updateStd(this.state.standings[this.match.opp.n], this.match.score[1], this.match.score[0]);
+                this.simulateOthers(); this.state.matchIndex++; 
+                this.save();
+                this.updateUI();
+                this.generateReport(win, this.match.score, this.match.opp.n);
+            }
+
+            generateReport(win, s, opp) {
+                const analyses = ["Le plan de jeu a fonctionné.", "Match tendu.", "Le manager est aux anges.", "Les fans réclament du changement."];
+                const res = win ? `Victoire héroïque ${s[0]}-${s[1]}` : `Résultat mitigé ${s[0]}-${s[1]}`;
+                this.state.news.unshift({id: Date.now(), text: `PRESSE : ${res} contre ${opp}. ${analyses[Math.floor(Math.random()*4)]}`});
+            }
+
+            updateStd(s, gf, ga) { if(!s) return; s.p++; s.gf+=gf; s.ga+=ga; if(gf>ga){s.w++; s.pts+=3;} else if(gf===ga){s.d++; s.pts+=1;} else s.l++; }
+
+            simulateOthers() {
+                this.state.globalResults = [];
+                for (let g in this.state.groups) {
+                    const t = this.state.groups[g];
+                    if (g !== this.state.standings['Côte d\'Ivoire'].grp) { this.simM(t[0].n, t[1].n); this.simM(t[2].n, t[3].n); } 
+                    else { const riv = t.filter(x => x.n !== 'Côte d\'Ivoire' && x.n !== this.match.opp.n); if (riv.length === 2) this.simM(riv[0].n, riv[1].n); }
+                }
+            }
+            simM(t1, t2) {
+                const s1 = this.state.standings[t1]; const s2 = this.state.standings[t2];
+                const r = s1.ovr / s2.ovr; let g1 = 0, g2 = 0;
+                for(let i=0; i<3; i++) { if(Math.random() < 0.28 * r) g1++; if(Math.random() < 0.28 * (1/r)) g2++; }
+                this.updateStd(s1, g1, g2); this.updateStd(s2, g2, g1);
+                this.state.globalResults.push(`${t1} ${g1}-${g2} ${t2}`);
+            }
+
+            closeEndModal() {
+                const em = document.getElementById('end-modal'); if(em) em.classList.add('hidden');
+                if (this.state.stage === 'groups' && this.state.matchIndex >= 3) { this.initKnockout(); }
+                else if (this.state.stage !== 'groups') {
+                    const win = this.match.penalties ? (this.match.penalties[0] > this.match.penalties[1]) : (this.match.score[0] > this.match.score[1]);
+                    if (!win) { this.simulateRest(); }
+                    else if (this.state.stage === 'finale') { 
+                        this.state.trophies++; this.state.budget += 25.0; this.state.teamXP += 3000;
+                        if(!this.state.pastWinners) this.state.pastWinners = [];
+                this.state.pastWinners.push({ year: this.state.year, n: "Côte d'Ivoire" });
+                        this.awards(); this.startNextSeason(); 
+                    } else { this.progressKnockout(); }
+                }
+                this.updateUI(); this.goToView('inbox');
+            }
+
+            initKnockout() {
+                const q = []; const th = [];
+                for(let g in this.state.groups) {
+                    const s = this.state.groups[g].sort((a,b)=>this.state.standings[b.n].pts - this.state.standings[a.n].pts || (this.state.standings[b.n].gf - this.state.standings[b.n].ga) - (this.state.standings[a.n].gf - this.state.standings[a.n].ga));
+                    q.push(s[0].n, s[1].n); th.push({n: s[2].n, pts: this.state.standings[s[2].n].pts});
+                }
+                const best3 = th.sort((a,b)=>b.pts-a.pts).slice(0, 4).map(x=>x.n);
+                const all16 = [...q, ...best3];
+                if (!all16.includes('Côte d\'Ivoire')) { this.simulateRest(); return; }
+                this.state.stage = '8iemes'; this.state.matchIndex = 0;
+                this.state.budget += 3.0; this.state.teamXP += 300;
+                const oppN = all16.filter(n=>n!=='Côte d\'Ivoire')[Math.floor(Math.random()*(all16.length-1))];
+                this.state.knockout['8iemes'] = this.state.standings[oppN];
+                this.toast("QUALIFIÉ POUR LES 8ÈMES !");
+            }
+
+            progressKnockout() {
+                const ph = ['groups', '8iemes', 'quarts', 'demis', 'finale'];
+                this.state.stage = ph[ph.indexOf(this.state.stage) + 1];
+                const bonusB = { quarts: 6.0, demis: 12.0, finale: 20.0 };
+                const bonusX = { quarts: 600, demis: 1200, finale: 2000 };
+                this.state.budget += bonusB[this.state.stage] || 0;
+                this.state.teamXP += bonusX[this.state.stage] || 0;
+                const r = NATIONS_DB.filter(n=>n.n!=='Côte d\'Ivoire').sort(()=>Math.random()-0.5)[0];
+                this.state.knockout[this.state.stage] = this.state.standings[r.n];
+            }
+
+            simulateRest() {
+                const winner = NATIONS_DB[Math.floor(Math.random()*NATIONS_DB.length)];
+                this.state.news.unshift({id: Date.now(), text: `🏆 CHAMPION : ${winner.n} remporte la CAN.`});
+                if(!this.state.pastWinners) this.state.pastWinners = [];
+                this.state.pastWinners.push({ year: this.state.year, n: winner.n });
+                this.awards(); this.startNextSeason();
+            }
+
+            awards() {
+                const star = NATIONS_DB[Math.floor(Math.random()*NATIONS_DB.length)];
+                this.state.news.unshift({id: Date.now()+1, text: `🎖️ MVP : ${star.star} (${star.n}) élu meilleur joueur de la CAN.`});
+                this.state.news.unshift({id: Date.now()+2, text: `👟 Soulier d'Or : ${this.generateRealName()} sacré meilleur buteur.`});
+                this.state.news.unshift({id: Date.now()+3, text: `🧤 Gant d'Or : Meilleure performance du tournoi pour le gardien de ${NATIONS_DB[0].n}.`});
+            }
+
+            processRetirements() {
+                const retired = [];
+                this.state.players = this.state.players.filter(p => {
+                    if (p.age > 30) {
+                        const chance = (p.age - 30) * 0.15; 
+                        if (Math.random() < chance) {
+                            retired.push(p.name);
+                            return false; 
+                        }
+                    }
+                    return true; 
+                });
+
+                Object.keys(this.state.standings).forEach(nationName => {
+                    const std = this.state.standings[nationName];
+                    std.starAge++;
+                    if (std.starAge >= 35) {
+                        const oldStar = std.star;
+                        std.star = this.generateRealName(); 
+                        std.starAge = 18 + Math.floor(Math.random() * 5); 
+                        std.ovr = Math.round(std.ovr * (0.95 + Math.random() * 0.1)); 
+                        this.state.news.unshift({
+                            id: Date.now() + Math.random(), 
+                            text: `🌍 REGEN : La légende ${oldStar} (${nationName}) prend sa retraite. ${std.star} est le nouveau prodige !`
+                        });
+                    }
+                });
+
+                if (retired.length > 0) {
+                    this.state.news.unshift({
+                        id: Date.now(), 
+                        text: `👋 DÉPARTS : ${retired.join(', ')} pren${retired.length > 1 ? 'nent' : 'd'} une retraite bien méritée.`
+                    });
+                }
+
+                while (this.state.players.length < 15) {
+                    this.state.players.push({ 
+                        id: crypto.randomUUID(), 
+                        name: this.generateRealName(), 
+                        pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], 
+                        age: 18 + Math.floor(Math.random()*3), 
+                        ovr: 68 + Math.floor(Math.random()*12), 
+                        role: 'sub', energy: 100, slot: null
+                    });
+                }
+            }
+
+            startNextSeason() {
+                this.state.year += 2; this.state.seasonsPlayed++;
+                this.state.matchIndex = 0; this.state.stage = 'groups'; this.state.rareScoutUsed = false;
+                
+                this.state.players.forEach(p => { 
+                    p.energy = 100; p.age += 2; 
+                    p.ovr += (p.age < 28 ? 3 : (p.age > 33 ? -3 : 0)); 
+                });
+                
+                this.processRetirements();
+                const n = [...NATIONS_DB].sort(()=>Math.random()-0.5);
+                this.state.groups = this.createGroups(n);
+                const oldStd = this.state.standings;
+                this.state.standings = this.initStd(n, this.state.groups);
+                
+                Object.keys(this.state.standings).forEach(k => {
+                    if(oldStd[k]) {
+                        this.state.standings[k].star = oldStd[k].star;
+                        this.state.standings[k].starAge = oldStd[k].starAge;
+                        this.state.standings[k].ovr = oldStd[k].ovr;
+                    } else {
+                        this.state.standings[k].starAge = 25;
+                    }
+                });
+
+                this.state.globalResults = []; 
+                this.updateUI(); 
+                this.goToView('inbox');
+                this.toast("Bienvenue en " + this.state.year + " !");
+            }
+
+            renderInbox() {
+                const dD = document.getElementById('dash-date'); if(dD) dD.innerText = this.state.year;
+                const dS = document.getElementById('dash-stage'); if(dS) dS.innerText = this.state.stage.toUpperCase();
+                const opp = this.getOpponent();
+                if (opp) {
+                    const nN = document.getElementById('next-opp-name'); if(nN) nN.innerText = opp.n;
+                    const nB = document.getElementById('next-opp-badge'); if(nB) nB.innerText = opp.code;
+                    const oA = document.getElementById('opponent-analysis-box');
+                    if(oA) oA.innerHTML = `
+                        <div class="p-3 bg-slate-800/40 rounded-xl text-center shadow-lg"><span class="text-[8px] text-slate-500 uppercase font-bold">Style</span><div class="text-white text-sm font-bold uppercase tracking-widest">${opp.style}</div></div>
+                        <div class="p-3 bg-slate-800/40 rounded-xl text-center shadow-lg"><span class="text-[8px] text-slate-500 uppercase font-bold">Star</span><div class="text-orange-500 text-sm font-bold uppercase tracking-widest">${opp.star} (${opp.starPos})</div></div>
+                    `;
+                }
+                const nBox = document.getElementById('news-feed'); if(nBox) {
+                    nBox.innerHTML = '';
+                    this.state.news.slice(0, 15).forEach(n => { nBox.innerHTML += `<div class=\"news-item\"><b> Flash Info :</b> ${n.text}</div>`; });
+                }
+            }
+
+            renderInfra() {
+                const list = document.getElementById('infra-list'); 
+                if(!list) return;
+                
+                list.innerHTML = '';
+                
+                // On utilise les références aux SVG définis dans la constante SVGS
+                const infras = [
+                    { id: 'stadium', name: 'Stade National', desc: 'Bonus revenus match (+0.5M/niv.)', icon: SVGS.infraStadium },
+                    { id: 'training', name: 'Centre Pro', desc: 'Améliore le gain OVR Boost (+1/niv.)', icon: SVGS.infraTraining },
+                    { id: 'medical', name: 'Clinique Sportive', desc: 'Réduit la fatigue après match (-1.5/niv.)', icon: SVGS.infraMedical }
+                ];
+
+                infras.forEach(inf => {
+                    const data = this.state.infra[inf.id];
+                    
+                    list.innerHTML += `
+                        <div class="infra-card group relative overflow-hidden transition-all duration-300 hover:bg-slate-800/80">
+                            <div class="flex justify-between items-start z-10 relative">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-500 shadow-xl group-hover:scale-110 group-hover:border-orange-500/50 transition-all duration-300">
+                                        ${inf.icon}
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-bold uppercase text-xs tracking-wider font-teko text-xl leading-none">${inf.name}</div>
+                                        <div class="text-[9px] text-slate-500 uppercase font-bold mt-1">Niveau ${data.level} / 5</div>
+                                    </div>
+                                </div>
+                                <div class="text-white font-teko text-xl font-bold bg-slate-900 px-3 py-1 rounded-lg border border-slate-700 shadow-inner text-orange-500">
+                                    ${data.cost.toFixed(1)} M€
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 mb-2 h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
+                                <div class="h-full bg-gradient-to-r from-orange-700 to-orange-500 transition-all duration-1000" style="width: ${(data.level/5)*100}%"></div>
+                            </div>
+
+                            <p class="text-[9px] text-slate-400 leading-tight mb-4 italic pl-1 border-l-2 border-slate-700">
+                                ${inf.desc}
+                            </p>
+                            
+                            <button onclick="app.upgradeInfra('${inf.id}')" 
+                                class="w-full py-3 bg-slate-900 border border-slate-700 hover:bg-orange-600 hover:border-orange-500 hover:text-white rounded-xl text-[10px] font-bold uppercase transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 ${data.level >= 5 ? 'opacity-40 pointer-events-none grayscale' : ''}">
+                                ${data.level >= 5 ? 'Niveau Maximum Atteint' : 'Améliorer la structure'}
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            upgradeInfra(id) {
+                const infra = this.state.infra[id];
+                if (this.state.budget < infra.cost) return this.toast("Budget insuffisant !");
+                if (infra.level >= 5) return this.toast("Niveau maximum atteint.");
+                
+                this.state.budget -= infra.cost;
+                infra.level++;
+                infra.cost *= 1.8;
+                
+                this.save(); // Sauvegarde immédiate
+                this.renderInfra();
+                this.updateUI(); // Met à jour le HUD
+                this.toast(`${id.toUpperCase()} amélioré au niveau ${infra.level} !`);
+            }
+
+       renderCalendar() {
+                const c = document.getElementById('calendar-content'); 
+                if(!c) return;
+
+                // 1. On prépare tout le HTML d'un coup (plus propre)
+                let htmlContent = '';
+
+                // -- SECTION ONGLETS GROUPES --
+                htmlContent += '<div id="group-tabs" class="flex gap-2 overflow-x-auto mb-4 no-scrollbar"></div>';
+
+                // -- SECTION CLASSEMENT (Tableau) --
+                htmlContent += `<div class="glass-panel rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-6">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-800 text-slate-500 uppercase">
+                            <tr><th class="p-3 font-bold text-slate-400">NATION</th><th class="p-3 text-center font-bold text-slate-400">PTS</th></tr>
+                        </thead>
+                        <tbody id="cal-body"></tbody>
+                    </table>
+                </div>`;
+
+                // -- NOUVELLE SECTION : PALMARÈS HISTORIQUE --
+                // On vérifie si l'historique existe, sinon tableau vide
+                const history = this.state.pastWinners || []; 
+                
+                htmlContent += `<div class="mb-6 border-t border-slate-800 pt-4">
+                    <h3 class="font-teko text-3xl text-white uppercase italic mb-2">Palmarès Historique</h3>
+                    <div class="space-y-2">`;
+                
+                if (history.length === 0) {
+                    htmlContent += `<div class="text-[10px] text-slate-500 italic p-2">Aucune donnée historique.</div>`;
+                } else {
+                    // On affiche du plus récent au plus ancien (.slice().reverse())
+                    history.slice().reverse().forEach(h => {
+                        const isPlayer = h.n === "Côte d'Ivoire";
+                        htmlContent += `
+                            <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border ${isPlayer ? 'border-orange-500/50' : 'border-white/5'}">
+                                <span class="text-orange-500 font-teko text-xl font-bold">${h.year}</span>
+                                <span class="text-xs font-bold ${isPlayer ? 'text-white' : 'text-slate-400'} uppercase">${h.n}</span>
+                            </div>
+                        `;
+                    });
+                }
+                htmlContent += `</div></div>`;
+
+                // -- SECTION RÉSULTATS MATCHS --
+                htmlContent += `<h3 class="font-teko text-2xl text-slate-500 uppercase mb-2">Résultats Récents</h3>`;
+                htmlContent += `<div id="res-f" class="space-y-1 pb-20"></div>`;
+
+                // 2. On injecte le tout dans la page
+                c.innerHTML = htmlContent;
+
+                // 3. On remplit les onglets (Dynamique)
+                const tabsContainer = document.getElementById('group-tabs');
+                Object.keys(this.state.groups).forEach(g => {
+                    tabsContainer.innerHTML += `<button onclick="app.setVG('${g}')" class="tab-btn ${this.state.viewingGroup===g?'active':''}">Gr. ${g}</button>`;
+                });
+
+                // 4. On remplit le classement (Dynamique)
+                const b = document.getElementById('cal-body');
+                Object.keys(this.state.standings)
+                    .filter(k => this.state.standings[k].grp === this.state.viewingGroup)
+                    .sort((a,b) => this.state.standings[b].pts - this.state.standings[a].pts)
+                    .forEach(t => {
+                        b.innerHTML += `<tr class="border-b border-white/5"><td class="p-3 font-bold text-white">${t}</td><td class="p-3 text-center font-teko text-lg text-orange-500">${this.state.standings[t].pts}</td></tr>`;
+                    });
+
+                // 5. On remplit les résultats globaux (Dynamique)
+                const rF = document.getElementById('res-f'); 
+                if(rF) {
+                    (this.state.globalResults || []).forEach(r => {
+                        rF.innerHTML += `<div class="bg-slate-900/50 p-2 text-[9px] border border-white/5 rounded italic text-slate-400">${r}</div>`;
+                    });
+                }
+            }
+            setVG(g) { this.state.viewingGroup = g; this.renderCalendar(); }
+
+            renderTraining() {
+                const c = document.getElementById('training-content'); if(!c) return;
+                c.innerHTML = '<h3 class="font-teko text-4xl mb-4 uppercase italic leading-none">Centre d\'Entraînement</h3><p class="text-[10px] text-slate-500 mb-6 uppercase tracking-widest">Optimisez les performances de vos éléphants.</p>';
+                this.state.players.sort((a,b)=>b.ovr-a.ovr).forEach(p => {
+                    c.innerHTML += `<div class="glass-panel p-4 rounded-xl flex items-center justify-between mb-3 shadow-md border-l-4 border-orange-500/50"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center font-teko text-2xl border border-orange-500 italic shadow-lg text-orange-500">${p.ovr}</div><div><div class="font-bold text-white uppercase text-sm">${p.name}</div><div class="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">${p.pos} • ${p.age} ans • ${p.energy}% Energie</div></div></div><button onclick="app.boost('${p.id}')" class="px-5 py-2 bg-slate-800 rounded-lg text-[10px] font-bold uppercase hover:bg-orange-600 transition">Booster</button></div>`;
+                });
+            }
+            boost(id) { 
+                if(this.state.budget<0.2) return this.toast("Manque de budget !"); 
+                this.state.budget-=0.2; 
+                const p=this.state.players.find(x=>x.id===id); 
+                
+                // --- AMELIORATION BOOST : 1 + niveau du Centre Pro ---
+                const gain = 1 + this.state.infra.training.level;
+                p.ovr += gain; 
+                
+                this.renderTraining(); 
+                this.save(); // Sauvegarde le budget déduit et le nouvel OVR
+                this.updateUI(); 
+                this.toast(`${p.name} progresse vite (+${gain} OVR) !`); 
+            }
+
+            renderScout() {
+                const c = document.getElementById('scout-content'); if(!c) return;
+                c.innerHTML = `<div class="space-y-4 mb-6"><div class="glass-panel p-6 rounded-3xl text-center bg-slate-900/40 shadow-2xl"><h3 class="text-xl font-bold uppercase mb-4 font-teko tracking-widest text-slate-300">Recrutement Standard</h3><button onclick="app.scoutPlayers('standard')" class="w-full py-4 bg-blue-600 rounded-2xl font-bold uppercase shadow-xl transition hover:bg-blue-500 active:scale-95">Détecter 5 Talents (3.0M€)</button></div><div class="glass-panel p-6 rounded-3xl text-center border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/10 to-transparent shadow-2xl"><h3 class="text-xl font-bold uppercase mb-2 font-teko text-yellow-500 text-shadow-glow">Projet Golden Boy (10.0 M€)</h3><p class="text-[9px] text-slate-400 mb-4 font-bold uppercase tracking-widest">Un talent pur de -21 ans (OVR 80+).</p><button onclick="app.scoutPlayers('elite')" id="btn-scout-elite" class="w-full py-4 ${this.state.rareScoutUsed ? 'bg-slate-800 text-slate-600' : 'bg-yellow-600 text-white'} rounded-2xl font-bold uppercase shadow-xl" ${this.state.rareScoutUsed ? 'disabled' : ''}>${this.state.rareScoutUsed ? 'DÉJÀ DÉTECTÉ' : 'RECHERCHER PÉPITE'}</button></div></div><div id="scout-list" class="space-y-2 pb-20"></div>`;
+                const l = document.getElementById('scout-list');
+                this.state.scoutPool.forEach(p => { l.innerHTML += `<div class="glass-panel p-4 rounded-xl flex items-center justify-between border-l-4 ${p.ovr >= 80 ? 'border-yellow-500' : 'border-orange-500'}"><div><div class="font-bold text-white uppercase text-sm">${p.name}</div><div class="text-[9px] text-slate-500 uppercase font-bold">${p.pos} • OVR ${p.ovr} • ${p.age} ans</div></div><button onclick="app.recruit('${p.id}')" class="px-5 py-2 bg-green-600 rounded-xl text-[10px] font-bold uppercase shadow-md active:scale-90 transition">Recruter</button></div>`; });
+            }
+            scoutPlayers(type) {
+                const cost = type === 'elite' ? 10.0 : 3.0; if (this.state.budget < cost) return this.toast("Budget trop faible !");
+                this.state.budget -= cost;
+                if (type === 'elite') { this.state.rareScoutUsed = true; this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 18, ovr: 81 + Math.floor(Math.random()*6), role: 'sub', energy: 100 }); }
+                else { for(let i=0; i<5; i++) { this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 17 + Math.floor(Math.random()*5), ovr: 58 + Math.floor(Math.random()*15), role: 'sub', energy: 100 }); } }
+                this.save();
+                this.renderScout(); 
+                this.updateUI(); 
+                this.toast("Nouveau rapport scout !");
+            }
+            recruit(id) { const idx = this.state.scoutPool.findIndex(x => x.id === id); if (idx > -1) { this.state.players.push(this.state.scoutPool.splice(idx, 1)[0]); this.renderScout(); this.save(); this.toast("Joueur intégré à l'effectif !"); } }
+
+            toggleLiveCoaching() { 
+                this.isLiveCoaching = !this.isLiveCoaching; 
+                const overlay = document.getElementById('live-coach-overlay');
+                if(overlay) overlay.classList.toggle('active', this.isLiveCoaching); 
+                if(this.isLiveCoaching) this.renderPitch('pitch-cards-layer-live'); 
+            }
+            
+            openSwapModal(idx) {
+                this.currentSwapSlot = idx; const f = FORMATIONS[this.state.formation];
+                const list = document.getElementById('swap-candidates-list'); if(!list) return;
+                list.innerHTML = '';
+                this.state.players.filter(p => p.role !== 'starter').sort((a,b) => (b.pos===f.zones[idx]) - (a.pos===f.zones[idx]) || b.ovr-a.ovr).forEach(p => {
+                    const el = document.createElement('div'); el.className = 'glass-panel p-4 rounded-2xl flex items-center justify-between mb-2 cursor-pointer border-slate-800 hover:border-orange-500 transition';
+                    el.onclick = () => { this.confirmSwap(p.id); };
+                    el.innerHTML = `<div class="flex items-center gap-4"><div class="font-teko text-3xl text-orange-500 italic">${p.ovr}</div><div><div class="font-bold text-white uppercase text-xs">${p.name}</div><div class="text-[9px] font-bold text-slate-400 uppercase">${p.pos} • ${p.energy}% Forme</div></div></div>`;
+                    list.appendChild(el);
+                });
+                const modal = document.getElementById('swap-modal'); if(modal) modal.classList.remove('hidden');
+            }
+            
+            confirmSwap(id) {
+                const old = this.state.players.find(x => x.role === 'starter' && x.slot === this.currentSwapSlot);
+                const nw = this.state.players.find(x => x.id === id);
+                if (old) { old.role = 'sub'; old.slot = null; } 
+                if (nw) { nw.role = 'starter'; nw.slot = this.currentSwapSlot; }
+                this.closeSwapModal(); 
+                this.renderPitch(this.isLiveCoaching ? 'pitch-cards-layer-live' : 'pitch-cards-layer');
+                this.save();
+            }
+            
+            closeSwapModal() { const m = document.getElementById('swap-modal'); if(m) m.classList.add('hidden'); }
+            
+            toast(m) { 
+                const t = document.getElementById('feedback-toast'); 
+                const msg = document.getElementById('toast-msg'); 
+                if(!t || !msg) return;
+                msg.innerText = m;
+                t.classList.remove('hidden');
+                void t.offsetWidth;
+                t.classList.remove('opacity-0', 'translate-y-4');
+                t.classList.add('opacity-100', 'translate-y-0');
+                if(this.toastTimeout) clearTimeout(this.toastTimeout);
+                this.toastTimeout = setTimeout(() => {
+                    t.classList.remove('opacity-100', 'translate-y-0');
+                    t.classList.add('opacity-0', 'translate-y-4');
+                    setTimeout(() => { t.classList.add('hidden'); }, 500);
+                }, 2500);
+            }
+            
+            autoPick() {
+                this.state.players.forEach(p => { p.role = 'sub'; p.slot = null; });
+                const form = FORMATIONS[this.state.formation];
+                const pool = [...this.state.players];
+                for(let i=0; i<form.zones.length; i++) {
+                    const targetPos = form.zones[i];
+                    pool.sort((a, b) => {
+                        const scoreA = (a.ovr * 0.8) + (a.energy * 0.2);
+                        const scoreB = (b.ovr * 0.8) + (b.energy * 0.2);
+                        const bonusPosA = (a.pos === targetPos) ? 1000 : 0;
+                        const bonusPosB = (b.pos === targetPos) ? 1000 : 0;
+                        return (scoreB + bonusPosB) - (scoreA + bonusPosA);
+                    });
+                    const bestPlayer = pool.shift();
+                    if(bestPlayer) { bestPlayer.role = 'starter'; bestPlayer.slot = i; }
+                }
+                this.renderPitch('pitch-cards-layer');
+                this.toast("Équipe optimisée !");
+            }
+            
+            setFormation(f) { this.state.formation = f; this.autoPick(); }
+           setMatchTactic(t) { 
+                this.match.tactic = t; 
+                document.querySelectorAll('#view-match .grid button').forEach(b => b.classList.replace('bg-slate-700', 'bg-slate-800')); 
+                const target = document.getElementById('tac-'+t); 
+                if(target) target.classList.replace('bg-slate-800', 'bg-slate-700'); 
+                
+                // Affiche le commentaire lié à l'action
+                this.addCommentary(COMMS_TACTICAL[t]);
+            }
+            showGoalAnim(n) { const sc = document.getElementById('goal-scorer-name'); if(sc) sc.innerText = n; const go = document.getElementById('goal-overlay'); if(go) { go.classList.add('active'); setTimeout(()=>go.classList.remove('active'), 3000); } }
+            addCommentary(t) { 
+                const log = document.getElementById('commentary-log'); 
+                if(log) {
+                    // Récupère le nom du manager, ou met "Coach" par défaut
+                    const mName = this.state.managerName || "Le Coach";
+                    // Remplace la balise {MANAGER} par le vrai nom en couleur
+                    const finalTxt = t.replace(/{MANAGER}/g, `<span class="text-orange-400 font-bold">${mName}</span>`);
+                    
+                    log.insertAdjacentHTML('afterbegin', `<div class="mb-2 p-3 rounded-xl bg-white/5 border border-white/5 animate-news"><span class="opacity-30 text-[9px] mr-2 font-mono italic">${this.match.time}'</span> ${finalTxt}</div>`); 
+                }
+            }
+            resetGame() { if (confirm("RAZ TOTAL ?")) { localStorage.clear(); location.reload(); } }
+            
+            setTacticalInstruction(type, val) { this.state.instructions[type] = val; this.renderTacticalUI(); }
+            renderTacticalUI() {
+                document.querySelectorAll('.instruction-btn').forEach(b => b.classList.remove('active'));
+                const s = document.getElementById(`inst-style-${this.state.instructions.style}`);
+                const p = document.getElementById(`inst-pressing-${this.state.instructions.pressing}`);
+                if(s) s.classList.add('active');
+                if(p) p.classList.add('active');
+            }
+            toggleMatchInstruction(t) {
+                if(t==='style') this.state.instructions.style = this.state.instructions.style==='possession'?'counter':'possession';
+                if(t==='pressing') this.state.instructions.pressing = this.state.instructions.pressing==='normal'?'high':'normal';
+                this.updateMatchInstructionsUI();
+            }
+            updateMatchInstructionsUI() {
+                const s = this.state.instructions;
+                const sBtn = document.getElementById('live-inst-style'); 
+                const pBtn = document.getElementById('live-inst-pressing');
+                if(sBtn) { sBtn.innerText = s.style.toUpperCase(); sBtn.className = `py-4 rounded-xl border text-[11px] font-bold uppercase transition ${s.style==='possession'?'bg-orange-600 border-orange-400 text-white shadow-lg shadow-orange-600/30':'bg-slate-800 border-slate-700 text-slate-400'}`; }
+                if(pBtn) { pBtn.innerText = s.pressing==='high'?'PRESSING HAUT':'PRESSING NORMAL'; pBtn.className = `py-4 rounded-xl border text-[11px] font-bold uppercase transition ${s.pressing==='high'?'bg-orange-600 border-orange-400 text-white shadow-lg shadow-orange-600/30':'bg-slate-800 border-slate-700 text-slate-400'}`; }
+            }
+        }
+
+        window.onload = () => { window.app = new EliteManager(); };
+    </script>
+</body>
+
+</html>
