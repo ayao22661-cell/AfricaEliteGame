@@ -452,17 +452,21 @@
                         </div>
                     </div>
                 </div>
-                </div>  <div id="swap-modal" class="absolute inset-0 z-[300] bg-slate-950 hidden flex flex-col"></div>
+                </div>  
 
             <!-- MODAL DE SWAP -->
-            <div id="swap-modal" class="absolute inset-0 z-[300] bg-slate-950 hidden flex flex-col">
-                <div class="p-6 bg-slate-900 border-b border-slate-800 flex justify-between items-center shadow-2xl">
-                    <h3 class="font-teko text-4xl text-white uppercase leading-none italic">Remplacement</h3>
-                    <button onclick="app.closeSwapModal()" class="w-12 h-12 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 shadow-xl">X</button>
+           <div id="swap-modal" class="absolute inset-0 z-[300] bg-slate-950/95 hidden flex flex-col backdrop-blur-md">
+                <div class="p-4 bg-slate-900 border-b border-slate-700 flex justify-between items-center shadow-2xl shrink-0">
+                    <div>
+                        <h3 class="font-teko text-4xl text-white uppercase leading-none italic">Banc de Touche</h3>
+                        <div class="text-[10px] text-orange-500 font-bold uppercase tracking-widest" id="swap-target-pos">Remplacement</div>
+                    </div>
+                    <button onclick="app.closeSwapModal()" class="w-10 h-10 flex items-center justify-center bg-slate-800 rounded-full text-white font-bold shadow-xl border border-slate-700">X</button>
                 </div>
-                <div class="p-6 flex-1 overflow-y-auto no-scrollbar space-y-3 bg-slate-950" id="swap-candidates-list"></div>
+                
+                <div class="p-4 flex-1 overflow-y-auto no-scrollbar grid grid-cols-2 gap-3 content-start" id="swap-candidates-list">
+                    </div>
             </div>
-
             <!-- VUES SECONDAIRES -->
             <div id="view-training" class="view-section hidden h-full overflow-y-auto no-scrollbar">
                 <div class="p-5" id="training-content"></div>
@@ -1615,17 +1619,63 @@
                 if(this.isLiveCoaching) this.renderPitch('pitch-cards-layer-live'); 
             }
             
-            openSwapModal(idx) {
-                this.currentSwapSlot = idx; const f = FORMATIONS[this.state.formation];
-                const list = document.getElementById('swap-candidates-list'); if(!list) return;
+       openSwapModal(idx) {
+                this.currentSwapSlot = idx; 
+                const form = FORMATIONS[this.state.formation];
+                const targetPos = form.zones[idx]; 
+                
+                const titlePos = document.getElementById('swap-target-pos');
+                if(titlePos) titlePos.innerText = `Remplacer : ${targetPos}`;
+
+                const list = document.getElementById('swap-candidates-list'); 
+                if(!list) return;
+                
+                list.className = "p-4 flex-1 overflow-y-auto no-scrollbar flex flex-wrap gap-3 justify-center content-start";
                 list.innerHTML = '';
-                this.state.players.filter(p => p.role !== 'starter').sort((a,b) => (b.pos===f.zones[idx]) - (a.pos===f.zones[idx]) || b.ovr-a.ovr).forEach(p => {
-                    const el = document.createElement('div'); el.className = 'glass-panel p-4 rounded-2xl flex items-center justify-between mb-2 cursor-pointer border-slate-800 hover:border-orange-500 transition';
+                
+                const candidates = this.state.players.filter(p => p.role !== 'starter')
+                    .sort((a,b) => (b.pos === targetPos) - (a.pos === targetPos) || b.ovr - a.ovr);
+
+                candidates.forEach(p => {
+                    const isGoodPos = p.pos === targetPos;
+                    
+                    // Couleurs
+                    const borderColor = isGoodPos ? 'border-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]' : 'border-slate-700 opacity-60 grayscale-[0.8]';
+                    const bgStyle = isGoodPos ? 'bg-gradient-to-br from-orange-600 to-orange-800' : 'bg-gradient-to-br from-slate-800 to-slate-900';
+                    const posColor = isGoodPos ? 'text-orange-200' : 'text-slate-500';
+                    const badgeColor = isGoodPos ? 'text-white' : 'text-slate-400';
+
+                    const el = document.createElement('div');
+                    
+                    // STRUCTURE IDENTIQUE AU TERRAIN (50x78px)
+                    // On utilise 'flex-col' sans justify-center, c'est le mt-auto du nom qui gère l'espace.
+                    el.className = `relative w-[50px] h-[78px] rounded-md border ${borderColor} ${bgStyle} flex flex-col items-center cursor-pointer transition-all active:scale-95 hover:scale-110 overflow-hidden`;
+                    
                     el.onclick = () => { this.confirmSwap(p.id); };
-                    el.innerHTML = `<div class="flex items-center gap-4"><div class="font-teko text-3xl text-orange-500 italic">${p.ovr}</div><div><div class="font-bold text-white uppercase text-xs">${p.name}</div><div class="text-[9px] font-bold text-slate-400 uppercase">${p.pos} • ${p.energy}% Forme</div></div></div>`;
+                    
+                    el.innerHTML = `
+                        <div class="mt-1 text-[6px] font-bold text-slate-300 mb-px">${p.age} ans</div>
+                        
+                        <div class="font-teko text-[20px] font-bold leading-none ${badgeColor} drop-shadow-md">
+                            ${p.ovr}
+                        </div>
+                        
+                        <div class="text-[7px] font-black uppercase ${posColor} -mt-0.5">${p.pos}</div>
+                        
+                        <div class="w-[75%] h-[2px] bg-white/20 rounded-full overflow-hidden mt-0.5">
+                            <div class="h-full ${p.energy > 80 ? 'bg-white' : (p.energy > 50 ? 'bg-yellow-400' : 'bg-red-500')}" style="width: ${p.energy}%"></div>
+                        </div>
+
+                        <div class="mt-auto w-full bg-black/60 py-[2px] text-center">
+                            <div class="font-sans text-[7px] font-bold text-white truncate px-0.5 leading-none">${p.name.split(' ').pop()}</div>
+                        </div>
+                    `;
+                    
                     list.appendChild(el);
                 });
-                const modal = document.getElementById('swap-modal'); if(modal) modal.classList.remove('hidden');
+                
+                const modal = document.getElementById('swap-modal'); 
+                if(modal) modal.classList.remove('hidden');
             }
             
             confirmSwap(id) {
@@ -1728,3 +1778,4 @@
 </body>
 
 </html>
+
