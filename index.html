@@ -1795,19 +1795,69 @@
                 this.toast("Bienvenue en " + this.state.year + " !");
             }
 
-            renderInbox() {
+            getTacticalAdvice(style) {
+                // Logique du Staff : Quel plan de jeu adopter ?
+                const strategies = {
+                    'Offensif': "Ils se livrent beaucoup. Jouez en <b class='text-orange-400'>CONTRE</b> pour exploiter les espaces dans leur dos.",
+                    'Tiki-Taka': "Ils confisquent le ballon. Un <b class='text-orange-400'>PRESSING HAUT</b> est nécessaire pour casser leur rythme.",
+                    'Contre': "Méfiance. Ne perdez pas la balle haut. Gardez la <b class='text-orange-400'>POSSESSION</b> pour les frustrer.",
+                    'Bloc Bas': "Mur défensif. Il faudra de la patience en <b class='text-orange-400'>POSSESSION</b> pour trouver une faille.",
+                    'Vertical': "Jeu direct dangereux. Baissez le bloc ou coupez les lignes de passes.",
+                    'Technique': "Gros bagage technique. Imposez un défi physique dans les duels.",
+                    'Puissance': "Équipe très physique. Évitez les contacts, faites courir le ballon vite.",
+                    'Vitesse': "Attaquants rapides ! Ne jouez pas le hors-jeu, restez prudents derrière.",
+                    'Pressing': "Ils chassent en meute. Sautez les lignes avec un jeu plus direct.",
+                    'Impact': "Gros impact athlétique. Répondez présent dans les duels au milieu.",
+                    'Dribbles': "Individualistes. Ne vous jetez pas, défendez en zone intelligemment."
+                };
+                // Conseil par défaut si le style n'est pas listé
+                return strategies[style] || "Adversaire imprévisible. Soyez solides et profitez des coups de pied arrêtés.";
+            }
+
+           renderInbox() {
                 const dD = document.getElementById('dash-date'); if(dD) dD.innerText = this.state.year;
                 const dS = document.getElementById('dash-stage'); if(dS) dS.innerText = this.state.stage.toUpperCase();
+                
                 const opp = this.getOpponent();
                 if (opp) {
                     const nN = document.getElementById('next-opp-name'); if(nN) nN.innerText = opp.n;
                     const nB = document.getElementById('next-opp-badge'); if(nB) nB.innerText = opp.code;
+                    
                     const oA = document.getElementById('opponent-analysis-box');
-                    if(oA) oA.innerHTML = `
-                        <div class="p-3 bg-slate-800/40 rounded-xl text-center shadow-lg"><span class="text-[8px] text-slate-500 uppercase font-bold">Style</span><div class="text-white text-sm font-bold uppercase tracking-widest">${opp.style}</div></div>
-                        <div class="p-3 bg-slate-800/40 rounded-xl text-center shadow-lg"><span class="text-[8px] text-slate-500 uppercase font-bold">Star</span><div class="text-orange-500 text-sm font-bold uppercase tracking-widest">${opp.star} (${opp.starPos})</div></div>
-                    `;
+                    if(oA) {
+                        // On récupère le conseil dynamique
+                        const advice = this.getTacticalAdvice(opp.style);
+                        
+                        oA.innerHTML = `
+                            <div class="p-3 bg-slate-800/40 rounded-xl text-center shadow-lg border border-white/5">
+                                <span class="text-[8px] text-slate-500 uppercase font-bold block mb-1">Style Adverse</span>
+                                <div class="text-white text-sm font-bold uppercase tracking-widest">${opp.style}</div>
+                            </div>
+                            <div class="p-3 bg-slate-800/40 rounded-xl text-center shadow-lg border border-white/5">
+                                <span class="text-[8px] text-slate-500 uppercase font-bold block mb-1">Danger N°1</span>
+                                <div class="text-orange-500 text-sm font-bold uppercase tracking-widest truncate">${opp.star}</div>
+                            </div>
+                            
+                            <div class="col-span-2 p-3 bg-blue-900/10 rounded-xl border border-blue-500/20 flex items-start gap-3 relative overflow-hidden">
+                                <div class="absolute -right-4 -top-4 opacity-5 grayscale scale-[3.0] rotate-12">
+                                    ${SVGS.radar}
+                                </div>
+                                
+                                <div class="mt-0.5 text-blue-400">
+                                    ${SVGS.layout}
+                                </div>
+                                
+                                <div class="relative z-10">
+                                    <span class="text-[9px] text-blue-400 uppercase font-bold block mb-0.5">Note de l'Analyste</span>
+                                    <div class="text-slate-300 text-[10px] leading-snug font-medium italic">
+                                        "${advice}"
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
+                
                 const nBox = document.getElementById('news-feed'); if(nBox) {
                     nBox.innerHTML = '';
                     this.state.news.slice(0, 15).forEach(n => { nBox.innerHTML += `<div class=\"news-item\"><b> Flash Info :</b> ${n.text}</div>`; });
@@ -2161,4 +2211,3 @@
 </body>
 
 </html>
-
