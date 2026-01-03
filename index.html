@@ -1590,91 +1590,81 @@
                 clearInterval(this.match.timer); 
                 this.match.active = false;
                 
+                // Récupération des niveaux du Staff
+                const staffLvl = this.state.staff || { director: {level:1}, assistant: {level:1}, fitness: {level:1} };
+                
                 // Calcul du résultat
                 const scoreHome = this.match.score[0];
                 const scoreAway = this.match.score[1];
                 let isWin = scoreHome > scoreAway;
                 let isDraw = scoreHome === scoreAway;
                 
-                // Gestion des pénaltys (phases finales seulement)
+                // Gestion des pénaltys
                 if (isDraw && this.state.stage !== 'groups') {
                     this.runPenalties();
-                    // Recalcul victoire après TAB
                     isWin = this.match.penalties[0] > this.match.penalties[1];
                     isDraw = false; 
                 }
 
-                // 1. Mise à jour des Textes et Badges
-                const esd = document.getElementById('end-score-display'); 
-                if(esd) esd.innerText = `${scoreHome}-${scoreAway}`;
-                
+                // UI Updates (Score, Badge, Header...) - Code standard conservé
+                const esd = document.getElementById('end-score-display'); if(esd) esd.innerText = `${scoreHome}-${scoreAway}`;
                 const epd = document.getElementById('end-penalties-display');
-                if (this.match.penalties) {
-                    epd.innerText = `TAB : ${this.match.penalties[0]} - ${this.match.penalties[1]}`;
-                    epd.classList.remove('hidden');
-                } else {
-                    epd.classList.add('hidden');
-                }
+                if (this.match.penalties) { epd.innerText = `TAB : ${this.match.penalties[0]} - ${this.match.penalties[1]}`; epd.classList.remove('hidden'); } else { epd.classList.add('hidden'); }
 
-                // Badge adversaire
-                const eBadge = document.getElementById('end-opp-badge');
-                if(eBadge) eBadge.innerHTML = `<span class="font-teko text-3xl text-white font-bold italic">${this.match.opp.code}</span>`;
-                const eName = document.getElementById('end-opp-name');
-                if(eName) eName.innerText = this.match.opp.n;
+                const eBadge = document.getElementById('end-opp-badge'); if(eBadge) eBadge.innerHTML = `<span class="font-teko text-3xl text-white font-bold italic">${this.match.opp.code}</span>`;
+                const eName = document.getElementById('end-opp-name'); if(eName) eName.innerText = this.match.opp.n;
 
-                // 2. Mise à jour du Header (Couleur et Titre)
                 const titleEl = document.getElementById('end-title');
                 const headerBg = document.getElementById('end-header-bg');
-                
-                // Reset classes de couleur
                 headerBg.className = "h-24 flex items-center justify-center pt-4 relative bg-gradient-to-b";
                 
                 if (isWin) {
-                    titleEl.innerText = "VICTOIRE";
-                    titleEl.className = "font-teko text-6xl text-white uppercase italic tracking-tighter drop-shadow-lg relative z-10";
-                    headerBg.classList.add("from-green-600", "to-slate-900");
+                    titleEl.innerText = "VICTOIRE"; titleEl.className = "font-teko text-6xl text-white uppercase italic tracking-tighter drop-shadow-lg relative z-10"; headerBg.classList.add("from-green-600", "to-slate-900");
                 } else if (isDraw) {
-                    titleEl.innerText = "MATCH NUL";
-                    titleEl.className = "font-teko text-6xl text-slate-200 uppercase italic tracking-tighter drop-shadow-lg relative z-10";
-                    headerBg.classList.add("from-slate-500", "to-slate-900");
+                    titleEl.innerText = "MATCH NUL"; titleEl.className = "font-teko text-6xl text-slate-200 uppercase italic tracking-tighter drop-shadow-lg relative z-10"; headerBg.classList.add("from-slate-500", "to-slate-900");
                 } else {
-                    titleEl.innerText = "DÉFAITE";
-                    titleEl.className = "font-teko text-6xl text-red-100 uppercase italic tracking-tighter drop-shadow-lg relative z-10";
-                    headerBg.classList.add("from-red-600", "to-slate-900");
+                    titleEl.innerText = "DÉFAITE"; titleEl.className = "font-teko text-6xl text-red-100 uppercase italic tracking-tighter drop-shadow-lg relative z-10"; headerBg.classList.add("from-red-600", "to-slate-900");
                 }
 
-                // 3. Mise à jour des Stats visuelles
-                const shotsHome = this.match.stats.shots;
-                const shotsAway = this.match.stats.shotsAway;
-                const totalShots = shotsHome + shotsAway || 1;
+                // Stats visuelles
+                const shotsHome = this.match.stats.shots; const shotsAway = this.match.stats.shotsAway; const totalShots = shotsHome + shotsAway || 1;
                 document.getElementById('end-stat-shots').innerText = `${shotsHome} - ${shotsAway}`;
                 document.getElementById('end-bar-shots').style.width = `${(shotsHome / totalShots) * 100}%`;
-                
-                // Pour la possession, on récupère la dernière valeur calculée
-                const possText = document.getElementById('poss-val-home').innerText; // ex: "55%"
-                const possVal = parseInt(possText);
+                const possText = document.getElementById('poss-val-home').innerText; const possVal = parseInt(possText);
                 document.getElementById('end-stat-poss').innerText = `${possVal}% - ${100-possVal}%`;
                 document.getElementById('end-bar-poss').style.width = `${possVal}%`;
 
-                // Affichage du modal
-                const em = document.getElementById('end-modal'); 
-                if(em) em.classList.remove('hidden');
+                const em = document.getElementById('end-modal'); if(em) em.classList.remove('hidden');
                 
-                // --- Logique Métier (Budget, XP, Fatigue) ---
+                // --- LOGIQUE MÉTIER AVEC STAFF ---
+                
                 this.state.players.forEach(p => { 
                     if(p.role==='starter') {
+                        // Titulaires : La Clinique réduit la fatigue
                         let drain = 15 - (this.state.infra.medical.level * 1.5);
                         if(this.state.instructions.pressing === 'high') drain += 13;
                         p.energy = Math.max(5, (p.energy||100) - drain);
-                    } else { p.energy = Math.min(100, (p.energy||0) + 20); }
+                    } else { 
+                        // Remplaçants : Le Préparateur Physique (Fitness) aide à récupérer
+                        // Bonus : +5 points d'énergie récupérés par niveau
+                        const recoveryBonus = (staffLvl.fitness.level - 1) * 5; 
+                        const baseRecovery = 20;
+                        p.energy = Math.min(100, (p.energy||0) + baseRecovery + recoveryBonus); 
+                    }
                 });
                 
                 const bonusStadium = (this.state.infra.stadium.level - 1) * 0.5;
-                const baseEarnings = isWin ? 2.0 : (isDraw ? 0.8 : 0.4); // Draw rapporte moins qu'une victoire
+                const baseEarnings = isWin ? 2.0 : (isDraw ? 0.8 : 0.4); 
                 const earnings = baseEarnings + bonusStadium;
-                
                 this.state.budget += earnings;
-                this.state.teamXP += isWin ? 30 : (isDraw ? 10 : 5);
+                
+                // Calcul XP avec Bonus Assistant
+                let baseXp = isWin ? 30 : (isDraw ? 10 : 5);
+                // Bonus : +10% par niveau (Niv 1 = +0%, Niv 5 = +40%)
+                const assistantBonus = (staffLvl.assistant.level - 1) * 0.10;
+                const finalXp = Math.round(baseXp * (1 + assistantBonus));
+                
+                this.state.teamXP += finalXp;
 
                 this.updateStd(this.state.standings['Côte d\'Ivoire'], scoreHome, scoreAway);
                 this.updateStd(this.state.standings[this.match.opp.n], scoreAway, scoreHome);
@@ -1685,7 +1675,6 @@
                 this.updateUI();
                 this.generateReport(isWin, [scoreHome, scoreAway], this.match.opp.n);
             }
-
             generateReport(win, s, opp) {
                 const analyses = ["Le plan de jeu a fonctionné.", "Match tendu.", "Le manager est aux anges.", "Les fans réclament du changement."];
                 const res = win ? `Victoire héroïque ${s[0]}-${s[1]}` : `Résultat mitigé ${s[0]}-${s[1]}`;
@@ -2373,15 +2362,32 @@
                 const l = document.getElementById('scout-list');
                 this.state.scoutPool.forEach(p => { l.innerHTML += `<div class="glass-panel p-4 rounded-xl flex items-center justify-between border-l-4 ${p.ovr >= 80 ? 'border-yellow-500' : 'border-orange-500'}"><div><div class="font-bold text-white uppercase text-sm">${p.name}</div><div class="text-[9px] text-slate-500 uppercase font-bold">${p.pos} • OVR ${p.ovr} • ${p.age} ans</div></div><button onclick="app.recruit('${p.id}')" class="px-5 py-2 bg-green-600 rounded-xl text-[10px] font-bold uppercase shadow-md active:scale-90 transition">Recruter</button></div>`; });
             }
-            scoutPlayers(type) {
-                const cost = type === 'elite' ? 10.0 : 3.0; if (this.state.budget < cost) return this.toast("Budget trop faible !");
-                this.state.budget -= cost;
-                if (type === 'elite') { this.state.rareScoutUsed = true; this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 18, ovr: 81 + Math.floor(Math.random()*6), role: 'sub', energy: 100 }); }
-                else { for(let i=0; i<5; i++) { this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 17 + Math.floor(Math.random()*5), ovr: 58 + Math.floor(Math.random()*15), role: 'sub', energy: 100 }); } }
+           scoutPlayers(type) {
+                // 1. Calcul du coût de base
+                let baseCost = type === 'elite' ? 10.0 : 3.0;
+                
+                // 2. Bonus Directeur : -10% par niveau
+                const directorLevel = this.state.staff ? this.state.staff.director.level : 1;
+                const discount = (directorLevel - 1) * 0.10; // Niv 1 = 0%, Niv 5 = 40%
+                const finalCost = baseCost * (1 - discount);
+
+                if (this.state.budget < finalCost) return this.toast(`Budget insuffisant (${finalCost.toFixed(1)}M€ requis) !`);
+                
+                this.state.budget -= finalCost;
+                
+                if (type === 'elite') { 
+                    this.state.rareScoutUsed = true; 
+                    this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 18, ovr: 81 + Math.floor(Math.random()*6), role: 'sub', energy: 100 }); 
+                } else { 
+                    for(let i=0; i<5; i++) { 
+                        this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 17 + Math.floor(Math.random()*5), ovr: 58 + Math.floor(Math.random()*15), role: 'sub', energy: 100 }); 
+                    } 
+                }
+                
                 this.save();
                 this.renderScout(); 
                 this.updateUI(); 
-                this.toast("Nouveau rapport scout !");
+                this.toast(`Scouting lancé ! Coût : ${finalCost.toFixed(1)}M€ (-${(discount*100).toFixed(0)}%)`);
             }
             recruit(id) { const idx = this.state.scoutPool.findIndex(x => x.id === id); if (idx > -1) { this.state.players.push(this.state.scoutPool.splice(idx, 1)[0]); this.renderScout(); this.save(); this.toast("Joueur intégré à l'effectif !"); } }
 
@@ -2551,6 +2557,7 @@
 </body>
 
 </html>
+
 
 
 
