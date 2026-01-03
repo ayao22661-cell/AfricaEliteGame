@@ -1053,6 +1053,33 @@
             }
 
             init() { 
+                // --- PATCH DE COMPATIBILITÉ (Pour les anciennes sauvegardes) ---
+                
+                // 1. Si le STAFF n'existe pas, on l'ajoute
+                if (!this.state.staff) {
+                    this.state.staff = {
+                        director: { level: 1, salary: 2.0, name: "Directeur Sportif", desc: "Réduit les coûts de recrutement (-10%/niv)." },
+                        assistant: { level: 1, salary: 1.5, name: "Entraîneur Adjoint", desc: "Booste le gain d'XP d'équipe (+10%/niv)." },
+                        fitness: { level: 1, salary: 1.0, name: "Préparateur Physique", desc: "Remplaçants récupèrent mieux (+5%/niv)." }
+                    };
+                }
+
+                // 2. Si le CLASSEMENT BUTEURS n'existe pas
+                if (!this.state.goalScorers) {
+                    this.state.goalScorers = [];
+                }
+
+                // 3. Si le GROUPE PAR DÉFAUT n'existe pas (Classement invisible)
+                if (!this.state.viewingGroup) {
+                    let myG = 'A';
+                    if (this.state.groups) {
+                        for(let k in this.state.groups) {
+                            if(this.state.groups[k].some(t => t.n === "Côte d'Ivoire")) myG = k;
+                        }
+                    }
+                    this.state.viewingGroup = myG;
+                }
+                //
                 this.injectIcons(); 
         this.updateUI(); 
         
@@ -2524,5 +2551,6 @@
 </body>
 
 </html>
+
 
 
