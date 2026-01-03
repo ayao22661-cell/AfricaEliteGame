@@ -1798,8 +1798,18 @@
                 this.state.matchIndex = 0; this.state.stage = 'groups'; this.state.rareScoutUsed = false;
                 
                 this.state.players.forEach(p => { 
-                    p.energy = 100; p.age += 2; 
-                    p.ovr += (p.age < 28 ? 3 : (p.age > 33 ? -3 : 0)); 
+                    p.energy = 100; 
+                    p.age += 2; 
+                    
+                    // Calcul de l'évolution
+                    let evolution = (p.age < 28 ? 3 : (p.age > 33 ? -3 : 0));
+                    
+                    // On applique l'évolution
+                    p.ovr += evolution;
+                    
+                    // SÉCURITÉ : On borne la note entre 50 et 99
+                    if (p.ovr > 99) p.ovr = 99;
+                    if (p.ovr < 50) p.ovr = 50; // Pour éviter qu'ils ne deviennent trop nuls
                 });
                 
                 this.processRetirements();
@@ -2104,19 +2114,26 @@
                     c.innerHTML += `<div class="glass-panel p-4 rounded-xl flex items-center justify-between mb-3 shadow-md border-l-4 border-orange-500/50"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center font-teko text-2xl border border-orange-500 italic shadow-lg text-orange-500">${p.ovr}</div><div><div class="font-bold text-white uppercase text-sm">${p.name}</div><div class="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">${p.pos} • ${p.age} ans • ${p.energy}% Energie</div></div></div><button onclick="app.boost('${p.id}')" class="px-5 py-2 bg-slate-800 rounded-lg text-[10px] font-bold uppercase hover:bg-orange-600 transition">Booster</button></div>`;
                 });
             }
-            boost(id) { 
-                if(this.state.budget<0.2) return this.toast("Manque de budget !"); 
-                this.state.budget-=0.2; 
-                const p=this.state.players.find(x=>x.id===id); 
+           boost(id) { 
+                if(this.state.budget < 0.2) return this.toast("Manque de budget !"); 
                 
-                // --- AMELIORATION BOOST : 1 + niveau du Centre Pro ---
+                const p = this.state.players.find(x => x.id === id);
+                
+                // VÉRIFICATION : Si déjà à 99, on ne paie pas et on arrête
+                if (p.ovr >= 99) return this.toast("Potentiel maximum atteint (99) !");
+
+                this.state.budget -= 0.2; 
+                
+                // Calcul du gain
                 const gain = 1 + this.state.infra.training.level;
-                p.ovr += gain; 
+                
+                // APPLICATION DU PLAFOND (Math.min prend le plus petit des deux)
+                p.ovr = Math.min(99, p.ovr + gain); 
                 
                 this.renderTraining(); 
-                this.save(); // Sauvegarde le budget déduit et le nouvel OVR
+                this.save(); 
                 this.updateUI(); 
-                this.toast(`${p.name} progresse vite (+${gain} OVR) !`); 
+                this.toast(`${p.name} progresse (+${gain}) !`); 
             }
 
             renderScout() {
@@ -2303,5 +2320,3 @@
 </body>
 
 </html>
-
-
