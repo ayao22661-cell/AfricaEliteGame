@@ -1559,18 +1559,36 @@
                 this.state.globalResults.push(`${t1} ${g1}-${g2} ${t2}`);
             }
 
-            closeEndModal() {
+           closeEndModal() {
                 const em = document.getElementById('end-modal'); if(em) em.classList.add('hidden');
-                if (this.state.stage === 'groups' && this.state.matchIndex >= 3) { this.initKnockout(); }
+                
+                if (this.state.stage === 'groups' && this.state.matchIndex >= 3) { 
+                    this.initKnockout(); 
+                }
                 else if (this.state.stage !== 'groups') {
+                    // On vérifie si on a gagné (score ou pénaltys)
                     const win = this.match.penalties ? (this.match.penalties[0] > this.match.penalties[1]) : (this.match.score[0] > this.match.score[1]);
-                    if (!win) { this.simulateRest(); }
-                    else if (this.state.stage === 'finale') { 
+                    
+                    if (!win) { 
+                        // C'EST ICI QUE ÇA CHANGE :
+                        // Si c'est la finale, le vainqueur EST l'adversaire (this.match.opp).
+                        // Sinon (8e, quarts...), c'est null (le jeu simulera un vainqueur aléatoire).
+                        const winner = (this.state.stage === 'finale') ? this.match.opp : null;
+                        this.simulateRest(winner); 
+                    }
+                   else if (this.state.stage === 'finale') { 
+                        // Cas où la CIV gagne la finale
                         this.state.trophies++; this.state.budget += 25.0; this.state.teamXP += 3000;
                         if(!this.state.pastWinners) this.state.pastWinners = [];
-                this.state.pastWinners.push({ year: this.state.year, n: "Côte d'Ivoire" });
-                        this.awards(); this.startNextSeason(); 
-                    } else { this.progressKnockout(); }
+                        this.state.pastWinners.push({ year: this.state.year, n: "Côte d'Ivoire" });
+                        
+                        // MODIFICATION ICI : On dit explicitement que la CIV a gagné
+                        this.awards("Côte d'Ivoire"); 
+                        
+                        this.startNextSeason(); 
+                    } else { 
+                        this.progressKnockout(); 
+                    }
                 }
                 this.updateUI(); this.goToView('inbox');
             }
@@ -1602,19 +1620,70 @@
                 this.state.knockout[this.state.stage] = this.state.standings[r.n];
             }
 
-            simulateRest() {
-                const winner = NATIONS_DB[Math.floor(Math.random()*NATIONS_DB.length)];
-                this.state.news.unshift({id: Date.now(), text: `🏆 CHAMPION : ${winner.n} remporte la CAN.`});
+            simulateRest(forcedWinner = null) {
+                let winner;
+
+                if (forcedWinner) {
+                    winner = forcedWinner;
+                } else {
+                    const others = NATIONS_DB.filter(n => n.n !== "Côte d'Ivoire");
+                    winner = others[Math.floor(Math.random() * others.length)];
+                }
+                
+                this.state.news.unshift({id: Date.now(), text: ` CHAMPION : ${winner.n} remporte la CAN.`});
+                
                 if(!this.state.pastWinners) this.state.pastWinners = [];
                 this.state.pastWinners.push({ year: this.state.year, n: winner.n });
-                this.awards(); this.startNextSeason();
+                
+                // MODIFICATION ICI : On passe le nom du vainqueur (winner.n) à awards()
+                this.awards(winner.n); 
+                
+                this.startNextSeason();
             }
 
-            awards() {
-                const star = NATIONS_DB[Math.floor(Math.random()*NATIONS_DB.length)];
-                this.state.news.unshift({id: Date.now()+1, text: `🎖️ MVP : ${star.star} (${star.n}) élu meilleur joueur de la CAN.`});
-                this.state.news.unshift({id: Date.now()+2, text: `👟 Soulier d'Or : ${this.generateRealName()} sacré meilleur buteur.`});
-                this.state.news.unshift({id: Date.now()+3, text: `🧤 Gant d'Or : Meilleure performance du tournoi pour le gardien de ${NATIONS_DB[0].n}.`});
+            awards(winnerName) {
+                // On retrouve les infos de la nation gagnante dans la DB
+                const nationData = NATIONS_DB.find(n => n.n === winnerName);
+                if (!nationData) return;
+
+                // 1. MVP : La Star de l'équipe gagnante
+                this.state.news.unshift({
+                    id: Date.now() + 1, 
+                    text: `🎖️ MVP : ${nationData.star} (${winnerName}) est élu meilleur joueur du tournoi !`
+                });
+
+                // 2. Soulier d'Or : Le meilleur buteur
+                let scorerName = "";
+                const goals = 5 + Math.floor(Math.random() * 4); // Génère un score entre 5 et 8 buts
+                
+                if (winnerName === "Côte d'Ivoire") {
+                    // Si c'est toi, on prend ton premier attaquant titulaire
+                    const myStriker = this.state.players.find(p => p.role === 'starter' && p.pos === 'FWD');
+                    scorerName = myStriker ? myStriker.name : "S. Haller";
+                } else {
+                    // Si c'est l'IA, on prend son Top Attaquant défini dans la DB
+                    scorerName = nationData.topAtt || nationData.star;
+                }
+                
+                this.state.news.unshift({
+                    id: Date.now() + 2, 
+                    text: `👟 Soulier d'Or : ${scorerName} termine en tête avec ${goals} réalisations.`
+                });
+
+                // 3. Gant d'Or : Le gardien du vainqueur
+                let gkName = "";
+                if (winnerName === "Côte d'Ivoire") {
+                    const myGK = this.state.players.find(p => p.role === 'starter' && p.pos === 'GK');
+                    gkName = myGK ? myGK.name : "Y. Fofana";
+                } else {
+                    // Pour l'IA, on formule génériquement car on ne stocke pas le nom du gardien IA fixe
+                    gkName = `Le portier (${nationData.code})`;
+                }
+
+                this.state.news.unshift({
+                    id: Date.now() + 3, 
+                    text: `🧤 Gant d'Or : ${gkName} remporte le trophée Yachine.`
+                });
             }
 
             processRetirements() {
@@ -2061,5 +2130,3 @@
 </body>
 
 </html>
-
-
