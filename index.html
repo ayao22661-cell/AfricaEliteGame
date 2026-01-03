@@ -398,14 +398,61 @@
                     <p class="font-teko text-5xl text-orange-500 uppercase tracking-tighter" id="goal-scorer-name"></p>
                 </div>
                 
-                <div id="end-modal" class="absolute inset-0 z-[250] bg-black/98 flex items-center justify-center hidden p-8 backdrop-blur-3xl">
-                    <div class="text-center w-full max-w-sm bg-slate-900 border border-slate-700 p-12 rounded-[40px] shadow-2xl">
-                        <h2 class="font-teko text-7xl text-white mb-2 uppercase leading-none italic" id="end-title">Résultat</h2>
-                        <div class="text-6xl font-bold text-orange-500 mb-10 font-mono tracking-tighter" id="end-score-display">0-0</div>
-                        <button onclick="app.closeEndModal()" class="w-full py-6 bg-white text-slate-900 font-bold rounded-2xl uppercase shadow-2xl">Continuer</button>
+             <div id="end-modal" class="absolute inset-0 z-[250] bg-slate-950/90 flex items-center justify-center hidden p-6 backdrop-blur-xl transition-all duration-500">
+                    <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-[32px] shadow-2xl overflow-hidden relative">
+                        
+                        <div id="end-header-bg" class="h-24 bg-gradient-to-b from-green-600 to-slate-900 flex items-center justify-center pt-4 relative">
+                            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-30"></div>
+                            <h2 class="font-teko text-6xl text-white uppercase italic tracking-tighter drop-shadow-lg relative z-10" id="end-title">VICTOIRE</h2>
+                        </div>
+
+                        <div class="px-6 py-8 flex flex-col items-center">
+                            <div class="flex items-center justify-between w-full mb-8">
+                                <div class="flex flex-col items-center gap-2 w-1/3">
+                                    <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl flex items-center justify-center border-2 border-slate-600 shadow-xl">
+                                        <span class="font-teko text-3xl text-white font-bold italic">CIV</span>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Domicile</span>
+                                </div>
+
+                                <div class="flex flex-col items-center w-1/3 relative">
+                                    <div class="font-teko text-7xl text-white leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" id="end-score-display">0-0</div>
+                                    <div id="end-penalties-display" class="text-[10px] text-orange-400 font-bold uppercase tracking-widest mt-1 hidden">TAB: 4-3</div>
+                                </div>
+
+                                <div class="flex flex-col items-center gap-2 w-1/3">
+                                    <div id="end-opp-badge" class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center border-2 border-slate-600 shadow-xl">
+                                        <span class="font-teko text-3xl text-white font-bold italic">?</span>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest" id="end-opp-name">ADV</span>
+                                </div>
+                            </div>
+
+                            <div class="w-full space-y-3 bg-slate-950/50 p-4 rounded-xl border border-white/5 mb-6">
+                                <div class="flex justify-between text-[9px] font-bold text-slate-500 uppercase mb-1">
+                                    <span>Tirs Cadrés</span>
+                                    <span class="text-white" id="end-stat-shots">0 - 0</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
+                                    <div id="end-bar-shots" class="h-full bg-orange-500" style="width: 50%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between text-[9px] font-bold text-slate-500 uppercase mt-2 mb-1">
+                                    <span>Possession</span>
+                                    <span class="text-white" id="end-stat-poss">50% - 50%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
+                                    <div id="end-bar-poss" class="h-full bg-blue-500" style="width: 50%"></div>
+                                </div>
+                            </div>
+
+                            <button onclick="app.closeEndModal()" class="w-full py-5 bg-white hover:bg-slate-200 text-slate-900 font-bold rounded-xl uppercase shadow-lg shadow-white/10 active:scale-95 transition-all text-sm tracking-widest">
+                                Continuer la Saison
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+                </div>  <div id="swap-modal" class="absolute inset-0 z-[300] bg-slate-950 hidden flex flex-col"></div>
 
             <!-- MODAL DE SWAP -->
             <div id="swap-modal" class="absolute inset-0 z-[300] bg-slate-950 hidden flex flex-col">
@@ -521,29 +568,29 @@
 
         const NATIONS_DB = [
             {n: 'Côte d\'Ivoire', code: 'CIV', ovr: 85, style: 'Offensif', star: 'F. Kessié', starPos: 'MID'},
-            {n: 'Sénégal', code: 'SEN', ovr: 86, style: 'Impact', star: 'S. Mané', starPos: 'FWD'},
-            {n: 'Maroc', code: 'MAR', ovr: 87, style: 'Tiki-Taka', star: 'A. Hakimi', starPos: 'DEF'},
-            {n: 'Égypte', code: 'EGY', ovr: 84, style: 'Contre', star: 'M. Salah', starPos: 'FWD'},
-            {n: 'Nigeria', code: 'NGA', ovr: 84, style: 'Vertical', star: 'V. Osimhen', starPos: 'FWD'},
-            {n: 'Algérie', code: 'ALG', ovr: 83, style: 'Technique', star: 'R. Mahrez', starPos: 'MID'},
-            {n: 'Cameroun', code: 'CMR', ovr: 82, style: 'Puissance', star: 'V. Aboubakar', starPos: 'FWD'},
-            {n: 'Tunisie', code: 'TUN', ovr: 81, style: 'Bloc Bas', star: 'Y. Msakni', starPos: 'MID'},
-            {n: 'Mali', code: 'MLI', ovr: 81, style: 'Pressing', star: 'Y. Bissouma', starPos: 'MID'},
-            {n: 'RD Congo', code: 'RDC', ovr: 79, style: 'Dribbles', star: 'C. Mbemba', starPos: 'DEF'},
-            {n: 'Burkina Faso', code: 'BFA', ovr: 79, style: 'Vitesse', star: 'E. Tapsoba', starPos: 'DEF'},
-            {n: 'Afrique du Sud', code: 'RSA', ovr: 78, style: 'Collectif', star: 'P. Tau', starPos: 'FWD'},
-            {n: 'Ghana', code: 'GHA', ovr: 78, style: 'Impact', star: 'M. Kudus', starPos: 'MID'},
-            {n: 'Guinée', code: 'GUI', ovr: 77, style: 'Créativité', star: 'S. Guirassy', starPos: 'FWD'},
-            {n: 'Cap-Vert', code: 'CPV', ovr: 76, style: 'Transition', star: 'R. Mendes', starPos: 'FWD'},
-            {n: 'Angola', code: 'ANG', ovr: 76, style: 'Bloc Bas', star: 'G. Dala', starPos: 'FWD'},
-            {n: 'Zambie', code: 'ZAM', ovr: 73, style: 'Vitesse', star: 'P. Daka', starPos: 'FWD'},
-            {n: 'Guinée Eq.', code: 'GNQ', ovr: 75, style: 'Explosivité', star: 'E. Nsue', starPos: 'FWD'},
-            {n: 'Mauritanie', code: 'MTN', ovr: 73, style: 'Lutte', star: 'A. Kamara', starPos: 'FWD'},
-            {n: 'Ouganda', code: 'UGA', ovr: 71, style: 'Direct', star: 'F. Miya', starPos: 'MID'},
-            {n: 'Gambie', code: 'GAM', ovr: 72, style: 'Défensif', star: 'M. Barrow', starPos: 'FWD'},
-            {n: 'Namibie', code: 'NAM', ovr: 71, style: 'Solidité', star: 'P. Shalulile', starPos: 'FWD'},
-            {n: 'Tanzanie', code: 'TAN', ovr: 70, style: 'Courage', star: 'M. Samatta', starPos: 'FWD'},
-            {n: 'Mozambique', code: 'MOZ', ovr: 70, style: 'Vitesse', star: 'G. Catamo', starPos: 'MID'}
+           {n: 'Sénégal', code: 'SEN', ovr: 86, style: 'Impact', star: 'S. Mané', starPos: 'FWD', scorers: ['N. Jackson', 'I. Sarr', 'H. Diallo']},
+            {n: 'Maroc', code: 'MAR', ovr: 87, style: 'Tiki-Taka', star: 'A. Hakimi', starPos: 'DEF', scorers: ['Y. En-Nesyri', 'H. Ziyech', 'B. Diaz']},
+            {n: 'Égypte', code: 'EGY', ovr: 84, style: 'Contre', star: 'M. Salah', starPos: 'FWD', scorers: ['Trezeguet', 'M. Mohamed', 'O. Marmoush']},
+            {n: 'Nigeria', code: 'NGA', ovr: 84, style: 'Vertical', star: 'V. Osimhen', starPos: 'FWD', scorers: ['A. Lookman', 'V. Boniface', 'A. Iwobi']},
+            {n: 'Algérie', code: 'ALG', ovr: 83, style: 'Technique', star: 'R. Mahrez', starPos: 'MID', scorers: ['B. Bounedjah', 'Y. Belaïli', 'H. Aouar']},
+            {n: 'Cameroun', code: 'CMR', ovr: 82, style: 'Puissance', star: 'V. Aboubakar', starPos: 'FWD', scorers: ['K. Toko Ekambi', 'B. Mbeumo', 'Z. Anguissa']},
+            {n: 'Tunisie', code: 'TUN', ovr: 81, style: 'Bloc Bas', star: 'Y. Msakni', starPos: 'MID', scorers: ['E. Skhiri', 'H. Rafia', 'S. Jaziri']},
+            {n: 'Mali', code: 'MLI', ovr: 81, style: 'Pressing', star: 'Y. Bissouma', starPos: 'MID', scorers: ['S. Koita', 'L. Sinayoko', 'K. Doumbia']},
+            {n: 'RD Congo', code: 'RDC', ovr: 79, style: 'Dribbles', star: 'C. Mbemba', starPos: 'DEF', scorers: ['Y. Wissa', 'C. Bakambu', 'G. Kakuta']},
+            {n: 'Burkina Faso', code: 'BFA', ovr: 79, style: 'Vitesse', star: 'E. Tapsoba', starPos: 'DEF', scorers: ['B. Traoré', 'D. Ouattara', 'I. Kaboré']},
+            {n: 'Afrique du Sud', code: 'RSA', ovr: 78, style: 'Collectif', star: 'P. Tau', starPos: 'FWD', scorers: ['T. Zwane', 'L. Foster', 'T. Mokoena']},
+            {n: 'Ghana', code: 'GHA', ovr: 78, style: 'Impact', star: 'M. Kudus', starPos: 'MID', scorers: ['I. Williams', 'J. Ayew', 'A. Semenyo']},
+            {n: 'Guinée', code: 'GUI', ovr: 77, style: 'Créativité', star: 'S. Guirassy', starPos: 'FWD', scorers: ['M. Bayo', 'N. Keita', 'A. Camara']},
+            {n: 'Cap-Vert', code: 'CPV', ovr: 76, style: 'Transition', star: 'R. Mendes', starPos: 'FWD', scorers: ['Bébé', 'J. Cabral', 'G. Rodrigues']},
+            {n: 'Angola', code: 'ANG', ovr: 76, style: 'Bloc Bas', star: 'G. Dala', starPos: 'FWD', scorers: ['Mabululu', 'Fredy', 'Zini']},
+            {n: 'Zambie', code: 'ZAM', ovr: 73, style: 'Vitesse', star: 'P. Daka', starPos: 'FWD', scorers: ['F. Sakala', 'K. Kangwa', 'L. Banda']},
+            {n: 'Guinée Eq.', code: 'GNQ', ovr: 75, style: 'Explosivité', star: 'E. Nsue', starPos: 'FWD', scorers: ['I. Salvador', 'P. Ganet', 'J. Miranda']},
+            {n: 'Mauritanie', code: 'MTN', ovr: 73, style: 'Lutte', star: 'A. Kamara', starPos: 'FWD', scorers: ['H. Tanjy', 'P. Ba', 'I. Thiam']},
+            {n: 'Ouganda', code: 'UGA', ovr: 71, style: 'Direct', star: 'F. Miya', starPos: 'MID', scorers: ['E. Okwi', 'M. Bayo', 'K. Aucho']},
+            {n: 'Gambie', code: 'GAM', ovr: 72, style: 'Défensif', star: 'M. Barrow', starPos: 'FWD', scorers: ['A. Jallow', 'E. Colley', 'A. Ceesay']},
+            {n: 'Namibie', code: 'NAM', ovr: 71, style: 'Solidité', star: 'P. Shalulile', starPos: 'FWD', scorers: ['D. Hotto', 'P. Tjiueza', 'A. Iimbondi']},
+            {n: 'Tanzanie', code: 'TAN', ovr: 70, style: 'Courage', star: 'M. Samatta', starPos: 'FWD', scorers: ['S. Msuva', 'F. Salum', 'N. Miroshi']},
+            {n: 'Mozambique', code: 'MOZ', ovr: 70, style: 'Vitesse', star: 'G. Catamo', starPos: 'MID', scorers: ['Witi', 'Clésio', 'Stanley Ratifo']}
         ];
 
         const INITIAL_PLAYERS = [
@@ -1026,10 +1073,25 @@
                     this.addCommentary(`⚽ BUT !! ${sc.name} trouve la faille pour la CIV !`);
                 }
                 
+                // BUT DE L'ADVERSAIRE (IA)
                 if (Math.random() < chance * (1 / powerRatio)) {
                     this.match.score[1]++; 
                     const sa = document.getElementById('score-away'); if(sa) sa.innerText = this.match.score[1];
-                    this.addCommentary(`⚠️ But pour ${this.match.opp.n} par ${this.match.opp.star}.`);
+                    
+                    // --- DIVERSIFICATION DES BUTEURS IA ---
+                    // Par défaut, c'est la star qui marque
+                    let scorerName = this.match.opp.star;
+                    
+                    // On récupère la liste des buteurs secondaires (si elle existe)
+                    const others = this.match.opp.scorers || [];
+                    
+                    // 40% de chance que ce soit un buteur secondaire, s'il y en a dans la liste
+                    if (others.length > 0 && Math.random() < 0.40) {
+                        scorerName = others[Math.floor(Math.random() * others.length)];
+                    }
+                    // --------------------------------------
+
+                    this.addCommentary(`⚠️ But pour ${this.match.opp.n} par ${scorerName}.`);
                 }
 
                 // --- LOGIQUE COMMENTAIRES INTELLIGENTS ---
@@ -1087,21 +1149,80 @@
             }
 
             finishMatch() {
-                clearInterval(this.match.timer); this.match.active = false;
+                clearInterval(this.match.timer); 
+                this.match.active = false;
                 
-                const draw = this.match.score[0] === this.match.score[1];
-                if (draw && this.state.stage !== 'groups') {
+                // Calcul du résultat
+                const scoreHome = this.match.score[0];
+                const scoreAway = this.match.score[1];
+                let isWin = scoreHome > scoreAway;
+                let isDraw = scoreHome === scoreAway;
+                
+                // Gestion des pénaltys (phases finales seulement)
+                if (isDraw && this.state.stage !== 'groups') {
                     this.runPenalties();
+                    // Recalcul victoire après TAB
+                    isWin = this.match.penalties[0] > this.match.penalties[1];
+                    isDraw = false; 
                 }
 
-                const pSuffix = this.match.penalties ? ` (${this.match.penalties[0]}-${this.match.penalties[1]} tab)` : "";
+                // 1. Mise à jour des Textes et Badges
                 const esd = document.getElementById('end-score-display'); 
-                if(esd) esd.innerText = `${this.match.score[0]} - ${this.match.score[1]}${pSuffix}`;
+                if(esd) esd.innerText = `${scoreHome}-${scoreAway}`;
                 
-                const em = document.getElementById('end-modal'); if(em) em.classList.remove('hidden');
+                const epd = document.getElementById('end-penalties-display');
+                if (this.match.penalties) {
+                    epd.innerText = `TAB : ${this.match.penalties[0]} - ${this.match.penalties[1]}`;
+                    epd.classList.remove('hidden');
+                } else {
+                    epd.classList.add('hidden');
+                }
+
+                // Badge adversaire
+                const eBadge = document.getElementById('end-opp-badge');
+                if(eBadge) eBadge.innerHTML = `<span class="font-teko text-3xl text-white font-bold italic">${this.match.opp.code}</span>`;
+                const eName = document.getElementById('end-opp-name');
+                if(eName) eName.innerText = this.match.opp.n;
+
+                // 2. Mise à jour du Header (Couleur et Titre)
+                const titleEl = document.getElementById('end-title');
+                const headerBg = document.getElementById('end-header-bg');
                 
-                const win = this.match.penalties ? (this.match.penalties[0] > this.match.penalties[1]) : (this.match.score[0] > this.match.score[1]);
+                // Reset classes de couleur
+                headerBg.className = "h-24 flex items-center justify-center pt-4 relative bg-gradient-to-b";
                 
+                if (isWin) {
+                    titleEl.innerText = "VICTOIRE";
+                    titleEl.className = "font-teko text-6xl text-white uppercase italic tracking-tighter drop-shadow-lg relative z-10";
+                    headerBg.classList.add("from-green-600", "to-slate-900");
+                } else if (isDraw) {
+                    titleEl.innerText = "MATCH NUL";
+                    titleEl.className = "font-teko text-6xl text-slate-200 uppercase italic tracking-tighter drop-shadow-lg relative z-10";
+                    headerBg.classList.add("from-slate-500", "to-slate-900");
+                } else {
+                    titleEl.innerText = "DÉFAITE";
+                    titleEl.className = "font-teko text-6xl text-red-100 uppercase italic tracking-tighter drop-shadow-lg relative z-10";
+                    headerBg.classList.add("from-red-600", "to-slate-900");
+                }
+
+                // 3. Mise à jour des Stats visuelles
+                const shotsHome = this.match.stats.shots;
+                const shotsAway = this.match.stats.shotsAway;
+                const totalShots = shotsHome + shotsAway || 1;
+                document.getElementById('end-stat-shots').innerText = `${shotsHome} - ${shotsAway}`;
+                document.getElementById('end-bar-shots').style.width = `${(shotsHome / totalShots) * 100}%`;
+                
+                // Pour la possession, on récupère la dernière valeur calculée
+                const possText = document.getElementById('poss-val-home').innerText; // ex: "55%"
+                const possVal = parseInt(possText);
+                document.getElementById('end-stat-poss').innerText = `${possVal}% - ${100-possVal}%`;
+                document.getElementById('end-bar-poss').style.width = `${possVal}%`;
+
+                // Affichage du modal
+                const em = document.getElementById('end-modal'); 
+                if(em) em.classList.remove('hidden');
+                
+                // --- Logique Métier (Budget, XP, Fatigue) ---
                 this.state.players.forEach(p => { 
                     if(p.role==='starter') {
                         let drain = 15 - (this.state.infra.medical.level * 1.5);
@@ -1111,18 +1232,20 @@
                 });
                 
                 const bonusStadium = (this.state.infra.stadium.level - 1) * 0.5;
-                const baseEarnings = win ? 2.0 : (draw && !this.match.penalties ? 0.8 : 0.4);
+                const baseEarnings = isWin ? 2.0 : (isDraw ? 0.8 : 0.4); // Draw rapporte moins qu'une victoire
                 const earnings = baseEarnings + bonusStadium;
                 
                 this.state.budget += earnings;
-                this.state.teamXP += win ? 100 : 20;
+                this.state.teamXP += isWin ? 100 : (isDraw ? 40 : 10);
 
-                this.updateStd(this.state.standings['Côte d\'Ivoire'], this.match.score[0], this.match.score[1]);
-                this.updateStd(this.state.standings[this.match.opp.n], this.match.score[1], this.match.score[0]);
-                this.simulateOthers(); this.state.matchIndex++; 
+                this.updateStd(this.state.standings['Côte d\'Ivoire'], scoreHome, scoreAway);
+                this.updateStd(this.state.standings[this.match.opp.n], scoreAway, scoreHome);
+                
+                this.simulateOthers(); 
+                this.state.matchIndex++; 
                 this.save();
                 this.updateUI();
-                this.generateReport(win, this.match.score, this.match.opp.n);
+                this.generateReport(isWin, [scoreHome, scoreAway], this.match.opp.n);
             }
 
             generateReport(win, s, opp) {
