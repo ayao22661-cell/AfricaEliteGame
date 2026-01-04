@@ -2321,8 +2321,7 @@
                         <tbody id="cal-body"></tbody>
                     </table>
                 </div>`;
-                // ... (Fin du tableau classement groupe) ...
-                htmlContent += `</div>`; // Fermeture du glass-panel précédent
+               
 
                 // --- NOUVEAU : TOP BUTEURS ---
                 // On trie les buteurs par nombre de buts décroissant
@@ -2362,8 +2361,10 @@
                                 <span class="bg-slate-800 border border-slate-600 px-2 py-1 rounded text-orange-500 font-teko text-lg font-bold shadow-lg">${p.c}</span>
                             </td>
                         </tr>
+                        
                     `;
                 });
+                htmlContent += `</tbody></table></div></div>`;
                 // --- TOP JOUEURS (MVP) - Toujours visible ---
                 
                 // On prépare les données (même si vide)
