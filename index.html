@@ -1807,7 +1807,7 @@
             
             // Pour savoir quel match jouer, on regarde combien de matchs 
             // la 1ère équipe du groupe a déjà joué dans le classement.
-            const played = this.state.standings[t[0].n].matchs;
+            const played = this.state.standings[t[0].n].p;
 
             // LOGIQUE DE ROTATION (Tout le monde joue contre tout le monde)
             if (played === 0) {
