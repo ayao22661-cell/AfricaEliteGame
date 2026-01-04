@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>African Elite Manager - Pro Legacy v9.6</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>African Elite Manager - Special CAN</title>
     
     <!-- Design System via Tailwind CSS intégré -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,15 +28,20 @@
             overflow: hidden; 
             -webkit-tap-highlight-color: transparent; 
             user-select: none; 
-            font-size: 12px; 
+            font-size: 12px;
+            height: 100vh;
+            height: 100dvh;
         }
         
         .font-teko { font-family: 'Teko', sans-serif; }
         
         #app-container { 
-            max-width: 100%; margin: 0 auto; height: 100vh; 
+            max-width: 100%; margin: 0 auto; 
+            height: 100vh;
+            height: 100dvh; 
             background-color: var(--color-bg); 
             position: relative; display: flex; flex-direction: column; overflow: hidden; 
+            padding-top: env(safe-area-inset-top);
         }
 
         .glass-panel { 
@@ -67,26 +72,26 @@
         .pitch-circle { position: absolute; top: 50%; left: 50%; width: 80px; height: 80px; border: 1px solid var(--pitch-line); border-radius: 50%; transform: translate(-50%, -50%); }
 
         .player-card {
-            position: absolute; width: 66px; height: 105px;
+            position: absolute; width: 50px; height: 78px; 
             background: linear-gradient(135deg, #1e293b, #0f172a);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 6px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.7);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.7);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer; z-index: 20;
             overflow: hidden;
         }
-        .player-card.malus { border-color: #ef4444; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
-        .card-ovr { font-family: 'Teko', sans-serif; font-size: 26px; font-weight: 700; color: #f97316; line-height: 1; }
-        .card-pos { font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: -2px; }
-        .card-age { font-size: 7px; color: #475569; font-weight: 700; margin-bottom: 2px; }
-        .card-energy { width: 80%; height: 3px; background: #334155; border-radius: 2px; margin-top: 3px; position: relative; overflow: hidden; }
+        .player-card.malus { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6); }
+        .card-ovr { font-family: 'Teko', sans-serif; font-size: 20px; font-weight: 700; color: #f97316; line-height: 1; }
+        .card-pos { font-size: 7px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: -1px; }
+        .card-age { font-size: 6px; color: #475569; font-weight: 700; margin-bottom: 1px; }
+        .card-energy { width: 75%; height: 2px; background: #334155; border-radius: 1px; margin-top: 2px; position: relative; overflow: hidden; }
         .energy-fill { height: 100%; transition: width 0.3s; }
         
         .card-name { 
             width: 100%; background: rgba(0,0,0,0.85); 
-            padding: 4px 0; text-align: center; font-size: 9px; 
+            padding: 2px 0; text-align: center; font-size: 7px; 
             font-weight: 600; color: white; margin-top: auto; 
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
@@ -117,6 +122,7 @@
             backdrop-filter: blur(25px);
             display: none; flex-direction: column;
             overflow-y: auto;
+            padding-bottom: env(safe-area-inset-bottom);
         }
         #live-coach-overlay.active { display: flex; }
 
@@ -141,13 +147,46 @@
         .news-item { padding: 14px; background: rgba(30, 41, 59, 0.4); border-radius: 10px; border-left: 4px solid #f97316; margin-bottom: 10px; font-size: 11px; animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
 
-        #goal-overlay { position: absolute; inset: 0; z-index: 300; display: none; align-items: center; justify-content: center; flex-direction: column; background: rgba(0,0,0,0.85); pointer-events: none; }
-        #goal-overlay.active { display: flex; }
+      /* --- CORRECTION BUG BUT --- */
+        #goal-overlay { 
+            position: absolute; 
+            inset: 0; 
+            z-index: 1000; /* Augmenté de 300 à 1000 pour être sûr d'être au-dessus de tout */
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            flex-direction: column; 
+            background: rgba(0,0,0,0.9); /* Un peu plus foncé pour mieux voir */
+            pointer-events: none; 
+            transition: opacity 0.3s;
+        }
+        
+        /* Ajout de !important pour forcer l'affichage */
+        #goal-overlay.active { 
+            display: flex !important; 
+            animation: pulseGoal 0.5s ease-out;
+        }
 
+        @keyframes pulseGoal {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
         .stat-badge { background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 10px; color: #94a3b8; }
         
         .tab-btn { padding: 8px 16px; border-bottom: 2px solid transparent; color: #64748b; font-weight: bold; font-size: 10px; text-transform: uppercase; transition: 0.3s; }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* Correction Barre de Navigation Mobile */
+        nav {
+            padding-bottom: env(safe-area-inset-bottom);
+            height: calc(4rem + env(safe-area-inset-bottom)) !important;
+        }
+        
+        /* Ajustement des zones de contenu pour ne pas être cachées par la nav */
+        .view-section {
+            padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important;
+        }
     </style>
 </head>
 
@@ -160,7 +199,7 @@
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-700 rounded-lg flex items-center justify-center border-2 border-slate-700 text-white font-teko font-bold text-xl shadow-lg italic">CIV</div>
                 <div class="flex flex-col">
-                    <span class="text-[10px] text-orange-500 font-bold uppercase tracking-widest leading-none">YAO BABA ANGE EMMANUEL</span>
+<span id="header-manager-name" class="text-[10px] text-orange-500 font-bold uppercase tracking-widest leading-none">MANAGER INCONNU</span>
                     <span class="text-xs font-bold text-white leading-tight" id="header-subtitle">SAISON 2026</span>
                 </div>
             </div>
@@ -176,7 +215,7 @@
         <main id="main-content" class="flex-1 relative overflow-hidden">
             
             <!-- VUE : INBOX -->
-            <div id="view-inbox" class="view-section flex flex-col h-full overflow-y-auto no-scrollbar pb-24">
+            <div id="view-inbox" class="view-section flex flex-col h-full overflow-y-auto no-scrollbar">
                 <div class="relative p-6 bg-slate-800 border-b border-slate-800 shadow-xl">
                     <h2 class="font-teko text-7xl text-white mb-0 uppercase tracking-tighter italic leading-none">Elite Bureau</h2>
                     <div class="flex items-center gap-4 text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">
@@ -233,7 +272,7 @@
             </div>
     
             <!-- VUE : TACTIQUE -->
-            <div id="view-squad" class="view-section hidden flex flex-col h-full bg-slate-900 absolute inset-0 z-10 overflow-y-auto no-scrollbar pb-32">
+            <div id="view-squad" class="view-section hidden flex flex-col h-full bg-slate-900 absolute inset-0 z-10 overflow-y-auto no-scrollbar">
                 <div class="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-40 shadow-2xl">
                     <div class="flex justify-between items-center mb-4 px-1">
                         <button onclick="app.autoPick()" class="px-4 py-2 bg-blue-600 rounded-xl text-[10px] font-bold text-white uppercase flex items-center gap-2"><span id="icon-zap-mini"></span> Composition Auto.</button>
@@ -316,7 +355,12 @@
                     </div>
                     <span class="text-white font-teko text-xl uppercase tracking-widest italic" id="match-ticker">Sifflet Initial...</span>
                 </div>
-                
+
+            <div class="px-4 pt-3 pb-1 bg-slate-950 shrink-0">
+                    <div id="match-assistant-msg" class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 shadow-lg">
+                        </div>
+                </div>
+
                 <div id="commentary-log" class="flex-1 overflow-y-auto space-y-2 p-6 flex flex-col h-full text-slate-400 text-[11px] no-scrollbar italic"></div>
 
                 <div class="bg-slate-900 p-4 pb-12 border-t border-slate-800 shrink-0 shadow-2xl">
@@ -381,39 +425,126 @@
                     <p class="font-teko text-5xl text-orange-500 uppercase tracking-tighter" id="goal-scorer-name"></p>
                 </div>
                 
-                <div id="end-modal" class="absolute inset-0 z-[250] bg-black/98 flex items-center justify-center hidden p-8 backdrop-blur-3xl">
-                    <div class="text-center w-full max-w-sm bg-slate-900 border border-slate-700 p-12 rounded-[40px] shadow-2xl">
-                        <h2 class="font-teko text-7xl text-white mb-2 uppercase leading-none italic" id="end-title">Résultat</h2>
-                        <div class="text-6xl font-bold text-orange-500 mb-10 font-mono tracking-tighter" id="end-score-display">0-0</div>
-                        <button onclick="app.closeEndModal()" class="w-full py-6 bg-white text-slate-900 font-bold rounded-2xl uppercase shadow-2xl">Continuer</button>
+             <div id="end-modal" class="absolute inset-0 z-[250] bg-slate-950/90 flex items-center justify-center hidden p-6 backdrop-blur-xl transition-all duration-500">
+                    <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-[32px] shadow-2xl overflow-hidden relative">
+                        
+                        <div id="end-header-bg" class="h-24 bg-gradient-to-b from-green-600 to-slate-900 flex items-center justify-center pt-4 relative">
+                            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-30"></div>
+                            <h2 class="font-teko text-6xl text-white uppercase italic tracking-tighter drop-shadow-lg relative z-10" id="end-title">VICTOIRE</h2>
+                        </div>
+
+                        <div class="px-6 py-8 flex flex-col items-center">
+                            <div class="flex items-center justify-between w-full mb-8">
+                                <div class="flex flex-col items-center gap-2 w-1/3">
+                                    <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl flex items-center justify-center border-2 border-slate-600 shadow-xl">
+                                        <span class="font-teko text-3xl text-white font-bold italic">CIV</span>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Domicile</span>
+                                </div>
+
+                                <div class="flex flex-col items-center w-1/3 relative">
+                                    <div class="font-teko text-7xl text-white leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" id="end-score-display">0-0</div>
+                                    <div id="end-penalties-display" class="text-[10px] text-orange-400 font-bold uppercase tracking-widest mt-1 hidden">TAB: 4-3</div>
+                                </div>
+
+                                <div class="flex flex-col items-center gap-2 w-1/3">
+                                    <div id="end-opp-badge" class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center border-2 border-slate-600 shadow-xl">
+                                        <span class="font-teko text-3xl text-white font-bold italic">?</span>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest" id="end-opp-name">ADV</span>
+                                </div>
+                            </div>
+
+                            <div class="w-full space-y-3 bg-slate-950/50 p-4 rounded-xl border border-white/5 mb-6">
+                                <div class="flex justify-between text-[9px] font-bold text-slate-500 uppercase mb-1">
+                                    <span>Tirs Cadrés</span>
+                                    <span class="text-white" id="end-stat-shots">0 - 0</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
+                                    <div id="end-bar-shots" class="h-full bg-orange-500" style="width: 50%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between text-[9px] font-bold text-slate-500 uppercase mt-2 mb-1">
+                                    <span>Possession</span>
+                                    <span class="text-white" id="end-stat-poss">50% - 50%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
+                                    <div id="end-bar-poss" class="h-full bg-blue-500" style="width: 50%"></div>
+                                </div>
+                            </div>
+
+                            <button onclick="app.closeEndModal()" class="w-full py-5 bg-white hover:bg-slate-200 text-slate-900 font-bold rounded-xl uppercase shadow-lg shadow-white/10 active:scale-95 transition-all text-sm tracking-widest">
+                                Continuer la Saison
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+                </div>  
 
             <!-- MODAL DE SWAP -->
-            <div id="swap-modal" class="absolute inset-0 z-[300] bg-slate-950 hidden flex flex-col">
-                <div class="p-6 bg-slate-900 border-b border-slate-800 flex justify-between items-center shadow-2xl">
-                    <h3 class="font-teko text-4xl text-white uppercase leading-none italic">Remplacement</h3>
-                    <button onclick="app.closeSwapModal()" class="w-12 h-12 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 shadow-xl">X</button>
+           <div id="swap-modal" class="absolute inset-0 z-[300] bg-slate-950/95 hidden flex flex-col backdrop-blur-md">
+                <div class="p-4 bg-slate-900 border-b border-slate-700 flex justify-between items-center shadow-2xl shrink-0">
+                    <div>
+                        <h3 class="font-teko text-4xl text-white uppercase leading-none italic">Banc de Touche</h3>
+                        <div class="text-[10px] text-orange-500 font-bold uppercase tracking-widest" id="swap-target-pos">Remplacement</div>
+                    </div>
+                    <button onclick="app.closeSwapModal()" class="w-10 h-10 flex items-center justify-center bg-slate-800 rounded-full text-white font-bold shadow-xl border border-slate-700">X</button>
                 </div>
-                <div class="p-6 flex-1 overflow-y-auto no-scrollbar space-y-3 bg-slate-950" id="swap-candidates-list"></div>
+                
+                <div class="p-4 flex-1 overflow-y-auto no-scrollbar grid grid-cols-2 gap-3 content-start" id="swap-candidates-list">
+                    </div>
+            </div>
+            
+            <div id="preview-modal" class="absolute inset-0 z-[200] bg-slate-950/95 hidden flex flex-col backdrop-blur-xl">
+                <div class="p-6 text-center shrink-0 bg-gradient-to-b from-slate-900 to-transparent">
+                    <h2 class="font-teko text-6xl text-white uppercase italic leading-none drop-shadow-lg">Feuille de Match</h2>
+                    <div class="flex items-center justify-center gap-3 mt-1">
+                        <span class="text-orange-500 font-bold text-lg">CIV</span>
+                        <span class="text-slate-600 text-[10px] font-bold">VS</span>
+                        <span class="text-white font-bold text-lg" id="preview-opp-code">ADV</span>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto px-4 pb-32 no-scrollbar">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-slate-900/50 rounded-2xl p-2 border border-orange-500/20">
+                            <div class="text-center mb-3 border-b border-white/5 pb-2">
+                                <div class="text-[9px] text-orange-500 uppercase font-bold tracking-widest">TITULAIRES</div>
+                            </div>
+                            <div id="preview-home-list" class="space-y-1"></div>
+                        </div>
+
+                        <div class="bg-slate-900/50 rounded-2xl p-2 border border-slate-700/50">
+                             <div class="text-center mb-3 border-b border-white/5 pb-2">
+                                <div class="text-[9px] text-slate-400 uppercase font-bold tracking-widest">ADVERSAIRE</div>
+                            </div>
+                            <div id="preview-away-list" class="space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-900 border-t border-slate-800 absolute bottom-0 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                    <button onclick="app.kickOff()" class="w-full py-4 bg-white hover:bg-orange-500 hover:text-white text-slate-900 rounded-xl font-bold uppercase tracking-widest transition-all shadow-xl text-sm flex items-center justify-center gap-2">
+                        <span id="icon-play-preview"></span> DONNER LE COUP D'ENVOI
+                    </button>
+                </div>
             </div>
 
             <!-- VUES SECONDAIRES -->
-            <div id="view-training" class="view-section hidden h-full overflow-y-auto pb-24 no-scrollbar">
+            <div id="view-training" class="view-section hidden h-full overflow-y-auto no-scrollbar">
                 <div class="p-5" id="training-content"></div>
             </div>
             
-            <div id="view-calendar" class="view-section hidden h-full overflow-y-auto pb-24 no-scrollbar">
+            <div id="view-calendar" class="view-section hidden h-full overflow-y-auto no-scrollbar">
                 <div class="p-5" id="calendar-content"></div>
             </div>
             
-            <div id="view-scout" class="view-section hidden h-full overflow-y-auto pb-24 no-scrollbar">
+            <div id="view-scout" class="view-section hidden h-full overflow-y-auto no-scrollbar">
                 <div class="p-5" id="scout-content"></div>
             </div>
 
             <!-- NOUVELLE VUE : INFRASTRUCTURES -->
-            <div id="view-infra" class="view-section hidden h-full overflow-y-auto pb-24 no-scrollbar">
+            <div id="view-infra" class="view-section hidden h-full overflow-y-auto no-scrollbar">
                 <div class="p-6">
                     <h2 class="font-teko text-6xl text-white uppercase italic mb-2 leading-none">Infrastructures</h2>
                     <p class="text-[10px] text-slate-500 mb-8 uppercase tracking-widest font-bold">Bâtir l'avenir de la nation.</p>
@@ -424,7 +555,7 @@
         </main>
 
         <!-- NAVIGATION -->
-        <nav class="h-16 bg-[#0f172a] border-t border-slate-800 grid grid-cols-6 items-center z-40 shrink-0">
+        <nav class="bg-[#0f172a] border-t border-slate-800 grid grid-cols-6 items-center z-40 shrink-0">
             <button onclick="app.goToView('inbox')" id="nav-inbox" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all">
                 <span id="icon-layout-nav"></span><span class="text-[9px] font-bold uppercase tracking-tighter">QG</span>
             </button>
@@ -444,7 +575,23 @@
                 <span id="icon-home-nav"></span><span class="text-[9px] font-bold uppercase tracking-tighter">Ville</span>
             </button>
         </nav>
-        
+        <div id="welcome-modal" class="absolute inset-0 z-[1000] bg-slate-950 flex flex-col items-center justify-center p-8 hidden">
+        <div class="w-full max-w-sm text-center">
+            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl flex items-center justify-center border-4 border-slate-800 shadow-2xl mb-8">
+                <span class="font-teko text-4xl text-white italic">CIV</span>
+            </div>
+            <h1 class="font-teko text-6xl text-white uppercase italic leading-none mb-2">Nouvelle Ère</h1>
+            <p class="text-xs text-slate-400 mb-8 uppercase tracking-widest">La fédération attend votre signature.</p>
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-xl">
+                <label class="block text-[9px] font-bold text-slate-500 uppercase mb-2 text-left">Nom du Manager</label>
+                <input type="text" id="input-manager-name" placeholder="Ex: DIDIER DROGBA" class="w-full bg-slate-950 border border-slate-700 text-white p-4 rounded-xl text-center font-teko text-2xl uppercase focus:border-orange-500 focus:outline-none mb-4 placeholder-slate-700 transition">
+                <button onclick="app.submitManagerName()" class="w-full py-4 bg-white text-slate-900 rounded-xl text-xs font-bold uppercase shadow-lg active:scale-95 transition">
+                    Signer le contrat
+                </button>
+            </div>
+        </div>
+    </div>
+
         <div id="feedback-toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-8 py-4 rounded-2xl shadow-2xl z-[500] text-[11px] font-bold hidden opacity-0 transition-all transform translate-y-4">
             <span id="toast-msg">Action effectuée</span>
         </div>
@@ -488,29 +635,144 @@
 
         const NATIONS_DB = [
             {n: 'Côte d\'Ivoire', code: 'CIV', ovr: 85, style: 'Offensif', star: 'F. Kessié', starPos: 'MID'},
-            {n: 'Sénégal', code: 'SEN', ovr: 86, style: 'Impact', star: 'S. Mané', starPos: 'FWD'},
-            {n: 'Maroc', code: 'MAR', ovr: 87, style: 'Tiki-Taka', star: 'A. Hakimi', starPos: 'DEF'},
-            {n: 'Égypte', code: 'EGY', ovr: 84, style: 'Contre', star: 'M. Salah', starPos: 'FWD'},
-            {n: 'Nigeria', code: 'NGA', ovr: 84, style: 'Vertical', star: 'V. Osimhen', starPos: 'FWD'},
-            {n: 'Algérie', code: 'ALG', ovr: 83, style: 'Technique', star: 'R. Mahrez', starPos: 'MID'},
-            {n: 'Cameroun', code: 'CMR', ovr: 82, style: 'Puissance', star: 'V. Aboubakar', starPos: 'FWD'},
-            {n: 'Tunisie', code: 'TUN', ovr: 81, style: 'Bloc Bas', star: 'Y. Msakni', starPos: 'MID'},
-            {n: 'Mali', code: 'MLI', ovr: 81, style: 'Pressing', star: 'Y. Bissouma', starPos: 'MID'},
-            {n: 'RD Congo', code: 'RDC', ovr: 79, style: 'Dribbles', star: 'C. Mbemba', starPos: 'DEF'},
-            {n: 'Burkina Faso', code: 'BFA', ovr: 79, style: 'Vitesse', star: 'E. Tapsoba', starPos: 'DEF'},
-            {n: 'Afrique du Sud', code: 'RSA', ovr: 78, style: 'Collectif', star: 'P. Tau', starPos: 'FWD'},
-            {n: 'Ghana', code: 'GHA', ovr: 78, style: 'Impact', star: 'M. Kudus', starPos: 'MID'},
-            {n: 'Guinée', code: 'GUI', ovr: 77, style: 'Créativité', star: 'S. Guirassy', starPos: 'FWD'},
-            {n: 'Cap-Vert', code: 'CPV', ovr: 76, style: 'Transition', star: 'R. Mendes', starPos: 'FWD'},
-            {n: 'Angola', code: 'ANG', ovr: 76, style: 'Bloc Bas', star: 'G. Dala', starPos: 'FWD'},
-            {n: 'Zambie', code: 'ZAM', ovr: 73, style: 'Vitesse', star: 'P. Daka', starPos: 'FWD'},
-            {n: 'Guinée Eq.', code: 'GNQ', ovr: 75, style: 'Explosivité', star: 'E. Nsue', starPos: 'FWD'},
-            {n: 'Mauritanie', code: 'MTN', ovr: 73, style: 'Lutte', star: 'A. Kamara', starPos: 'FWD'},
-            {n: 'Ouganda', code: 'UGA', ovr: 71, style: 'Direct', star: 'F. Miya', starPos: 'MID'},
-            {n: 'Gambie', code: 'GAM', ovr: 72, style: 'Défensif', star: 'M. Barrow', starPos: 'FWD'},
-            {n: 'Namibie', code: 'NAM', ovr: 71, style: 'Solidité', star: 'P. Shalulile', starPos: 'FWD'},
-            {n: 'Tanzanie', code: 'TAN', ovr: 70, style: 'Courage', star: 'M. Samatta', starPos: 'FWD'},
-            {n: 'Mozambique', code: 'MOZ', ovr: 70, style: 'Vitesse', star: 'G. Catamo', starPos: 'MID'}
+          {
+                n: 'Sénégal', code: 'SEN', ovr: 86, style: 'Impact', 
+                star: 'S. Mané', starPos: 'FWD', 
+                topDef: 'K. Koulibaly', topMid: 'P.M. Sarr', topAtt: 'S. Mané',
+                scorers: ['N. Jackson', 'I. Sarr', 'H. Diallo']
+            },
+            {
+                n: 'Maroc', code: 'MAR', ovr: 87, style: 'Tiki-Taka', 
+                star: 'A. Hakimi', starPos: 'DEF', 
+                topDef: 'A. Hakimi', topMid: 'S. Amrabat', topAtt: 'Y. En-Nesyri',
+                scorers: ['Y. En-Nesyri', 'H. Ziyech', 'B. Diaz']
+            },
+            {
+                n: 'Égypte', code: 'EGY', ovr: 84, style: 'Contre', 
+                star: 'M. Salah', starPos: 'FWD', 
+                topDef: 'A. Hegazi', topMid: 'M. Elneny', topAtt: 'M. Salah',
+                scorers: ['Trezeguet', 'M. Mohamed', 'O. Marmoush']
+            },
+            {
+                n: 'Nigeria', code: 'NGA', ovr: 84, style: 'Vertical', 
+                star: 'V. Osimhen', starPos: 'FWD', 
+                topDef: 'W. Troost-Ekong', topMid: 'A. Iwobi', topAtt: 'V. Osimhen',
+                scorers: ['A. Lookman', 'V. Boniface', 'A. Iwobi']
+            },
+            {
+                n: 'Algérie', code: 'ALG', ovr: 83, style: 'Technique', 
+                star: 'R. Mahrez', starPos: 'MID', 
+                topDef: 'A. Mandi', topMid: 'I. Bennacer', topAtt: 'R. Mahrez',
+                scorers: ['B. Bounedjah', 'Y. Belaïli', 'H. Aouar']
+            },
+            {
+                n: 'Cameroun', code: 'CMR', ovr: 82, style: 'Puissance', 
+                star: 'V. Aboubakar', starPos: 'FWD', 
+                topDef: 'Castelletto', topMid: 'Z. Anguissa', topAtt: 'V. Aboubakar',
+                scorers: ['K. Toko Ekambi', 'B. Mbeumo', 'Z. Anguissa']
+            },
+            {
+                n: 'Tunisie', code: 'TUN', ovr: 81, style: 'Bloc Bas', 
+                star: 'Y. Msakni', starPos: 'MID', 
+                topDef: 'M. Talbi', topMid: 'E. Skhiri', topAtt: 'Y. Msakni',
+                scorers: ['E. Skhiri', 'H. Rafia', 'S. Jaziri']
+            },
+            {
+                n: 'Mali', code: 'MLI', ovr: 81, style: 'Pressing', 
+                star: 'Y. Bissouma', starPos: 'MID', 
+                topDef: 'H. Traoré', topMid: 'Y. Bissouma', topAtt: 'L. Sinayoko',
+                scorers: ['S. Koita', 'L. Sinayoko', 'K. Doumbia']
+            },
+            {
+                n: 'RD Congo', code: 'RDC', ovr: 79, style: 'Dribbles', 
+                star: 'C. Mbemba', starPos: 'DEF', 
+                topDef: 'C. Mbemba', topMid: 'S. Moutoussamy', topAtt: 'Y. Wissa',
+                scorers: ['Y. Wissa', 'C. Bakambu', 'G. Kakuta']
+            },
+            {
+                n: 'Burkina Faso', code: 'BFA', ovr: 79, style: 'Vitesse', 
+                star: 'E. Tapsoba', starPos: 'DEF', 
+                topDef: 'E. Tapsoba', topMid: 'B. Touré', topAtt: 'B. Traoré',
+                scorers: ['B. Traoré', 'D. Ouattara', 'I. Kaboré']
+            },
+            {
+                n: 'Ghana', code: 'GHA', ovr: 78, style: 'Impact', 
+                star: 'M. Kudus', starPos: 'MID', 
+                topDef: 'M. Salisu', topMid: 'M. Kudus', topAtt: 'I. Williams',
+                scorers: ['I. Williams', 'J. Ayew', 'A. Semenyo']
+            },
+            {
+                n: 'Afrique du Sud', code: 'RSA', ovr: 78, style: 'Collectif', 
+                star: 'P. Tau', starPos: 'FWD', 
+                topDef: 'Mvala', topMid: 'T. Mokoena', topAtt: 'P. Tau',
+                scorers: ['T. Zwane', 'L. Foster', 'T. Mokoena']
+            },
+            {
+                n: 'Guinée', code: 'GUI', ovr: 77, style: 'Créativité', 
+                star: 'S. Guirassy', starPos: 'FWD', 
+                topDef: 'M. Diakhaby', topMid: 'N. Keita', topAtt: 'S. Guirassy',
+                scorers: ['M. Bayo', 'N. Keita', 'A. Camara']
+            },
+            {
+                n: 'Cap-Vert', code: 'CPV', ovr: 76, style: 'Transition', 
+                star: 'R. Mendes', starPos: 'FWD', 
+                topDef: 'Logan Costa', topMid: 'J. Monteiro', topAtt: 'R. Mendes',
+                scorers: ['Bébé', 'J. Cabral', 'G. Rodrigues']
+            },
+            {
+                n: 'Angola', code: 'ANG', ovr: 76, style: 'Bloc Bas', 
+                star: 'G. Dala', starPos: 'FWD', 
+                topDef: 'K. Gaspar', topMid: 'Fredy', topAtt: 'G. Dala',
+                scorers: ['Mabululu', 'Fredy', 'Zini']
+            },
+            {
+                n: 'Zambie', code: 'ZAM', ovr: 73, style: 'Vitesse', 
+                star: 'P. Daka', starPos: 'FWD', 
+                topDef: 'Sunzu', topMid: 'K. Kangwa', topAtt: 'P. Daka',
+                scorers: ['F. Sakala', 'K. Kangwa', 'L. Banda']
+            },
+            {
+                n: 'Guinée Eq.', code: 'GNQ', ovr: 75, style: 'Explosivité', 
+                star: 'E. Nsue', starPos: 'FWD', 
+                topDef: 'S. Coco', topMid: 'P. Ganet', topAtt: 'E. Nsue',
+                scorers: ['I. Salvador', 'P. Ganet', 'J. Miranda']
+            },
+            {
+                n: 'Mauritanie', code: 'MTN', ovr: 73, style: 'Lutte', 
+                star: 'A. Kamara', starPos: 'FWD', 
+                topDef: 'L. Ba', topMid: 'G. Fofana', topAtt: 'A. Kamara',
+                scorers: ['H. Tanjy', 'P. Ba', 'I. Thiam']
+            },
+            {
+                n: 'Gambie', code: 'GAM', ovr: 72, style: 'Défensif', 
+                star: 'M. Barrow', starPos: 'FWD', 
+                topDef: 'O. Colley', topMid: 'A. Jallow', topAtt: 'M. Barrow',
+                scorers: ['A. Jallow', 'E. Colley', 'A. Ceesay']
+            },
+            {
+                n: 'Namibie', code: 'NAM', ovr: 71, style: 'Solidité', 
+                star: 'P. Shalulile', starPos: 'FWD', 
+                topDef: 'L. Haukongo', topMid: 'P. Tjiueza', topAtt: 'P. Shalulile',
+                scorers: ['D. Hotto', 'P. Tjiueza', 'A. Iimbondi']
+            },
+            {
+                n: 'Tanzanie', code: 'TAN', ovr: 70, style: 'Courage', 
+                star: 'M. Samatta', starPos: 'FWD', 
+                topDef: 'I. Hamad', topMid: 'N. Miroshi', topAtt: 'M. Samatta',
+                scorers: ['S. Msuva', 'F. Salum', 'N. Miroshi']
+            },
+            {
+                n: 'Mozambique', code: 'MOZ', ovr: 70, style: 'Vitesse', 
+                star: 'G. Catamo', starPos: 'MID', 
+                topDef: 'Reinildo', topMid: 'G. Catamo', topAtt: 'Witi',
+                scorers: ['Witi', 'Clésio', 'Stanley Ratifo']
+            },
+            {
+                n: 'Ouganda', code: 'UGA', ovr: 71, style: 'Direct', 
+                star: 'F. Miya', starPos: 'MID', 
+                topDef: 'H. Lwaliwa', topMid: 'K. Aucho', topAtt: 'F. Miya',
+                scorers: ['E. Okwi', 'M. Bayo', 'K. Aucho']
+            }
         ];
 
         const INITIAL_PLAYERS = [
@@ -534,13 +796,14 @@
             { id: crypto.randomUUID(), name: "I. Doumbia", pos: "MID", ovr: 76, age: 26, role: 'sub', slot: null, energy: 100 }
         ];
 
+        // Position du GK à 80% pour visibilité
         const FORMATIONS = {
-            '4-3-3': { coords:[{x:41,y:88},{x:8,y:60},{x:30,y:65},{x:52,y:65},{x:74,y:60},{x:20,y:40},{x:41,y:45},{x:62,y:40},{x:8,y:15},{x:41,y:10},{x:74,y:15}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","FWD","FWD","FWD"]},
-            '4-4-2': { coords:[{x:41,y:88},{x:8,y:60},{x:30,y:65},{x:52,y:65},{x:74,y:60},{x:8,y:38},{x:30,y:42},{x:52,y:42},{x:74,y:38},{x:25,y:10},{x:57,y:10}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD","FWD"]},
-            '3-5-2': { coords:[{x:41,y:88},{x:15,y:65},{x:41,y:68},{x:67,y:65},{x:5,y:42},{x:25,y:46},{x:41,y:52},{x:57,y:46},{x:77,y:42},{x:30,y:10},{x:52,y:10}], zones: ["GK","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD","FWD"]},
-            '4-2-3-1': { coords:[{x:41,y:88},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:30,y:48},{x:52,y:48},{x:10,y:30},{x:41,y:32},{x:72,y:30},{x:41,y:10}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
-            '4-1-4-1': { coords:[{x:41,y:88},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:41,y:50},{x:10,y:35},{x:30,y:37},{x:52,y:37},{x:72,y:35},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
-            '5-4-1': { coords:[{x:41,y:88},{x:5,y:62},{x:23,y:65},{x:41,y:68},{x:59,y:65},{x:77,y:62},{x:10,y:38},{x:30,y:40},{x:52,y:40},{x:72,y:38},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD"]}
+            '4-3-3': { coords:[{x:41,y:80},{x:8,y:60},{x:30,y:65},{x:52,y:65},{x:74,y:60},{x:20,y:40},{x:41,y:45},{x:62,y:40},{x:8,y:15},{x:41,y:10},{x:74,y:15}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","FWD","FWD","FWD"]},
+            '4-4-2': { coords:[{x:41,y:80},{x:8,y:60},{x:30,y:65},{x:52,y:65},{x:74,y:60},{x:8,y:38},{x:30,y:42},{x:52,y:42},{x:74,y:38},{x:25,y:10},{x:57,y:10}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD","FWD"]},
+            '3-5-2': { coords:[{x:41,y:80},{x:15,y:65},{x:41,y:68},{x:67,y:65},{x:5,y:42},{x:25,y:46},{x:41,y:52},{x:57,y:46},{x:77,y:42},{x:30,y:10},{x:52,y:10}], zones: ["GK","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD","FWD"]},
+            '4-2-3-1': { coords:[{x:41,y:80},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:30,y:48},{x:52,y:48},{x:10,y:30},{x:41,y:32},{x:72,y:30},{x:41,y:10}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
+            '4-1-4-1': { coords:[{x:41,y:80},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:41,y:50},{x:10,y:35},{x:30,y:37},{x:52,y:37},{x:72,y:35},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
+            '5-4-1': { coords:[{x:41,y:80},{x:5,y:62},{x:23,y:65},{x:41,y:68},{x:59,y:65},{x:77,y:62},{x:10,y:38},{x:30,y:40},{x:52,y:40},{x:72,y:38},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD"]}
         };
 
         const MATCH_COMMS = [
@@ -548,21 +811,21 @@
             "Le public scande le nom des Eléphants !", "Interception propre de la charnière centrale.", 
             "Belle relance vers l'avant, le jeu s'écarte.", "Le coach donne de la voix sur le bord de touche.", 
             "Contact rugueux au milieu, l'arbitre ne dit rien.", "L'ambiance est électrique aujourd'hui.", 
-            "Débordement rapide sur l'aile, centre à venir !", "Coup-franc dangereux à suivre à l'entrée de la surface.", 
+            "Débordement rapide on l'aile, centre à venir !", "Coup-franc dangereux à suivre à l'entrée de la surface.", 
             "Le bloc défensif ivoirien est difficile à percer.", "Le rythme s'accélère soudainement.", 
             "Parade exceptionnelle du portier !", "Faute tactique intelligente pour casser le contre.", 
             "Le ballon circule bien entre les lignes.", "Supporters en liesse dans les tribunes !", 
             "Tentative de loin ! Ça frôle le cadre adverse.", "Relance courte et maîtrisée.", 
             "Fatigue visible chez certains cadres de l'équipe.", "Le quart d'heure de vérité approche.", 
             "Geste technique superbe qui élimine un défenseur !", "Pressing haut étouffant pour l'adversaire.", 
-            "Sortie autoritaire sur le corner adverse.", "Transition offensive rapide lancée par le milieu.", 
-            "La pluie commence à tomber sur la pelouse.", "Erreur de relance... attention au contre !", 
+            "Sortie autoritaire on le corner adverse.", "Transition offensive rapide lancée par le milieu.", 
+            "La pluie commence à tomber on la pelouse.", "Erreur de relance... attention au contre !", 
             "Le stade entier retient son souffle.", "Coup de sifflet important de l'arbitre central.", 
             "Défense en bloc bas pour préserver le score.", "Longue transversale magnifique vers l'ailier.", 
-            "Crampons affûtés sur ce tacle glissé.", "Le génie tactique du coach est mis à l'épreuve.", 
+            "Crampons affûtés on ce tacle glissé.", "Le génie tactique du coach est mis à l'épreuve.", 
             "Vent de panique dans la défense adverse.", "Solidité exemplaire de la part des latéraux.", 
-            "Match de guerriers aujourd'hui sur le terrain !", "Une-deux superbe dans les petits espaces.", 
-            "Le poteau sauve le gardien sur cette frappe !", "Contrôle orienté de classe internationale.", 
+            "Match de guerriers aujourd'hui on le terrain !", "Une-deux superbe dans les petits espaces.", 
+            "Le poteau sauve le gardien on cette frappe !", "Contrôle orienté de classe internationale.", 
             "L'adversaire commence à douter sérieusement.", "Supporters et joueurs ne font qu'un.", 
             "Duel aérien remporté avec autorité par Ndicka.", "Coup-franc excentré qui peut amener le danger.", 
             "Ballon sorti en touche sous la pression.", "Le portier motive bruyamment ses troupes.", 
@@ -570,37 +833,37 @@
             "Dégagement aux poings salvateur du gardien.", "Suspense total dans cette fin de rencontre.", 
             "Le match bascule dans une dimension tactique.", "Dernier assaut désespéré avant le sifflet !", 
             "Le manager effectue ses derniers ajustements.", "Le marquage à la culotte est impitoyable.", 
-            "Une véritable partie de d'échecs sur le gazon.", "Les drapeaux orange-blanc-vert s'agitent partout !", 
-            "Un supporter traverse le terrain ! Interruption de jeu.", "Le stade rugit sur ce tacle salvateur.", 
+            "Une véritable partie de d'échecs on le gazon.", "Les drapeaux orange-blanc-vert s'agitent partout !", 
+            "Un supporter traverse le terrain ! Interruption de jeu.", "Le stade rugit on ce tacle salvateur.", 
             "Le physique commence à prendre le dessus.", "Un exploit individuel est nécessaire pour débloquer le score.", 
-            "L'arbitre consulte son assistant sur cette faute.", "Temps additionnel annoncé, tout peut encore arriver !", 
+            "L'arbitre consulte son assistant on cette faute.", "Temps additionnel annoncé, tout peut encore arriver !", 
             "Une frappe enroulée qui lèche le montant.", "Sortie de but pour le gardien adverse.", 
             "Le marquage est impitoyable dans la zone de vérité.", "L'arbitre appelle les deux capitaines au calme.", 
-            "La transversale tremble encore !", "Changement tactique visible sur le terrain.", 
-            "Le public se lève sur cette action de classe.", "Faute signalée à l'entrée de la surface de réparation.", 
+            "La transversale tremble encore !", "Changement tactique visible on le terrain.", 
+            "Le public se lève on cette action de classe.", "Faute signalée à l'entrée de la surface de réparation.", 
             "Relance rapide à la main du gardien vers son latéral.", "CIV pousse fort dans les dernières minutes !", 
             "Dégagement en catastrophe par la défense adverse.", "Interception magnifique au milieu de terrain.", 
             "Le rythme s'accélère en cette fin de période.", "CIV invincibles aujourd'hui avec ce bloc compact !", 
-            "Le stade retient son souffle sur ce corner direct.", "Exploit individuel à suivre ?", 
+            "Le stade retient son souffle on ce corner direct.", "Exploit individuel à suivre ?", 
             "Tir non cadré, ça passe largement au-dessus.", "Défense en bloc bas pour conserver le score.", 
             "Belle transversale qui change l'aile.", "Coup de sifflet pour une position de hors-jeu.", 
             "Le portier plonge dans les pieds de l'attaquant.", "CIV multiplie les passes courtes au milieu.", 
             "L'adversaire ne parvient plus à sortir de son camp.", "Contact rugueux, l'arbitre sort le carton jaune !", 
-            "Le stade est en fusion sur chaque dribble réussi.", "La possession est outrageusement ivoirienne.", 
-            "L'attaquant s'emmêle les pinceaux au moment de tirer.", "Parade réflexe incroyable sur la ligne !", 
+            "Le stade est en fusion on chaque dribble réussi.", "La possession est outrageusement ivoirienne.", 
+            "L'attaquant s'emmêle les pinceaux au moment de tirer.", "Parade réflexe incroyable on la ligne !", 
             "Le coach adverse semble totalement désemparé.", "Ambiance de fête dans le stade, on entend les tambours !", 
-            "Le pressing haut étouffe complètement la relance adverse.", "Quelle vision de jeu sur cette passe en profondeur !", 
+            "Le pressing haut étouffe complètement la relance adverse.", "Quelle vision de jeu on cette passe en profondeur !", 
             "Corner à suivre pour les Eléphants.", "Le gardien s'impose dans les airs avec autorité.", 
             "Friction entre deux joueurs, l'arbitre intervient vite.", "Une prestation solide qui rassure les supporters.", 
             "Tout le stade pousse pour l'ouverture du score !", "CIV est en démonstration technique aujourd'hui.", 
             "Ballon dégagé loin devant pour souffler un peu.", "Le rideau défensif est infranchissable pour le moment.", 
-            "CIV dicte son tempo avec une sérénité totale.", "Le manager ivoirien reste calme sur son banc.", 
+            "CIV dicte son tempo avec une sérénité totale.", "Le manager ivoirien reste calme on son banc.", 
             "L'odeur de la victoire commence à monter dans le stade.", "Quel régal pour les yeux ces combinaisons !", 
             "L'arbitre vérifie le ballon avant de relancer.", "Les remplaçants terminent leur échauffement.", 
-            "Un vent de panique souffle sur les buts adverses.", "Le milieu de terrain est un véritable champ de bataille.", 
+            "Un vent de panique souffle on les buts adverses.", "Le milieu de terrain est un véritable champ de bataille.", 
             "CIV fait preuve d'une maturité tactique impressionnante.", "Chaque touche de balle est un délice.", 
             "L'adversaire tente le tout pour le tout.", "Le stade est plein comme un oeuf pour ce choc.", 
-            "Une frappe surpuissante qui finit dans les nuages.", "Le gardien relance très loin sur son attaquant.", 
+            "Une frappe surpuissante qui finit dans les nuages.", "Le gardien relance très loin on son attaquant.", 
             "CIV reste en place malgré la pression adverse.", "Un tacle de dernier recours qui sauve l'équipe.", 
             "Le talent brut s'exprime enfin dans ce match.", "CIV gère parfaitement son avance pour le moment.",
             "Tacle assassin, mais l'arbitre ne bronche pas !", "Le gardien semble avoir un problème à la cuisse.",
@@ -611,50 +874,50 @@
             "La pelouse est un billard aujourd'hui.", "Le stade Ebimpé vibre à l'unisson.",
             "L'arbitre central discute avec son quatrième officiel.", "Le banc de touche bouillonne d'impatience.",
             "Une relance dans l'axe très risquée, mais ça passe.", "Le public siffle copieusement l'adversaire.",
-            "Chaque corner est vécu comme un penalty par le stade.", "Le marquage est en zone sur cette action.",
-            "Quelle détente verticale sur ce duel de la tête !", "Le match est haché par de nombreuses petites fautes.",
+            "Chaque corner est vécu comme un penalty par le stade.", "Le marquage est en zone on cette action.",
+            "Quelle détente verticale on ce duel de la tête !", "Le match est haché par de nombreuses petites fautes.",
             "L'adversaire joue le contre à fond.", "Le bloc équipe est parfaitement coordonné.",
             "Un petit pont humiliant au milieu de terrain !", "Le défenseur dégage en touche sans réfléchir.",
             "Le meneur de jeu dicte le tempo du match.", "Les duels sont à la limite de la correction physique.",
-            "Le gardien adverse gagne du temps sur son dégagement.", "L'arbitre demande de recommencer le coup-franc.",
-            "Une frappe de mule qui finit dans le petit filet extérieur !", "Le stade rugit de plaisir sur ce geste technique.",
+            "Le gardien adverse gagne du temps on son dégagement.", "L'arbitre demande de recommencer le coup-franc.",
+            "Une frappe de mule qui finit dans le petit filet extérieur !", "Le stade rugit de plaisir on ce geste technique.",
             "Le sélectionneur ivoirien appelle un remplaçant.", "Le capitaine réunit ses joueurs pour les motiver.",
             "Une erreur d'inattention qui aurait pu coûter cher.", "Le danger vient de partout pour l'adversaire !",
             "Le match entre dans sa phase critique.", "Un festival offensif se prépare peut-être.",
             "Le portier s'envole littéralement pour détourner ce cuir.", "L'ambiance est digne d'une finale de Coupe du Monde !",
             "Le jeu est arrêté pour soigner un joueur à terre.", "Le sélectionneur consulte ses notes tactiques.",
             "Un tacle millimétré qui soulève les foules.", "La possession tourne à la démonstration.",
-            "L'adversaire n'a plus touché le ballon depuis 3 minutes.", "Un centre-tir vicieux qui termine sur la barre !",
+            "L'adversaire n'a plus touché le ballon depuis 3 minutes.", "Un centre-tir vicieux qui termine on la barre !",
             "Le sifflet final approche, la tension est à son comble.", "Chaque passe est un poignard pour la défense adverse.",
             "Le génie de Yao Baba Ange Emmanuel opère encore.", "Une solidité à toute épreuve pour les Eléphants.",
             "La victoire se dessine petit à petit.", "Le stade est en transe complète !",
-            "Une sortie de balle propre malgré le pressing adverse.", "Le jeu s'accélère sur l'aile droite.",
+            "Une sortie de balle propre malgré le pressing adverse.", "Le jeu s'accélère on l'aile droite.",
             "Un centre fort devant le but qui ne trouve personne.", "Le gardien capte le ballon en deux temps.",
             "La défense adverse est au bord de la rupture.", "Un véritable cauchemar pour le latéral gauche adverse.",
-            "Le match est d'une intensité rare pour un tournoi continental.", "Les joueurs donnent tout sur le rectangle vert.",
+            "Le match est d'une intensité rare pour un tournoi continental.", "Les joueurs donnent tout on le rectangle vert.",
             "Le maillot est mouillé, les guerriers sont là !", "Une passe aveugle qui déstabilise tout le bloc.",
-            "Le ballon semble collé aux pieds de l'attaquant.", "Un sauvetage sur la ligne de but, incroyable !",
-            "Le poteau rentrant ? Non, ça sort ! Quel dommage.", "La CIV est en contrôle total de l'événement.",
+            "Le ballon semble collé aux pieds de l'attaquant.", "Un sauvetage on la ligne de but, incroyable !",
+            "Le poteau rentrant ? No, ça sort ! Quel dommage.", "La CIV est en contrôle total de l'événement.",
             "Une prestation qui fera date dans l'histoire de la nation.", "Le public ne s'arrête jamais de chanter.",
             "Un duel de Titans au milieu de la pelouse.", "Le sifflet retentit, mais c'est une faute pour nous !",
             "Le portier motive sa défense en criant fort.", "Le marquage est plus serré que jamais.",
             "Un éclair de génie pourrait tout débloquer.", "La CIV pousse, pousse et repousse encore !",
-            "L'adversaire est acculé sur son propre but.", "Un dégagement désespéré en corner.",
-            "La montre tourne, les coeurs battent la chamade.", "Le staff technique est debout sur le banc.",
-            "Une communication parfaite entre les défenseurs centraux.", "Le portier ne prend aucun risque sur cette frappe.",
-            "Un changement tactique payant semble s'opérer.", "Le talent est partout aujourd'hui sur le terrain.",
-            "La fierté d'un peuple repose sur ces 11 hommes.", "Une leçon de football est en cours.",
+            "L'adversaire est acculé on son propre but.", "Un dégagement désespéré en corner.",
+            "La montre tourne, les coeurs battent la chamade.", "Le staff technique est debout on le banc.",
+            "Une communication parfaite entre les défenseurs centraux.", "Le portier ne prend aucun risque on cette frappe.",
+            "Un changement tactique payant semble s'opérer.", "Le talent est partout aujourd'hui on le terrain.",
+            "La fierté d'un peuple repose on ces 11 hommes.", "Une leçon de football est en cours.",
             "Le score ne reflète pas encore la domination.", "Le gardien adverse réalise le match de sa vie.",
             "Une glissade malheureuse qui redonne le ballon.", "Le pressing est coordonné comme une symphonie.",
             "Le public scande 'Allez les Eléphants' !", "Une frappe en pivot qui passe de peu à côté.",
             "Le sélectionneur encourage ses troupes du geste.", "Une interception vitale pour empêcher le face-à-face.",
-            "Le jeu se déporte sur l'autre aile rapidement.", "Une transversale de 50 mètres, un régal !",
+            "Le jeu se déporte on l'autre aile rapidement.", "Une transversale de 50 mètres, un régal !",
             "Le latéral monte pour apporter le surnombre.", "Un repli défensif exemplaire de l'attaquant.",
             "Le manager regarde sa montre, le stress monte.", "Une ambiance de feu, le stade est en éruption !",
             "Le match est d'une propreté technique absolue.", "Une faute intelligente qui coupe le rythme adverse.",
             "Le gardien sort loin de ses buts pour dégager au pied.", "Une sérénité olympienne pour la défense ivoirienne.",
-            "Le talent brut fait la différence sur cette action.", "La CIV est plus proche que jamais du but !",
-            "L'adversaire ne sait plus comment réagir tactiquement.", "Un vent d'optimisme souffle sur les tribunes.",
+            "Le talent brut fait la différence on cette action.", "La CIV est plus proche que jamais du but !",
+            "L'adversaire ne sait plus comment réagir tactiquement.", "Un vent d'optimisme souffle on les tribunes.",
             "Le match bascule dans la légende.", "Chaque seconde compte désormais.",
             "Un engagement de tous les instants.", "La sueur et les larmes pour la victoire.",
             "Le sifflet final sera une délivrance ou un drame.", "La CIV montre pourquoi elle est l'élite africaine.",
@@ -666,24 +929,91 @@
             "La gloire attend les vainqueurs de ce choc.", "Le football africain est à son sommet aujourd'hui.",
             "Une maîtrise technique qui laisse pantois.", "L'adversaire tente un changement de dernière minute.",
             "Le portier réclame plus de concentration à ses gars.", "Un tacle propre qui récupère le ballon proprement.",
-            "Le jeu est fluide, plaisant et très rapide.", "La CIV dicte sa loi sur la pelouse du jour."
+            "Le jeu est fluide, plaisant et très rapide.", "La CIV dicte sa loi on la pelouse du jour."
         ];
 
-        const SVGS = {
-            coins: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-400"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="M17.22 15.22a2 2 0 1 0-2.83 2.83"/></svg>`,
+        // --- NOUVEAUX TABLEAUX DE COMMENTAIRES DYNAMIQUES ---
+        const COMMS_WINNING = [
+            "Le plan tactique de {MANAGER} fonctionne à merveille !",
+            "Quelle masterclass de {MANAGER} aujourd'hui !",
+            "Les supporters chantent le nom de {MANAGER} dans les tribunes !",
+            "{MANAGER} reste impassible, mais son équipe déroule.",
+            "La patte {MANAGER} se fait sentir sur cette action.",
+            "C'est une leçon de football donnée par {MANAGER}.",
+            "L'adversaire n'a aucune réponse face au système de {MANAGER}."
+        ];
+
+        const COMMS_LOSING = [
+            "{MANAGER} hurle ses consignes pour réveiller les gars !",
+            "{MANAGER} semble pensif sur son banc de touche.",
+            "Il va falloir un coup de génie de {MANAGER} pour changer ça.",
+            "{MANAGER} consulte son adjoint, un changement à venir ?",
+            "Le visage fermé, {MANAGER} demande plus d'intensité."
+        ];
+
+        const COMMS_TACTICAL = {
+            def: "{MANAGER} ordonne de fermer la boutique ! Tout le monde derrière !",
+            att: "{MANAGER} fait de grands gestes : TOUT POUR L'ATTAQUE !",
+            bal: "{MANAGER} demande de calmer le jeu et de reprendre la structure.",
+            possession: "{MANAGER} veut qu'on prive l'adversaire de ballon.",
+            counter: "{MANAGER} demande des transitions foudroyantes !",
+            pressing: "Les joueurs répondent au pressing demandé par {MANAGER} !"
+        };
+
+      const SVGS = {
+            // --- UI GÉNÉRALE (Garder celles-ci) ---
+            coins: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-400 inline-block align-middle"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="M17.22 15.22a2 2 0 1 0-2.83 2.83"/></svg>`,
             refresh: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>`,
             radar: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><circle cx="12" cy="12" r="10"/><path d="M12 2v20"/><path d="M2 12h20"/><circle cx="12" cy="12" r="5"/></svg>`,
-            play: `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-slate-900"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+            play: `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-slate-900 inline-block align-middle"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
             shield: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
             zap: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
             search: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
             trophy: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17a1 1 0 0 0 2 0v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
-            layout: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"3\" y1=\"9\" x2=\"21\" y2=\"9\"/><line x1=\"9\" y1=\"21\" x2=\"9\" y2=\"9\"/></svg>`,
+            layout: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>`,
             repeat: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`,
-            mic: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`,
-            home: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`
-        };
+            mic: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`,
+            home: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+            assistant: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400 inline-block align-middle mb-0.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>`,
 
+            // --- INFRASTRUCTURES (DESIGN PREMIUM) ---
+            // Stade : Une arène vue de dessus avec des projecteurs
+            infraStadium: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><path d="M12 2a10 10 0 0 1 10 10v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8A10 10 0 0 1 12 2z"/><path d="M6 12v6"/><path d="M18 12v6"/><path d="M12 12v6"/><line x1="2" y1="12" x2="22" y2="12"/></svg>`,
+            
+            // Entraînement : Un haltère et un plot (Gym & Tactique)
+            infraTraining: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5h11"/><path d="M6 5v3"/><path d="M18 5v3"/><path d="M12 2v13"/><path d="M9 22l3-3 3 3"/><path d="M12 16a4 4 0 0 1 4 4v2H8v-2a4 4 0 0 1 4-4z"/></svg>`,
+            
+            // Médical : Une trousse de secours avec une croix
+            infraMedical: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 12h6"/><path d="M12 9v6"/><path d="M16 4V2H8v2"/></svg>`,
+           // --- NOUVELLE ICONE ---
+            museum: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16"/><path d="M8 22v-4"/><path d="M16 22v-4"/><path d="M4 10h16"/><path d="M12 2l-8 5v3h16V7L12 2z"/><path d="M6 10v8"/><path d="M10 10v8"/><path d="M14 10v8"/><path d="M18 10v8"/></svg>`,
+            // --- STAFF (DESIGN PREMIUM) ---
+            briefcase: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,
+            whistle: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><path d="M11 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`,
+            heartpulse: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
+
+            // --- AUTRES ---
+            star: `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400 inline-block align-middle mb-0.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
+            
+            ball: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 2l2.5 5h-5L12 2z"/><path d="M12 22l-2.5-5h5L12 22z"/><path d="M2.5 10l5 2-2 4-3-6z"/><path d="M21.5 10l-5 2 2 4 3-6z"/></svg>`,
+            
+            alert: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+            
+            // CRAMPON OR (NOUVEAU DESIGN DYNAMIQUE)
+           boot: `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400 inline-block align-middle mb-0.5"><path d="M20.2 12.5c-.8-1.5-2.5-2.5-4.2-2.5H13l-2.5-4H6C3.5 6 2 8.5 2 11v5c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-3.5z"/><path d="M5 18v3"/><path d="M9 18v3"/><path d="M13 18v3"/><path d="M17 18v3"/></svg>`,
+            
+            glove: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><rect x="6" y="4" width="12" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="12"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="16" x2="18" y2="16"/></svg>`,
+            
+            medal: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><circle cx="12" cy="16" r="5"/><path d="M12 11V3"/><path d="M7 6L5 3"/><path d="M17 6l2-3"/></svg>`,
+            
+            cup: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><path d="M8 2h8a4 4 0 0 1 4 4v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4Z"/><path d="M12 13v6"/><path d="M8 22h8"/></svg>`,
+            
+            mega: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><path d="M2 12l5-5v10l-5-5Z"/><path d="M7 7h5l5-4v18l-5-4H7"/><path d="M19 8c1.5 1 2.5 3 2.5 4s-1 3-2.5 4"/></svg>`,
+            
+            globe: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+            
+            hand: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>`
+        };
         class EliteManager {
             constructor() {
                 this.state = this.load() || this.initNewGame();
@@ -694,6 +1024,7 @@
             }
 
             initNewGame() {
+            
                 const ns = [...NATIONS_DB].sort(() => Math.random() - 0.5);
                 const g = this.createGroups(ns);
                 const std = this.initStd(ns, g);
@@ -703,18 +1034,28 @@
                 });
 
                 return {
-                    year: 2026, budget: 15.0, teamXP: 0, formation: '4-3-3',
+        managerName: null, year: 2026, budget: 15.0, teamXP: 0,pastWinners: [], formation: '4-3-3',
                     players: JSON.parse(JSON.stringify(INITIAL_PLAYERS)),
                     scoutPool: [], matchIndex: 0, standings: std,
                     groups: g, trophies: 0, stage: 'groups',
+                    viewingGroup: 'A',
+                    goalScorers: [],
+                    playerRatings: [],
                     seasonsPlayed: 0, globalResults: [], knockout: {},
                     instructions: { style: 'possession', pressing: 'normal' },
-                    rareScoutUsed: false, news: [{id: Date.now(), text: "Lancement de la dynastie par Yao Baba Ange Emmanuel !"}],
+                    rareScoutUsed: false, news: [{id: Date.now(), text: "La Fédération Ivoirienne attend la signature du nouveau manager..."}],
                     infra: {
-                        stadium: { level: 1, cost: 10, bonus: 0.2 },
+                        stadium: { level: 1, cost: 10, bonus: 0.5 },
                         training: { level: 1, cost: 5, bonus: 1 },
                         medical: { level: 1, cost: 8, bonus: 5 }
+                    } ,
+
+                    staff: {
+                        director: { level: 1, salary: 2.0, name: "Directeur Sportif", desc: "Réduit les coûts de recrutement (-10%/niv)." },
+                        assistant: { level: 1, salary: 1.5, name: "Entraîneur Adjoint", desc: "Booste le gain d'XP d'équipe (+10%/niv)." },
+                        fitness: { level: 1, salary: 1.0, name: "Préparateur Physique", desc: "Remplaçants récupèrent mieux (+5%/niv)." }
                     }
+                    
                 };
             }
 
@@ -735,13 +1076,78 @@
             }
 
             init() { 
+                // --- PATCH DE COMPATIBILITÉ (SANS RAZ) ---
+                
+                // 1. Si le STAFF manque, on l'ajoute
+                if (!this.state.staff) {
+                    this.state.staff = {
+                        director: { level: 1, salary: 2.0, name: "Directeur Sportif", desc: "Réduit les coûts de recrutement (-10%/niv)." },
+                        assistant: { level: 1, salary: 1.5, name: "Entraîneur Adjoint", desc: "Booste le gain d'XP d'équipe (+10%/niv)." },
+                        fitness: { level: 1, salary: 1.0, name: "Préparateur Physique", desc: "Remplaçants récupèrent mieux (+5%/niv)." }
+                    };
+                }
+
+                // 2. Si le CLASSEMENT MVP manque, on le crée vide
+                // <--- AJOUTER CECI
+                if (!this.state.playerRatings) {
+                    this.state.playerRatings = [];
+                }
+                // ----------------
+                if (!this.state.goalScorers) {
+                this.state.goalScorers = [];
+                }
+                // 3. Si le GROUPE PAR DÉFAUT manque
+                if (!this.state.viewingGroup) {
+                    let myG = 'A';
+                    if (this.state.groups) {
+                        for(let k in this.state.groups) {
+                            if(this.state.groups[k].some(t => t.n === "Côte d'Ivoire")) myG = k;
+                        }
+                        if(Array.isArray(this.state.goalScorers)) {
+        this.state.goalScorers = this.state.goalScorers.filter(g => g && g.n);
+    }
+                    }
+                    this.state.viewingGroup = myG;
+                }
+
                 this.injectIcons(); 
                 this.updateUI(); 
+                
+                if (!this.state.managerName) {
+                    const modal = document.getElementById('welcome-modal');
+                    if(modal) modal.classList.remove('hidden');
+                }
+
                 setInterval(() => this.save(), 5000); 
                 this.goToView('inbox'); 
                 window.app = this;
             }
+// --- COLLEZ CE BLOC JUSTE APRÈS LA FIN DE LA FONCTION init() ---
+            
+            submitManagerName() {
+                const input = document.getElementById('input-manager-name');
+                const val = input.value.trim().toUpperCase();
+                
+                if (val.length < 3) return this.toast("Nom trop court !");
+                
+                this.state.managerName = val;
 
+                // --- AJOUT : Création du flash info personnalisé ICI ---
+                this.state.news.unshift({
+                    id: Date.now(), 
+                    text: `OFFICIEL : Lancement de la dynastie par ${val} !`
+                });
+                //
+                
+                // On cache le modal
+                document.getElementById('welcome-modal').classList.add('hidden');
+                
+                this.save();
+                this.updateUI();
+                this.toast(`Bienvenue Coach ${val} !`);
+            }
+
+            // ---------------------------------------------------------------
             injectIcons() {
                 for (const [id, svg] of Object.entries(SVGS)) {
                     const els = document.querySelectorAll(`[id^="icon-${id}"]`);
@@ -752,16 +1158,23 @@
             save() { localStorage.setItem('aem_v9_5_ultra_legacy', JSON.stringify(this.state)); }
             load() { const s = localStorage.getItem('aem_v9_5_ultra_legacy'); return s ? JSON.parse(s) : null; }
 
-            updateUI() {
+           updateUI() {
                 const bDisplay = document.getElementById('budget-display');
                 const xDisplay = document.getElementById('team-xp-display');
                 const hSubtitle = document.getElementById('header-subtitle');
                 const xBar = document.getElementById('xp-bar-fill');
                 
+                // --- AJOUT : Gestion du nom du manager ---
+                const mName = document.getElementById('header-manager-name');
+                if (mName && this.state.managerName) {
+                    mName.innerText = this.state.managerName;
+                }
+                // ----------------------------------------
+                
                 if(bDisplay) bDisplay.innerText = this.state.budget.toFixed(1) + " M€";
                 if(xDisplay) xDisplay.innerText = this.state.teamXP + " XP";
                 if(hSubtitle) hSubtitle.innerText = "SAISON " + this.state.year;
-                if(xBar) xBar.style.width = Math.min(100, (this.state.teamXP / 5000) * 100) + "%";
+                if(xBar) xBar.style.width = Math.min(100, (this.state.teamXP / 25000) * 100) + "%";
                 
                 this.injectIcons();
             }
@@ -847,132 +1260,516 @@
                 } else { return this.state.knockout[this.state.stage] || this.state.standings['Sénégal']; }
             }
 
-            startMatch() {
-                if (this.state.players.filter(p => p.role === 'starter').length < 11) return this.toast("11 joueurs requis !");
+            generateOpponent11(opp) {
+                const squad = [];
+                const formations = ['4-3-3', '4-4-2', '3-5-2'];
+                const form = formations[Math.floor(Math.random() * formations.length)];
+                
+                // Structure basique par ligne selon la formation
+                let structure = { GK: 1, DEF: 4, MID: 3, FWD: 3 }; 
+                if (form === '4-4-2') structure = { GK: 1, DEF: 4, MID: 4, FWD: 2 };
+                if (form === '3-5-2') structure = { GK: 1, DEF: 3, MID: 5, FWD: 2 };
+
+                // Fonction pour créer un joueur IA
+                const makePlayer = (pos, isStar = false, starName = null) => {
+                    let ovr = opp.ovr + (Math.floor(Math.random() * 6) - 3); // OVR varié
+                    if (isStar) ovr += 3; // Les stars sont plus fortes
+                    return {
+                        name: starName || this.generateRealName(),
+                        pos: pos,
+                        ovr: ovr,
+                        isStar: isStar
+                    };
+                };
+
+                // 1. On identifie les stars réelles à placer
+                const keyPlayers = [
+                    { name: opp.star, pos: opp.starPos },
+                    { name: opp.topDef, pos: 'DEF' },
+                    { name: opp.topMid, pos: 'MID' },
+                    { name: opp.topAtt, pos: 'FWD' }
+                ];
+                
+                // Dédoublonnage (ex: si la Star est aussi le Top Attaquant)
+                const uniqueKeys = [];
+                const seenNames = new Set();
+                keyPlayers.forEach(p => {
+                    if(!seenNames.has(p.name)) {
+                        uniqueKeys.push(p);
+                        seenNames.add(p.name);
+                    }
+                });
+
+                // 2. Remplissage de l'équipe
+                squad.push(makePlayer('GK')); structure.GK--; // Gardien
+
+                // Placement des Stars
+                uniqueKeys.forEach(key => {
+                    if (structure[key.pos] > 0) {
+                        squad.push(makePlayer(key.pos, true, key.name));
+                        structure[key.pos]--;
+                    }
+                });
+
+                // Combler les trous avec des joueurs générés
+                ['DEF', 'MID', 'FWD'].forEach(pos => {
+                    while (structure[pos] > 0) {
+                        squad.push(makePlayer(pos));
+                        structure[pos]--;
+                    }
+                });
+
+                // Tri pour l'affichage (GK - DEF - MID - FWD)
+                const order = { 'GK': 1, 'DEF': 2, 'MID': 3, 'FWD': 4 };
+                return squad.sort((a,b) => order[a.pos] - order[b.pos]);
+            }
+
+           startMatch() {
+                // 1. Vérifications
+                const starters = this.state.players.filter(p => p.role === 'starter');
+                if (starters.length < 11) return this.toast("11 joueurs requis !");
+                
                 const opp = this.getOpponent();
                 if (!opp) return this.toast("Erreur tirage.");
                 
-                this.match = { 
-                    active: true, time: 0, score: [0, 0], opp: opp, 
-                    timer: setInterval(() => this.tick(), 1000), 
-                    tactic: 'bal', speechBoost: 1.0, 
-                    stats: { shots: 0, shotsAway: 0 } 
-                };
+                // 2. Génération de l'adversaire (Le fameux Onze)
+                const oppXI = this.generateOpponent11(opp);
                 
+                // 3. Préparation des données du match (SANS lancer le timer)
+                this.match = { 
+                    active: false, // Pas encore actif !
+                    time: 0, score: [0, 0], 
+                    opp: opp, 
+                    oppSquad: oppXI,
+                    timer: null, 
+                    tactic: 'bal', speechBoost: 1.0, 
+                    stats: { shots: 0, shotsAway: 0 },
+                    penalties: null
+                };
+
+                // 4. Remplissage de l'interface "Face-à-Face"
+                const pModal = document.getElementById('preview-modal');
+                const pHome = document.getElementById('preview-home-list');
+                const pAway = document.getElementById('preview-away-list');
+                const pCode = document.getElementById('preview-opp-code');
+                
+                if(pCode) pCode.innerText = opp.code;
+                
+                // Remplir ma liste (CIV)
+                pHome.innerHTML = '';
+                // Tri par position pour l'affichage (GK d'abord)
+                const posOrder = { 'GK': 1, 'DEF': 2, 'MID': 3, 'FWD': 4 };
+                starters.sort((a,b) => posOrder[a.pos] - posOrder[b.pos]).forEach(p => {
+                    pHome.innerHTML += `
+                        <div class="flex items-center justify-between p-2 rounded bg-slate-800/50 border border-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[8px] font-bold text-orange-500 w-5">${p.pos}</span>
+                                <span class="text-[10px] font-bold text-white truncate max-w-[80px]">${p.name.split(' ').pop()}</span>
+                            </div>
+                            <div class="font-teko text-lg text-white">${p.ovr}</div>
+                        </div>`;
+                });
+
+                // Remplir liste ADVERSAIRE
+                pAway.innerHTML = '';
+                oppXI.forEach(p => {
+                    // Design spécial pour les STARS adverses (Bordure dorée ou brillante)
+                    const isStar = p.isStar ? 'border-yellow-500/30 bg-yellow-500/10' : 'border-white/5 bg-slate-800/50';
+                    const nameColor = p.isStar ? 'text-yellow-100' : 'text-slate-300';
+                   const icon = p.isStar ? SVGS.star : '';
+                    
+                    pAway.innerHTML += `
+                        <div class="flex items-center justify-between p-2 rounded border ${isStar}">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold ${nameColor} truncate max-w-[80px]">${p.name} ${icon}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-teko text-lg text-white">${p.ovr}</span>
+                                <span class="text-[8px] font-bold text-slate-500 w-5 text-right">${p.pos}</span>
+                            </div>
+                        </div>`;
+                });
+
+                // 5. Afficher le modal
+                if(pModal) pModal.classList.remove('hidden');
+            }
+
+            kickOff() {
+                // 1. Fermer le modal de preview
+                const pModal = document.getElementById('preview-modal');
+                if(pModal) pModal.classList.add('hidden');
+                
+                // 2. Activer le match (Lancement du Timer)
+                this.match.active = true;
+                this.match.timer = setInterval(() => this.tick(), 1000);
+                
+                // 3. Reset de l'interface du match
                 const sHome = document.getElementById('score-home'); if(sHome) sHome.innerText = '0';
                 const sAway = document.getElementById('score-away'); if(sAway) sAway.innerText = '0';
                 const mTimer = document.getElementById('match-timer'); if(mTimer) mTimer.innerText = '00:00';
-                const mBadge = document.getElementById('match-opp-badge'); if(mBadge) mBadge.innerText = opp.code;
-                const stHome = document.getElementById('stats-shots-home'); if(stHome) stHome.innerText = '0';
-                const stAway = document.getElementById('stats-shots-away'); if(stAway) stAway.innerText = '0';
+                const mBadge = document.getElementById('match-opp-badge'); if(mBadge) mBadge.innerText = this.match.opp.code;
                 
                 const cLog = document.getElementById('commentary-log'); if(cLog) cLog.innerHTML = '';
                 const htO = document.getElementById('ht-overlay'); if(htO) htO.classList.remove('active');
                 
+                // 4. Aller à la vue match
                 this.goToView('match');
                 this.updateMatchInstructionsUI();
+                
+                this.addCommentary(`${SVGS.mega} COUP D'ENVOI ! La Côte d'Ivoire affronte le ${this.match.opp.n}.`);
             }
 
-            tick() {
-                if (!this.match.active) return; this.match.time++;
-                const timerEl = document.getElementById('match-timer');
-                if(timerEl) timerEl.innerText = (this.match.time < 10 ? '0' : '') + this.match.time + ":00";
-                
-                const myP = this.getTeamPower(); const opP = this.match.opp.ovr;
-                
-                let powerRatio = myP / opP;
-                let bPoss = 50 + (powerRatio - 1) * 20; 
-                
-                if(this.state.instructions.style === 'possession') bPoss += 8;
-                if(this.state.instructions.style === 'counter') bPoss -= 10;
-                if(this.state.instructions.pressing === 'high') bPoss += 4;
-                
-                let oscillation = Math.sin(this.match.time / 6) * 5;
-                let finalP = Math.min(85, Math.max(15, bPoss + oscillation + (Math.random()*4-2)));
-                
-                const pBar = document.getElementById('possession-home-bar'); if(pBar) pBar.style.width = finalP + "%";
-                const phEl = document.getElementById('poss-val-home'); if(phEl) phEl.innerText = Math.round(finalP) + "%";
-                const paEl = document.getElementById('poss-val-away'); if(paEl) paEl.innerText = Math.round(100 - finalP) + "%";
+            updateMatchAdvice() {
+                const box = document.getElementById('match-assistant-msg');
+                if (!box) return;
 
-                if (Math.random() < 0.15) {
-                    if (Math.random() * 100 < finalP) { 
-                        this.match.stats.shots++; 
-                        const sh = document.getElementById('stats-shots-home'); if(sh) sh.innerText = this.match.stats.shots; 
-                    } else { 
-                        this.match.stats.shotsAway++; 
-                        const sa = document.getElementById('stats-shots-away'); if(sa) sa.innerText = this.match.stats.shotsAway; 
+                const t = this.match.time;
+                const s = this.match.score;
+                const diff = s[0] - s[1]; // Positif = on gagne, Négatif = on perd
+                
+                // On récupère la possession actuelle (depuis le DOM ou le calcul)
+                const possText = document.getElementById('poss-val-home').innerText;
+                const poss = parseInt(possText) || 50;
+
+                let msg = "";
+                let urgency = "normal"; // normal, warning, critical
+
+                // --- LOGIQUE DE L'ASSISTANT ---
+
+                // 1. DÉBUT DE MATCH (0-15min)
+                if (t < 15) {
+                    msg = "Phase d'observation. Restez bien en place et faites circuler le ballon.";
+                }
+                // 2. FIN DE MATCH (80min+)
+                else if (t > 80) {
+                    if (diff === 0) {
+                        msg = "Le match nul se joue maintenant. Un exploit individuel ou on ferme la boutique ?";
+                        urgency = "warning";
+                    } else if (diff === 1) {
+                        msg = "On tient le score ! Passez en mode DÉFENSIF et gagnez du temps.";
+                        urgency = "warning";
+                    } else if (diff === -1) {
+                        msg = "C'est maintenant ou jamais ! Passez en ASSAUT TOTAL !";
+                        urgency = "critical";
+                    } else if (diff <= -2) {
+                        msg = "C'est compliqué... Essayons de sauver l'honneur au moins.";
+                    } else {
+                        msg = "Le match est plié. Gérez la fatigue des cadres.";
+                    }
+                }
+                // 3. SCÉNARIOS SPÉCIFIQUES (Reste du match)
+                else {
+                    if (poss < 40) {
+                        msg = "On court après le ballon ! Augmentez le PRESSING ou jouez en CONTRE.";
+                        urgency = "warning";
+                    } else if (poss > 65 && diff <= 0) {
+                        msg = "Possession stérile. Il faut prendre plus de risques offensifs (ASSAUT).";
+                    } else if (diff < 0) {
+                        msg = "On est menés. Ne paniquez pas, mais il faut monter le bloc d'un cran.";
+                    } else if (diff > 0) {
+                        msg = "On contrôle. Forcez-les à sortir pour les piquer en contre.";
+                    } else {
+                        msg = "Match équilibré. C'est la bataille du milieu de terrain qui décidera tout.";
                     }
                 }
 
-                let offensiveFactor = (this.match.tactic === 'att' ? 1.7 : (this.match.tactic === 'def' ? 0.6 : 1));
-                if(this.state.instructions.style === 'counter') offensiveFactor *= 1.3;
-                let chance = 0.012 * offensiveFactor;
+                // Affichage avec couleurs dynamiques
+                const colorClass = urgency === 'critical' ? 'text-red-400' : (urgency === 'warning' ? 'text-orange-400' : 'text-blue-300');
                 
-                if (Math.random() < chance * powerRatio) {
-                    this.match.score[0]++; 
-                    const sh = document.getElementById('score-home'); if(sh) sh.innerText = this.match.score[0];
-                    const s = this.state.players.filter(p=>p.role==='starter'); const pool = [];
-                    s.forEach(p => { let weight = 1; if(p.pos==='FWD') weight = 7; if(p.pos==='MID') weight = 2; for(let k=0; k<weight; k++) pool.push(p); });
-                    const sc = pool[Math.floor(Math.random()*pool.length)];
-                    this.showGoalAnim(sc.name); 
-                    this.addCommentary(`⚽ BUT !! ${sc.name} trouve la faille pour la CIV !`);
-                }
-                
-                if (Math.random() < chance * (1 / powerRatio)) {
-                    this.match.score[1]++; 
-                    const sa = document.getElementById('score-away'); if(sa) sa.innerText = this.match.score[1];
-                    this.addCommentary(`⚠️ But pour ${this.match.opp.n} par ${this.match.opp.star}.`);
-                }
-
-                if (Math.random() < 0.18) this.addCommentary(MATCH_COMMS[Math.floor(Math.random()*MATCH_COMMS.length)]);
-                
-                if (this.match.time === 45) { clearInterval(this.match.timer); const hto = document.getElementById('ht-overlay'); if(hto) hto.classList.add('active'); }
-                if (this.match.time === 90) this.finishMatch();
+                box.innerHTML = `
+                    <div class="flex items-start gap-3 animate-pulse-slow">
+                        <div class="mt-0.5 p-1.5 bg-slate-800 rounded-full border border-slate-600 shadow-sm shrink-0">
+                            ${SVGS.assistant}
+                        </div>
+                        <div>
+                            <div class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Conseil Adjoint</div>
+                            <div class="text-[10px] font-medium leading-tight ${colorClass} italic">"${msg}"</div>
+                        </div>
+                    </div>
+                `;
             }
+
+            tick() {
+    // 1. Calculs Préliminaires
+    const myPower = this.getTeamPower();
+    const oppPower = this.match.opp.ovr;
+    const powerRatio = myPower / (oppPower || 70);
+
+    let offensiveFactor = (this.match.tactic === 'att' ? 1.7 : (this.match.tactic === 'def' ? 0.6 : 1));
+    if (this.state.instructions.style === 'counter') offensiveFactor *= 1.3;
+    let chance = 0.012 * offensiveFactor;
+
+    this.match.time++;
+
+    // --- CORRECTION BUG STATS (Simulation Possession & Tirs) ---
+    // On fait fluctuer la possession autour du powerRatio
+    let currentPoss = 50 + (powerRatio > 1 ? 5 : -5) + Math.floor(Math.random() * 10 - 5);
+    if(this.state.instructions.style === 'possession') currentPoss += 5;
+    currentPoss = Math.max(20, Math.min(80, currentPoss)); // Borner entre 20 et 80%
+
+    // Mise à jour UI Possession
+    const possBar = document.getElementById('possession-home-bar');
+    if(possBar) possBar.style.width = currentPoss + '%';
+    const possValH = document.getElementById('poss-val-home');
+    if(possValH) possValH.innerText = currentPoss + '%';
+    const possValA = document.getElementById('poss-val-away');
+    if(possValA) possValA.innerText = (100 - currentPoss) + '%';
+
+    // Simulation Tirs (Indépendant des buts)
+    if (Math.random() < 0.08) { // Chance qu'il y ait un tir
+        if (Math.random() < (currentPoss/100)) {
+            this.match.stats.shots++; // Tir pour nous
+        } else {
+            this.match.stats.shotsAway++; // Tir adverse
+        }
+        // Mise à jour UI Tirs
+        const shH = document.getElementById('stats-shots-home');
+        if(shH) shH.innerText = this.match.stats.shots;
+        const shA = document.getElementById('stats-shots-away');
+        if(shA) shA.innerText = this.match.stats.shotsAway;
+    }
+    // -----------------------------------------------------------
+
+    // 2. BUT CÔTE D'IVOIRE
+    if (Math.random() < chance * powerRatio) {
+        this.match.score[0]++; 
+        this.match.stats.shots++; // Un but compte comme un tir
+        const sh = document.getElementById('score-home'); 
+        if(sh) sh.innerText = this.match.score[0];
+        
+        const s = this.state.players.filter(p=>p.role==='starter'); 
+        let sc = null;
+        if (s.length > 0) {
+            const pool = [];
+            s.forEach(p => { 
+                let weight = 1; 
+                if(p.pos==='FWD') weight = 7; 
+                if(p.pos==='MID') weight = 2; 
+                for(let k=0; k<weight; k++) pool.push(p); 
+            });
+            sc = pool[Math.floor(Math.random()*pool.length)];
+        }
+        if (!sc) sc = s[0] || { name: "Joueur Inconnu" };
+        this.showGoalAnim(sc.name); 
+        this.addCommentary(`${SVGS.ball} BUT !! ${sc.name} trouve la faille pour la CIV !`);
+    }
+    
+    // 3. BUT ADVERSAIRE
+    if (Math.random() < chance * (1 / powerRatio)) {
+        this.match.score[1]++; 
+        this.match.stats.shotsAway++; // Un but compte comme un tir
+        const sa = document.getElementById('score-away'); if(sa) sa.innerText = this.match.score[1];
+        
+        let scorerName = this.match.opp.star;
+        const others = this.match.opp.scorers || [];
+        if (others.length > 0 && Math.random() < 0.40) {
+            scorerName = others[Math.floor(Math.random() * others.length)];
+        }
+        this.addCommentary(`${SVGS.alert} But pour ${this.match.opp.n} par ${scorerName}.`);
+    }
+
+    // 4. Commentaire Ambiance & Assistant
+    if (Math.random() < 0.18) {
+        let commText = "";
+        const isWinning = this.match.score[0] > this.match.score[1];
+        const isLosing = this.match.score[1] > this.match.score[0];
+        if (isWinning && Math.random() < 0.35) commText = COMMS_WINNING[Math.floor(Math.random() * COMMS_WINNING.length)];
+        else if (isLosing && Math.random() < 0.15) commText = COMMS_LOSING[Math.floor(Math.random() * COMMS_LOSING.length)];
+        else commText = MATCH_COMMS[Math.floor(Math.random() * MATCH_COMMS.length)];
+        this.addCommentary(commText);
+    }
+    
+    if (this.match.time % 5 === 0 || this.match.time === 1) this.updateMatchAdvice();
+    const timerEl = document.getElementById('match-timer');
+    if (timerEl) timerEl.innerText = (this.match.time < 10 ? '0' : '') + this.match.time + ":00";
+
+    if (this.match.time === 45) { clearInterval(this.match.timer); const hto = document.getElementById('ht-overlay'); if(hto) hto.classList.add('active'); }
+    if (this.match.time >= 90) this.finishMatch();
+    }
 
             giveSpeech(t) {
                 const b = { motivate: 1.05, shake: 1.15, calm: 1.10 };
                 this.match.speechBoost = b[t]; 
                 const hto = document.getElementById('ht-overlay'); if(hto) hto.classList.remove('active');
-                this.addCommentary(`<i>🗣️ Coaching : Les mots du manager ont boosté l'équipe (+${Math.round((b[t]-1)*100)}%).</i>`);
+                this.addCommentary(`<i>${SVGS.mega} Coaching : Les mots du manager ont boosté l'équipe (+${Math.round((b[t]-1)*100)}%).</i>`);
                 this.match.timer = setInterval(() => this.tick(), 1000);
             }
 
+            runPenalties() {
+                let p1 = 0, p2 = 0;
+                const myPow = this.getTeamPower();
+                const oppPow = this.match.opp.ovr;
+                const shoot = (pow) => Math.random() < (0.75 + (pow - 80) * 0.01);
+
+                // 5 tirs obligatoires
+                for(let i=0; i<5; i++) {
+                    if(shoot(myPow)) p1++;
+                    if(shoot(oppPow)) p2++;
+                }
+                // Mort brusque
+                while(p1 === p2) {
+                    if(shoot(myPow)) p1++;
+                    if(shoot(oppPow)) p2++;
+                }
+                this.match.penalties = [p1, p2];
+                this.addCommentary(`${SVGS.mega} TAB : Séance de tirs au but ! Score : ${p1}-${p2}`);
+            }
+
             finishMatch() {
-                clearInterval(this.match.timer); this.match.active = false;
-                const esd = document.getElementById('end-score-display'); if(esd) esd.innerText = `${this.match.score[0]} - ${this.match.score[1]}`;
+                clearInterval(this.match.timer); 
+                this.match.active = false;
+
+                // 1. D'ABORD : On récupère les scores et on détermine le vainqueur
+                const scoreHome = this.match.score[0];
+                const scoreAway = this.match.score[1];
+                let isWin = scoreHome > scoreAway;
+                let isDraw = scoreHome === scoreAway;
+                
+                // Gestion des pénaltys (Si égalité en phase finale)
+                if (isDraw && this.state.stage !== 'groups') {
+                    this.runPenalties();
+                    // On met à jour isWin selon les pénaltys
+                    isWin = this.match.penalties[0] > this.match.penalties[1];
+                    isDraw = false; 
+                }
+
+                // 2. MAINTENANT on peut calculer les NOTES (car isWin est connu)
+                const baseRatingHome = isWin ? 7.0 : (isDraw ? 6.0 : 5.0);
+                const baseRatingAway = isWin ? 5.0 : (isDraw ? 6.0 : 7.0);
+
+                // A. Noter VOS joueurs
+                this.state.players.forEach(p => {
+                    if (p.role === 'starter') {
+                        let r = baseRatingHome + (Math.random() * 2.5 - 1);
+                        // Bonus si buteur (on vérifie s'il a marqué)
+                        const hasScored = (this.state.goalScorers || []).some(g => g.n === p.name && g.c > 0); 
+                        if(hasScored) r += 1.0; 
+                        
+                        r = Math.min(10, Math.max(3, r));
+                        this.registerRating(p.name, "Côte d'Ivoire", r);
+                    }
+                });
+
+                // B. Noter les joueurs ADVERSES
+                if (this.match.oppSquad) {
+                    this.match.oppSquad.forEach(p => {
+                        let r = baseRatingAway + (Math.random() * 2.0 - 1);
+                        if (p.isStar) r += 1.0;
+                        r = Math.min(10, Math.max(3, r));
+                        this.registerRating(p.name, this.match.opp.n, r);
+                    });
+                }
+                
+                // 3. SUITE DU TRAITEMENT (Fatigue, XP, Budget...)
+                const staffLvl = this.state.staff || { director: {level:1}, assistant: {level:1}, fitness: {level:1} };
+
+                // UI Updates
+                const esd = document.getElementById('end-score-display'); if(esd) esd.innerText = `${scoreHome}-${scoreAway}`;
+                const epd = document.getElementById('end-penalties-display');
+                if (this.match.penalties) { epd.innerText = `TAB : ${this.match.penalties[0]} - ${this.match.penalties[1]}`; epd.classList.remove('hidden'); } else { epd.classList.add('hidden'); }
+
+                const eBadge = document.getElementById('end-opp-badge'); if(eBadge) eBadge.innerHTML = `<span class="font-teko text-3xl text-white font-bold italic">${this.match.opp.code}</span>`;
+                const eName = document.getElementById('end-opp-name'); if(eName) eName.innerText = this.match.opp.n;
+
+                const titleEl = document.getElementById('end-title');
+                const headerBg = document.getElementById('end-header-bg');
+                headerBg.className = "h-24 flex items-center justify-center pt-4 relative bg-gradient-to-b";
+                
+                if (isWin) {
+                    titleEl.innerText = "VICTOIRE"; titleEl.className = "font-teko text-6xl text-white uppercase italic tracking-tighter drop-shadow-lg relative z-10"; headerBg.classList.add("from-green-600", "to-slate-900");
+                } else if (isDraw) {
+                    titleEl.innerText = "MATCH NUL"; titleEl.className = "font-teko text-6xl text-slate-200 uppercase italic tracking-tighter drop-shadow-lg relative z-10"; headerBg.classList.add("from-slate-500", "to-slate-900");
+                } else {
+                    titleEl.innerText = "DÉFAITE"; titleEl.className = "font-teko text-6xl text-red-100 uppercase italic tracking-tighter drop-shadow-lg relative z-10"; headerBg.classList.add("from-red-600", "to-slate-900");
+                }
+
+                // Stats
+                const shotsHome = this.match.stats.shots; const shotsAway = this.match.stats.shotsAway; const totalShots = shotsHome + shotsAway || 1;
+                document.getElementById('end-stat-shots').innerText = `${shotsHome} - ${shotsAway}`;
+                document.getElementById('end-bar-shots').style.width = `${(shotsHome / totalShots) * 100}%`;
+                const possText = document.getElementById('poss-val-home').innerText; const possVal = parseInt(possText);
+                document.getElementById('end-stat-poss').innerText = `${possVal}% - ${100-possVal}%`;
+                document.getElementById('end-bar-poss').style.width = `${possVal}%`;
+
                 const em = document.getElementById('end-modal'); if(em) em.classList.remove('hidden');
                 
-                const win = this.match.score[0] > this.match.score[1];
-                const draw = this.match.score[0] === this.match.score[1];
-                
+                // Gestion Fatigue & XP
                 this.state.players.forEach(p => { 
                     if(p.role==='starter') {
                         let drain = 15 - (this.state.infra.medical.level * 1.5);
                         if(this.state.instructions.pressing === 'high') drain += 13;
                         p.energy = Math.max(5, (p.energy||100) - drain);
-                    } else { p.energy = Math.min(100, (p.energy||0) + 20); }
+                    } else { 
+                        const recoveryBonus = (staffLvl.fitness.level - 1) * 5; 
+                        p.energy = Math.min(100, (p.energy||0) + 20 + recoveryBonus); 
+                    }
                 });
                 
-                const bonusStadium = this.state.infra.stadium.level * 0.1;
-                const earnings = (win ? 1.5 : (draw ? 0.5 : 0.2)) + bonusStadium;
-                this.state.budget += earnings;
-                this.state.teamXP += win ? 100 : 20;
+                const bonusStadium = (this.state.infra.stadium.level - 1) * 0.5;
+                const baseEarnings = isWin ? 2.0 : (isDraw ? 0.8 : 0.4); 
+                this.state.budget += baseEarnings + bonusStadium;
+                
+                let baseXp = isWin ? 30 : (isDraw ? 10 : 5);
+                const assistantBonus = (staffLvl.assistant.level - 1) * 0.10;
+                this.state.teamXP += Math.round(baseXp * (1 + assistantBonus));
 
-                this.updateStd(this.state.standings['Côte d\'Ivoire'], this.match.score[0], this.match.score[1]);
-                this.updateStd(this.state.standings[this.match.opp.n], this.match.score[1], this.match.score[0]);
-                this.simulateOthers(); this.state.matchIndex++; this.save(); this.updateUI();
-                this.generateReport(win, this.match.score, this.match.opp.n);
+                this.updateStd(this.state.standings['Côte d\'Ivoire'], scoreHome, scoreAway);
+                this.updateStd(this.state.standings[this.match.opp.n], scoreAway, scoreHome);
+                
+                this.simulateOthers(); 
+                this.state.matchIndex++; 
+                this.save();
+                this.updateUI();
+                this.generateReport(isWin, [scoreHome, scoreAway], this.match.opp.n);
             }
-
             generateReport(win, s, opp) {
                 const analyses = ["Le plan de jeu a fonctionné.", "Match tendu.", "Le manager est aux anges.", "Les fans réclament du changement."];
                 const res = win ? `Victoire héroïque ${s[0]}-${s[1]}` : `Résultat mitigé ${s[0]}-${s[1]}`;
                 this.state.news.unshift({id: Date.now(), text: `PRESSE : ${res} contre ${opp}. ${analyses[Math.floor(Math.random()*4)]}`});
             }
-
+            
             updateStd(s, gf, ga) { if(!s) return; s.p++; s.gf+=gf; s.ga+=ga; if(gf>ga){s.w++; s.pts+=3;} else if(gf===ga){s.d++; s.pts+=1;} else s.l++; }
+            
+            // Enregistre un but pour un joueur donné
+           registerGoal(name, team) {
+    // Sécurité : On s'assure que la liste existe et est propre
+    if (!this.state.goalScorers || !Array.isArray(this.state.goalScorers)) {
+        this.state.goalScorers = [];
+    }
+    
+    // Sécurité : On nettoie les entrées null/invalides qui font planter le jeu
+    this.state.goalScorers = this.state.goalScorers.filter(x => x && x.n && x.t);
 
+    // Recherche du buteur
+    let entry = this.state.goalScorers.find(x => x.n === name && x.t === team);
+    
+    if (entry) {
+        entry.c++; 
+    } else {
+        this.state.goalScorers.push({ n: name, t: team, c: 1 });
+    }
+    }
+            // Enregistre une note (ex: 7.5) pour un joueur
+            registerRating(name, team, rating) {
+                if (!this.state.playerRatings) this.state.playerRatings = [];
+                
+                let entry = this.state.playerRatings.find(x => x.n === name && x.t === team);
+                if (entry) {
+                    entry.total += rating;
+                    entry.matchs++;
+                } else {
+                    this.state.playerRatings.push({ n: name, t: team, total: rating, matchs: 1 });
+                }
+            }
+
+            // Trouve un buteur réaliste pour une nation donnée (IA)
+            getScorerName(nationName) {
+                const n = NATIONS_DB.find(x => x.n === nationName);
+                if (!n) return "Inconnu";
+                // Priorité : Liste des buteurs > Top Attaquant > Star
+                if (n.scorers && n.scorers.length > 0) return n.scorers[Math.floor(Math.random() * n.scorers.length)];
+                return n.topAtt || n.star;
+            }
             simulateOthers() {
                 this.state.globalResults = [];
                 for (let g in this.state.groups) {
@@ -981,27 +1778,78 @@
                     else { const riv = t.filter(x => x.n !== 'Côte d\'Ivoire' && x.n !== this.match.opp.n); if (riv.length === 2) this.simM(riv[0].n, riv[1].n); }
                 }
             }
-            simM(t1, t2) {
+           simM(t1, t2) {
                 const s1 = this.state.standings[t1]; const s2 = this.state.standings[t2];
                 const r = s1.ovr / s2.ovr; let g1 = 0, g2 = 0;
                 for(let i=0; i<3; i++) { if(Math.random() < 0.28 * r) g1++; if(Math.random() < 0.28 * (1/r)) g2++; }
+                
                 this.updateStd(s1, g1, g2); this.updateStd(s2, g2, g1);
                 this.state.globalResults.push(`${t1} ${g1}-${g2} ${t2}`);
+
+                // --- GESTION BUTEURS & NOTES ---
+                const processTeamSim = (teamName, goalsScored, isWinner, isDraw) => {
+                    // 1. Note de base de l'équipe
+                    let baseR = isWinner ? 7.2 : (isDraw ? 6.0 : 5.5);
+                    
+                    // 2. On récupère les joueurs clés de cette nation dans la DB
+                    const natDB = NATIONS_DB.find(x => x.n === teamName);
+                    if(natDB) {
+                        // On note la Star (joue toujours bien)
+                        this.registerRating(natDB.star, teamName, baseR + Math.random());
+                        // On note un autre joueur clé au hasard
+                        const keyP = [natDB.topAtt, natDB.topMid, natDB.topDef];
+                        const randomP = keyP[Math.floor(Math.random()*keyP.length)];
+                        this.registerRating(randomP, teamName, baseR + (Math.random() * 1.5 - 0.5));
+                    }
+
+                    // 3. On génère et note les buteurs
+                    for(let k=0; k<goalsScored; k++) {
+                        const scorer = this.getScorerName(teamName);
+                        this.registerGoal(scorer, teamName);
+                        // Un buteur a forcément une bonne note (> 7.5)
+                        this.registerRating(scorer, teamName, 7.5 + Math.random() * 1.5);
+                    }
+                };
+
+                const t1Win = g1 > g2; const draw = g1 === g2;
+                processTeamSim(t1, g1, t1Win, draw);
+                processTeamSim(t2, g2, !t1Win && !draw, draw);
             }
 
-            closeEndModal() {
+           closeEndModal() {
                 const em = document.getElementById('end-modal'); if(em) em.classList.add('hidden');
-                if (this.state.stage === 'groups' && this.state.matchIndex >= 3) { this.initKnockout(); }
+                
+                if (this.state.stage === 'groups' && this.state.matchIndex >= 3) { 
+                    this.initKnockout(); 
+                }
                 else if (this.state.stage !== 'groups') {
-                    const win = this.match.score[0] > this.match.score[1];
-                    if (!win) { this.simulateRest(); }
-                    else if (this.state.stage === 'finale') { 
-                        this.state.trophies++; this.state.budget += 25.0; this.state.teamXP += 3000;
-                        this.awards(); this.startNextSeason(); 
-                    } else { this.progressKnockout(); }
+                    // On vérifie si on a gagné (score ou pénaltys)
+                    const win = this.match.penalties ? (this.match.penalties[0] > this.match.penalties[1]) : (this.match.score[0] > this.match.score[1]);
+                    
+                    if (!win) { 
+                        // C'EST ICI QUE ÇA CHANGE :
+                        // Si c'est la finale, le vainqueur EST l'adversaire (this.match.opp).
+                        // Sinon (8e, quarts...), c'est null (le jeu simulera un vainqueur aléatoire).
+                        const winner = (this.state.stage === 'finale') ? this.match.opp : null;
+                        this.simulateRest(winner); 
+                    }
+                   else if (this.state.stage === 'finale') { 
+                        // Cas où la CIV gagne la finale
+                        this.state.trophies++; this.state.budget += 25.0; this.state.teamXP += 1500;
+                        if(!this.state.pastWinners) this.state.pastWinners = [];
+                        this.state.pastWinners.push({ year: this.state.year, n: "Côte d'Ivoire" });
+                        
+                        // MODIFICATION ICI : On dit explicitement que la CIV a gagné
+                        this.awards("Côte d'Ivoire"); 
+                        
+                        this.startNextSeason(); 
+                    } else { 
+                        this.progressKnockout(); 
+                    }
                 }
                 this.updateUI(); this.goToView('inbox');
             }
+
 
             initKnockout() {
                 const q = []; const th = [];
@@ -1013,7 +1861,7 @@
                 const all16 = [...q, ...best3];
                 if (!all16.includes('Côte d\'Ivoire')) { this.simulateRest(); return; }
                 this.state.stage = '8iemes'; this.state.matchIndex = 0;
-                this.state.budget += 3.0; this.state.teamXP += 300;
+                this.state.budget += 3.0; this.state.teamXP += 100;
                 const oppN = all16.filter(n=>n!=='Côte d\'Ivoire')[Math.floor(Math.random()*(all16.length-1))];
                 this.state.knockout['8iemes'] = this.state.standings[oppN];
                 this.toast("QUALIFIÉ POUR LES 8ÈMES !");
@@ -1023,24 +1871,86 @@
                 const ph = ['groups', '8iemes', 'quarts', 'demis', 'finale'];
                 this.state.stage = ph[ph.indexOf(this.state.stage) + 1];
                 const bonusB = { quarts: 6.0, demis: 12.0, finale: 20.0 };
-                const bonusX = { quarts: 600, demis: 1200, finale: 2000 };
+                const bonusX = { quarts: 300, demis: 600, finale: 1000 };
                 this.state.budget += bonusB[this.state.stage] || 0;
                 this.state.teamXP += bonusX[this.state.stage] || 0;
                 const r = NATIONS_DB.filter(n=>n.n!=='Côte d\'Ivoire').sort(()=>Math.random()-0.5)[0];
                 this.state.knockout[this.state.stage] = this.state.standings[r.n];
             }
 
-            simulateRest() {
-                const winner = NATIONS_DB[Math.floor(Math.random()*NATIONS_DB.length)];
-                this.state.news.unshift({id: Date.now(), text: `🏆 CHAMPION : ${winner.n} remporte la CAN.`});
-                this.awards(); this.startNextSeason();
+            simulateRest(forcedWinner = null) {
+                let winner;
+
+                if (forcedWinner) {
+                    winner = forcedWinner;
+                } else {
+                    const others = NATIONS_DB.filter(n => n.n !== "Côte d'Ivoire");
+                    winner = others[Math.floor(Math.random() * others.length)];
+                }
+                
+                this.state.news.unshift({id: Date.now(), text: `${SVGS.cup} CHAMPION : ${winner.n} remporte la CAN.`});
+                
+                if(!this.state.pastWinners) this.state.pastWinners = [];
+                this.state.pastWinners.push({ year: this.state.year, n: winner.n });
+                
+                // MODIFICATION ICI : On passe le nom du vainqueur (winner.n) à awards()
+                this.awards(winner.n); 
+                
+                this.startNextSeason();
             }
 
-            awards() {
-                const star = NATIONS_DB[Math.floor(Math.random()*NATIONS_DB.length)];
-                this.state.news.unshift({id: Date.now()+1, text: `🎖️ MVP : ${star.star} (${star.n}) élu meilleur joueur de la CAN.`});
-                this.state.news.unshift({id: Date.now()+2, text: `👟 Soulier d'Or : ${this.generateRealName()} sacré meilleur buteur.`});
-                this.state.news.unshift({id: Date.now()+3, text: `🧤 Gant d'Or : Meilleure performance du tournoi pour le gardien de ${NATIONS_DB[0].n}.`});
+            awards(winnerName) {
+                // On retrouve les infos de la nation gagnante dans la DB
+                const nationData = NATIONS_DB.find(n => n.n === winnerName);
+                if (!nationData) return;
+
+                // 1. MVP : Le joueur avec la meilleure MOYENNE (et non plus la star prédéfinie)
+                let mvpObj = { n: "Inconnu", t: "?", avg: 0 };
+                
+                if (this.state.playerRatings && this.state.playerRatings.length > 0) {
+                    // On recalcule les moyennes et on trie
+                    const sortedRatings = this.state.playerRatings
+                        .map(p => ({ ...p, avg: p.total / p.matchs }))
+                        .sort((a,b) => b.avg - a.avg);
+                    
+                    mvpObj = sortedRatings[0];
+                }
+
+                this.state.news.unshift({
+                    id: Date.now() + 1, 
+                    text: `${SVGS.medal} MVP : ${mvpObj.n} (${mvpObj.t}) est élu meilleur joueur du tournoi avec une note moyenne de ${mvpObj.avg.toFixed(2)} !`
+                });
+
+                // 2. Soulier d'Or : Le meilleur buteur
+               let topScorerObj = { n: "Inconnu", t: "?", c: 0 };
+
+                // On vérifie si on a des buteurs enregistrés
+                if (this.state.goalScorers && this.state.goalScorers.length > 0) {
+                    // On trie la liste du plus grand au plus petit nombre de buts
+                    this.state.goalScorers.sort((a,b) => b.c - a.c);
+                    // On prend le premier
+                    topScorerObj = this.state.goalScorers[0];
+                }
+                
+                this.state.news.unshift({
+                    id: Date.now() + 2, 
+                    text: `${SVGS.boot} Soulier d'Or : ${topScorerObj.n} (${topScorerObj.t}) termine en tête avec ${topScorerObj.c} réalisations.`
+                });
+
+                // 3. Gant d'Or : Le gardien du vainqueur
+                let gkName = "";
+                if (winnerName === "Côte d'Ivoire") {
+                    const myGK = this.state.players.find(p => p.role === 'starter' && p.pos === 'GK');
+                    gkName = myGK ? myGK.name : "Y. Fofana";
+                } else {
+                    // Pour l'IA, on formule génériquement car on ne stocke pas le nom du gardien IA fixe
+                    gkName = `Le portier (${nationData.code})`;
+                }
+
+                this.state.news.unshift({
+                    id: Date.now() + 3, 
+                    text: `${SVGS.glove} Gant d'Or : ${gkName} remporte le trophée Yachine.`
+                });
             }
 
             processRetirements() {
@@ -1066,7 +1976,7 @@
                         std.ovr = Math.round(std.ovr * (0.95 + Math.random() * 0.1)); 
                         this.state.news.unshift({
                             id: Date.now() + Math.random(), 
-                            text: `🌍 REGEN : La légende ${oldStar} (${nationName}) prend sa retraite. ${std.star} est le nouveau prodige !`
+                            text: `${SVGS.globe} REGEN : La légende ${oldStar} (${nationName}) prend sa retraite. ${std.star} est le nouveau prodige !`
                         });
                     }
                 });
@@ -1074,7 +1984,7 @@
                 if (retired.length > 0) {
                     this.state.news.unshift({
                         id: Date.now(), 
-                        text: `👋 DÉPARTS : ${retired.join(', ')} pren${retired.length > 1 ? 'nent' : 'd'} une retraite bien méritée.`
+                        text: `${SVGS.hand} DÉPARTS : ${retired.join(', ')} pren${retired.length > 1 ? 'nent' : 'd'} une retraite bien méritée.`
                     });
                 }
 
@@ -1091,12 +2001,39 @@
             }
 
             startNextSeason() {
+                 
+                // --- PAIEMENT DES SALAIRES DU STAFF ---
+                let totalSalaries = 0;
+                if (this.state.staff) {
+                    Object.values(this.state.staff).forEach(s => totalSalaries += s.salary);
+                }
+                
+                this.state.budget -= totalSalaries;
+                
+                // Si le budget est négatif, on remet à 0 mais on avertit (ou Game Over si tu veux être méchant)
+                if (this.state.budget < 0) {
+                    this.state.budget = 0;
+                    this.state.news.unshift({id: Date.now(), text: ` FAILLITE ÉVITÉE : La selection a dû être renfloué par l'État pour payer les salaires.`});
+                } else {
+                    this.state.news.unshift({id: Date.now(), text: ` FINANCES : ${totalSalaries.toFixed(1)}M€ versés pour les salaires du staff technique.`});
+                }
+
                 this.state.year += 2; this.state.seasonsPlayed++;
                 this.state.matchIndex = 0; this.state.stage = 'groups'; this.state.rareScoutUsed = false;
                 
                 this.state.players.forEach(p => { 
-                    p.energy = 100; p.age += 2; 
-                    p.ovr += (p.age < 28 ? 3 : (p.age > 33 ? -3 : 0)); 
+                    p.energy = 100; 
+                    p.age += 2; 
+                    
+                    // Calcul de l'évolution
+                    let evolution = (p.age < 28 ? 3 : (p.age > 33 ? -3 : 0));
+                    
+                    // On applique l'évolution
+                    p.ovr += evolution;
+                    
+                    // SÉCURITÉ : On borne la note entre 50 et 99
+                    if (p.ovr > 99) p.ovr = 99;
+                    if (p.ovr < 50) p.ovr = 50; // Pour éviter qu'ils ne deviennent trop nuls
                 });
                 
                 this.processRetirements();
@@ -1121,78 +2058,412 @@
                 this.toast("Bienvenue en " + this.state.year + " !");
             }
 
-            renderInbox() {
+            getTacticalAdvice(style) {
+                // Logique du Staff : Quel plan de jeu adopter ?
+                const strategies = {
+                    'Offensif': "Ils se livrent beaucoup. Jouez en <b class='text-orange-400'>CONTRE</b> pour exploiter les espaces dans leur dos.",
+                    'Tiki-Taka': "Ils confisquent le ballon. Un <b class='text-orange-400'>PRESSING HAUT</b> est nécessaire pour casser leur rythme.",
+                    'Contre': "Méfiance. Ne perdez pas la balle haut. Gardez la <b class='text-orange-400'>POSSESSION</b> pour les frustrer.",
+                    'Bloc Bas': "Mur défensif. Il faudra de la patience en <b class='text-orange-400'>POSSESSION</b> pour trouver une faille.",
+                    'Vertical': "Jeu direct dangereux. Baissez le bloc ou coupez les lignes de passes.",
+                    'Technique': "Gros bagage technique. Imposez un défi physique dans les duels.",
+                    'Puissance': "Équipe très physique. Évitez les contacts, faites courir le ballon vite.",
+                    'Vitesse': "Attaquants rapides ! Ne jouez pas le hors-jeu, restez prudents derrière.",
+                    'Pressing': "Ils chassent en meute. Sautez les lignes avec un jeu plus direct.",
+                    'Impact': "Gros impact athlétique. Répondez présent dans les duels au milieu.",
+                    'Dribbles': "Individualistes. Ne vous jetez pas, défendez en zone intelligemment."
+                };
+                // Conseil par défaut si le style n'est pas listé
+                return strategies[style] || "Adversaire imprévisible. Soyez solides et profitez des coups de pied arrêtés.";
+            }
+
+           renderInbox() {
                 const dD = document.getElementById('dash-date'); if(dD) dD.innerText = this.state.year;
                 const dS = document.getElementById('dash-stage'); if(dS) dS.innerText = this.state.stage.toUpperCase();
+                
                 const opp = this.getOpponent();
                 if (opp) {
                     const nN = document.getElementById('next-opp-name'); if(nN) nN.innerText = opp.n;
                     const nB = document.getElementById('next-opp-badge'); if(nB) nB.innerText = opp.code;
+                    
                     const oA = document.getElementById('opponent-analysis-box');
-                    if(oA) oA.innerHTML = `
-                        <div class="p-3 bg-slate-800/40 rounded-xl text-center shadow-lg"><span class="text-[8px] text-slate-500 uppercase font-bold">Style</span><div class="text-white text-sm font-bold uppercase tracking-widest">${opp.style}</div></div>
-                        <div class="p-3 bg-slate-800/40 rounded-xl text-center shadow-lg"><span class="text-[8px] text-slate-500 uppercase font-bold">Star</span><div class="text-orange-500 text-sm font-bold uppercase tracking-widest">${opp.star} (${opp.starPos})</div></div>
-                    `;
+                    if(oA) {
+                        // On récupère le conseil dynamique
+                        const advice = this.getTacticalAdvice(opp.style);
+                        
+                        oA.innerHTML = `
+                            <div class="p-3 bg-slate-800/40 rounded-xl text-center shadow-lg border border-white/5">
+                                <span class="text-[8px] text-slate-500 uppercase font-bold block mb-1">Style Adverse</span>
+                                <div class="text-white text-sm font-bold uppercase tracking-widest">${opp.style}</div>
+                            </div>
+                            <div class="p-3 bg-slate-800/40 rounded-xl text-center shadow-lg border border-white/5">
+                                <span class="text-[8px] text-slate-500 uppercase font-bold block mb-1">Danger N°1</span>
+                                <div class="text-orange-500 text-sm font-bold uppercase tracking-widest truncate">${opp.star}</div>
+                            </div>
+                            
+                            <div class="col-span-2 p-3 bg-blue-900/10 rounded-xl border border-blue-500/20 flex items-start gap-3 relative overflow-hidden">
+                                <div class="absolute -right-4 -top-4 opacity-5 grayscale scale-[3.0] rotate-12">
+                                    ${SVGS.radar}
+                                </div>
+                                
+                                <div class="mt-0.5 text-blue-400">
+                                    ${SVGS.layout}
+                                </div>
+                                
+                                <div class="relative z-10">
+                                    <span class="text-[9px] text-blue-400 uppercase font-bold block mb-0.5">Note de l'Analyste</span>
+                                    <div class="text-slate-300 text-[10px] leading-snug font-medium italic">
+                                        "${advice}"
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
+                
                 const nBox = document.getElementById('news-feed'); if(nBox) {
                     nBox.innerHTML = '';
                     this.state.news.slice(0, 15).forEach(n => { nBox.innerHTML += `<div class=\"news-item\"><b> Flash Info :</b> ${n.text}</div>`; });
                 }
             }
 
-            renderInfra() {
-                const list = document.getElementById('infra-list'); if(!list) return;
+           renderInfra() {
+                const list = document.getElementById('infra-list'); 
+                if(!list) return;
+                
                 list.innerHTML = '';
+                
+                // --- SECTION 0 : MUSÉE NATIONAL (HÉRITAGE) ---
+                // 1. Calcul des victoires : Les 3 historiques + celles gagnées dans ta partie
+                const historicalYears = [1992, 2015, 2023];
+                const gameWins = (this.state.pastWinners || [])
+                    .filter(w => w.n === "Côte d'Ivoire")
+                    .map(w => w.year);
+                
+                // On combine et on trie (du plus récent au plus ancien)
+                const allYears = [...gameWins, ...historicalYears].sort((a,b) => b-a);
+                const totalWins = allYears.length;
+
+                list.innerHTML += `<div class="mb-4 flex items-center gap-2"><div class="h-px bg-slate-700 flex-1"></div><span class="text-[10px] text-orange-500 font-bold uppercase tracking-widest">Héritage & Gloire</span><div class="h-px bg-slate-700 flex-1"></div></div>`;
+
+                list.innerHTML += `
+                    <div class="infra-card relative overflow-hidden bg-slate-900 border border-orange-500/40 mb-8 shadow-[0_0_30px_rgba(249,115,22,0.15)]">
+                        <div class="absolute -right-8 -bottom-8 text-orange-500 opacity-10 scale-[2.5] rotate-12 pointer-events-none">
+                            ${SVGS.cup}
+                        </div>
+
+                        <div class="flex items-center gap-5 relative z-10">
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-800 flex items-center justify-center text-white shadow-2xl border-2 border-white/10 shrink-0">
+                                ${SVGS.museum}
+                            </div>
+                            
+                            <div class="flex-1">
+                                <h3 class="font-teko text-3xl text-white uppercase italic leading-none">Musée National</h3>
+                                <p class="text-[10px] text-orange-200 font-bold uppercase tracking-widest mb-1">Le Palmarès des Éléphants</p>
+                                <div class="text-[9px] text-slate-400 leading-tight pr-4">
+                                    La nation a régné sur l'Afrique à <span class="text-white font-bold">${totalWins} reprises</span>.
+                                </div>
+                            </div>
+                            
+                            <div class="text-right shrink-0">
+                                <div class="font-teko text-7xl text-white drop-shadow-[0_0_15px_rgba(249,115,22,0.6)] leading-none">${totalWins}</div>
+                                <div class="text-[8px] text-orange-500 font-bold uppercase tracking-widest text-center mt-[-5px]">Titres</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 pt-4 border-t border-white/10 flex flex-wrap gap-2 relative z-10">
+                            ${allYears.map(y => `
+                                <span class="px-3 py-1 bg-slate-950 border border-orange-500/30 rounded-lg text-[10px] font-bold text-orange-400 shadow-sm flex items-center gap-1">
+                                    ${SVGS.star} ${y}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                // --- SECTION 1 : INFRASTRUCTURES (BÂTIMENTS) ---
+                list.innerHTML += `<div class="mb-4 flex items-center gap-2"><div class="h-px bg-slate-700 flex-1"></div><span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Bâtiments</span><div class="h-px bg-slate-700 flex-1"></div></div>`;
+                
                 const infras = [
-                    { id: 'stadium', name: 'Stade National', desc: 'Augmente les revenus par match (+0.1M/lvl)', icon: '🏟️' },
-                    { id: 'training', name: 'Centre Pro', desc: 'Améliore le gain d\'OVR à l\'entraînement', icon: '⚽' },
-                    { id: 'medical', name: 'Clinique Sportive', desc: 'Réduit la fatigue après match (-1.5/lvl)', icon: '🏥' }
+                    { id: 'stadium', name: 'Stade National', desc: 'Bonus revenus match (+0.5M/niv.)', icon: SVGS.infraStadium },
+                    { id: 'training', name: 'Centre Pro', desc: 'Améliore le gain OVR Boost (+1/niv.)', icon: SVGS.infraTraining },
+                    { id: 'medical', name: 'Clinique Sportive', desc: 'Réduit la fatigue après match (-1.5/niv.)', icon: SVGS.infraMedical }
                 ];
+
                 infras.forEach(inf => {
                     const data = this.state.infra[inf.id];
+                    list.innerHTML += this.createUpgradeCard(inf.id, inf.name, data, inf.desc, inf.icon, 'infra');
+                });
+
+                // --- SECTION 2 : STAFF TECHNIQUE (SALAIRES) ---
+                list.innerHTML += `<div class="mt-8 mb-4 flex items-center gap-2"><div class="h-px bg-slate-700 flex-1"></div><span class="text-[10px] text-orange-500 font-bold uppercase tracking-widest">Staff & Salaires</span><div class="h-px bg-slate-700 flex-1"></div></div>`;
+
+                const staffs = [
+                    { id: 'director', icon: SVGS.briefcase },
+                    { id: 'assistant', icon: SVGS.whistle },
+                    { id: 'fitness', icon: SVGS.heartpulse }
+                ];
+
+                staffs.forEach(st => {
+                    const data = this.state.staff[st.id];
+                    const upgradeCost = data.level * 2.5; 
+                    
                     list.innerHTML += `
-                        <div class="infra-card">
-                            <div class="flex justify-between items-start">
-                                <div class="flex items-center gap-3">
-                                    <div class="text-3xl">${inf.icon}</div>
+                        <div class="infra-card group relative overflow-hidden transition-all duration-300 hover:bg-slate-800/80 border-l-4 border-l-blue-500">
+                            <div class="flex justify-between items-start z-10 relative">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-blue-400 shadow-xl">
+                                        ${st.icon}
+                                    </div>
                                     <div>
-                                        <div class="text-white font-bold uppercase text-xs">${inf.name}</div>
-                                        <div class="text-[9px] text-slate-500 uppercase">Niveau ${data.level} / 5</div>
+                                        <div class="text-white font-bold uppercase text-xs tracking-wider font-teko text-xl leading-none">${data.name}</div>
+                                        <div class="text-[9px] text-blue-400 uppercase font-bold mt-1">Niveau ${data.level} / 5</div>
                                     </div>
                                 </div>
-                                <div class="text-orange-500 font-teko text-xl font-bold">${data.cost.toFixed(1)} M€</div>
+                                <div class="flex flex-col items-end">
+                                    <div class="text-[9px] text-slate-400 uppercase font-bold mb-0.5">Salaire / An</div>
+                                    <div class="text-white font-teko text-xl font-bold bg-slate-900 px-3 py-0.5 rounded-lg border border-red-500/30 text-red-400">
+                                        -${data.salary.toFixed(1)} M€
+                                    </div>
+                                </div>
                             </div>
-                            <p class=\"text-[9px] text-slate-400 leading-tight\">${inf.desc}</p>
-                            <button onclick=\"app.upgradeInfra('${inf.id}')\" class=\"w-full mt-2 py-2 bg-slate-800 rounded-lg text-[10px] font-bold uppercase ${data.level >= 5 ? 'opacity-20 pointer-events-none' : ''}\">Améliorer</button>
+                            
+                            <p class="text-[9px] text-slate-400 leading-tight my-4 italic pl-1 border-l-2 border-slate-700">
+                                ${data.desc}
+                            </p>
+                            
+                            <button onclick="app.upgradeStaff('${st.id}')" 
+                                class="w-full py-3 bg-slate-900 border border-slate-700 hover:bg-blue-600 hover:border-blue-500 hover:text-white rounded-xl text-[10px] font-bold uppercase transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 ${data.level >= 5 ? 'opacity-40 pointer-events-none grayscale' : ''}">
+                                ${data.level >= 5 ? 'Niveau Max' : `Promouvoir (Coût: ${upgradeCost.toFixed(1)} M€)`}
+                            </button>
                         </div>
                     `;
                 });
+            }
+
+            // Helper pour éviter la duplication de code pour les infras
+            createUpgradeCard(id, name, data, desc, icon, type) {
+                return `
+                    <div class="infra-card group relative overflow-hidden transition-all duration-300 hover:bg-slate-800/80">
+                        <div class="flex justify-between items-start z-10 relative">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-500 shadow-xl group-hover:scale-110 transition-all duration-300">
+                                    ${icon}
+                                </div>
+                                <div>
+                                    <div class="text-white font-bold uppercase text-xs tracking-wider font-teko text-xl leading-none">${name}</div>
+                                    <div class="text-[9px] text-slate-500 uppercase font-bold mt-1">Niveau ${data.level} / 5</div>
+                                </div>
+                            </div>
+                            <div class="text-white font-teko text-xl font-bold bg-slate-900 px-3 py-1 rounded-lg border border-slate-700 shadow-inner text-orange-500">
+                                ${data.cost.toFixed(1)} M€
+                            </div>
+                        </div>
+                        <div class="mt-4 mb-2 h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
+                            <div class="h-full bg-gradient-to-r from-orange-700 to-orange-500" style="width: ${(data.level/5)*100}%"></div>
+                        </div>
+                        <p class="text-[9px] text-slate-400 leading-tight mb-4 italic pl-1 border-l-2 border-slate-700">${desc}</p>
+                        <button onclick="app.upgradeInfra('${id}')" class="w-full py-3 bg-slate-900 border border-slate-700 hover:bg-orange-600 hover:border-orange-500 hover:text-white rounded-xl text-[10px] font-bold uppercase transition-all shadow-lg active:scale-95 ${data.level >= 5 ? 'opacity-40 pointer-events-none grayscale' : ''}">
+                            ${data.level >= 5 ? 'Max' : 'Améliorer'}
+                        </button>
+                    </div>`;
             }
 
             upgradeInfra(id) {
                 const infra = this.state.infra[id];
                 if (this.state.budget < infra.cost) return this.toast("Budget insuffisant !");
                 if (infra.level >= 5) return this.toast("Niveau maximum atteint.");
+                
                 this.state.budget -= infra.cost;
                 infra.level++;
                 infra.cost *= 1.8;
+                
+                this.save(); // Sauvegarde immédiate
                 this.renderInfra();
-                this.updateUI();
+                this.updateUI(); // Met à jour le HUD
                 this.toast(`${id.toUpperCase()} amélioré au niveau ${infra.level} !`);
             }
 
-            renderCalendar() {
-                const c = document.getElementById('calendar-content'); if(!c) return;
-                c.innerHTML = '<div id="group-tabs" class="flex gap-2 overflow-x-auto mb-4 no-scrollbar"></div>';
+            upgradeStaff(id) {
+                const s = this.state.staff[id];
+                const cost = s.level * 2.5; // Le coût de promotion augmente
+                
+                if (this.state.budget < cost) return this.toast("Budget insuffisant pour la promotion !");
+                if (s.level >= 5) return this.toast("Niveau maximum atteint.");
+                
+                this.state.budget -= cost;
+                s.level++;
+                s.salary += 1.5; // Le salaire augmente de 1.5M par niveau ! C'est le piège :)
+                
+                this.save();
+                this.renderInfra();
+                this.updateUI();
+                this.toast(`${s.name} promu ! Salaire augmenté.`);
+            }
+
+
+       renderCalendar() {
+                const c = document.getElementById('calendar-content'); 
+                if(!c) return;
+
+                // 1. On prépare tout le HTML d'un coup (plus propre)
+                let htmlContent = '';
+
+                // -- SECTION ONGLETS GROUPES --
+                htmlContent += '<div id="group-tabs" class="flex gap-2 overflow-x-auto mb-4 no-scrollbar"></div>';
+
+                // -- SECTION CLASSEMENT (Tableau) --
+                htmlContent += `<div class="glass-panel rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-6">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-800 text-slate-500 uppercase">
+                            <tr><th class="p-3 font-bold text-slate-400">NATION</th><th class="p-3 text-center font-bold text-slate-400">PTS</th></tr>
+                        </thead>
+                        <tbody id="cal-body"></tbody>
+                    </table>
+                </div>`;
+                // ... (Fin du tableau classement groupe) ...
+                htmlContent += `</div>`; // Fermeture du glass-panel précédent
+
+                // --- NOUVEAU : TOP BUTEURS ---
+                // On trie les buteurs par nombre de buts décroissant
+                const topScorers = (this.state.goalScorers || [])
+                    .sort((a,b) => b.c - a.c)
+                    .slice(0, 5); // On garde le Top 5
+
+                htmlContent += `
+                <div class="mb-6">
+                    <div class="flex items-center gap-2 mb-2 ml-1">
+                        <span class="text-orange-500">${SVGS.boot}</span>
+                        <h3 class="font-teko text-2xl text-white uppercase">Meilleurs Buteurs</h3>
+                    </div>
+                    
+                    <div class="glass-panel rounded-xl overflow-hidden border border-slate-700/50">
+                        ${topScorers.length === 0 ? '<div class="p-4 text-xs text-slate-500 italic text-center">La compétition vient de commencer...</div>' : ''}
+                        
+                        <table class="w-full text-xs text-left">
+                            <tbody class="divide-y divide-white/5">
+                `;
+
+                topScorers.forEach((p, idx) => {
+                    // Couleur Or/Argent/Bronze pour le top 3
+                    let rankColor = "text-slate-500";
+                    if(idx===0) rankColor="text-yellow-400";
+                    if(idx===1) rankColor="text-slate-300";
+                    if(idx===2) rankColor="text-orange-400";
+
+                    htmlContent += `
+                        <tr class="bg-slate-900/40">
+                            <td class="p-3 font-teko text-lg w-8 text-center ${rankColor}">#${idx+1}</td>
+                            <td class="p-3">
+                                <div class="font-bold text-white uppercase text-[10px]">${p.n}</div>
+                                <div class="text-[9px] text-slate-500 uppercase font-bold">${p.t}</div>
+                            </td>
+                            <td class="p-3 text-right">
+                                <span class="bg-slate-800 border border-slate-600 px-2 py-1 rounded text-orange-500 font-teko text-lg font-bold shadow-lg">${p.c}</span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                // --- TOP JOUEURS (MVP) - Toujours visible ---
+                
+                // On prépare les données (même si vide)
+                const ratingsList = this.state.playerRatings || [];
+                const topPlayers = ratingsList
+                    .filter(p => p.matchs >= 1)
+                    .map(p => ({ ...p, avg: p.total / p.matchs }))
+                    .sort((a,b) => b.avg - a.avg)
+                    .slice(0, 5);
+
+                htmlContent += `
+                <div class="mb-6">
+                    <div class="flex items-center gap-2 mb-2 ml-1">
+                        <span class="text-yellow-400">${SVGS.star}</span>
+                        <h3 class="font-teko text-2xl text-white uppercase">Course au MVP</h3>
+                    </div>
+                    
+                    <div class="glass-panel rounded-xl overflow-hidden border border-slate-700/50">
+                        ${topPlayers.length === 0 ? '<div class="p-4 text-xs text-slate-500 italic text-center">En attente du premier match...</div>' : ''}
+                        
+                        <table class="w-full text-xs text-left">
+                            <tbody class="divide-y divide-white/5">
+                `;
+
+                topPlayers.forEach((p, idx) => {
+                    let rankColor = idx===0 ? "text-yellow-400" : "text-slate-500";
+                    htmlContent += `
+                        <tr class="bg-slate-900/40">
+                            <td class="p-3 font-teko text-lg w-8 text-center ${rankColor}">#${idx+1}</td>
+                            <td class="p-3">
+                                <div class="font-bold text-white uppercase text-[10px]">${p.n}</div>
+                                <div class="text-[9px] text-slate-500 uppercase font-bold">${p.t}</div>
+                            </td>
+                            <td class="p-3 text-right">
+                                <span class="bg-slate-800 border ${idx===0 ? 'border-yellow-500 text-yellow-400' : 'border-slate-600 text-blue-400'} px-2 py-1 rounded font-teko text-lg font-bold shadow-lg">
+                                    ${p.avg.toFixed(2)}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                htmlContent += `</tbody></table></div></div>`;
+
+                // -- SECTION SUIVANTE (Palmarès ou Résultats) --
+                // ...
+
+                // -- NOUVELLE SECTION : PALMARÈS HISTORIQUE --
+                // On vérifie si l'historique existe, sinon tableau vide
+                const history = this.state.pastWinners || []; 
+                
+                htmlContent += `<div class="mb-6 border-t border-slate-800 pt-4">
+                    <h3 class="font-teko text-3xl text-white uppercase italic mb-2">Palmarès Historique</h3>
+                    <div class="space-y-2">`;
+                
+                if (history.length === 0) {
+                    htmlContent += `<div class="text-[10px] text-slate-500 italic p-2">Aucune donnée historique.</div>`;
+                } else {
+                    // On affiche du plus récent au plus ancien (.slice().reverse())
+                    history.slice().reverse().forEach(h => {
+                        const isPlayer = h.n === "Côte d'Ivoire";
+                        htmlContent += `
+                            <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border ${isPlayer ? 'border-orange-500/50' : 'border-white/5'}">
+                                <span class="text-orange-500 font-teko text-xl font-bold">${h.year}</span>
+                                <span class="text-xs font-bold ${isPlayer ? 'text-white' : 'text-slate-400'} uppercase">${h.n}</span>
+                            </div>
+                        `;
+                    });
+                }
+                htmlContent += `</div></div>`;
+
+                // -- SECTION RÉSULTATS MATCHS --
+                htmlContent += `<h3 class="font-teko text-2xl text-slate-500 uppercase mb-2">Résultats Récents</h3>`;
+                htmlContent += `<div id="res-f" class="space-y-1 pb-20"></div>`;
+
+                // 2. On injecte le tout dans la page
+                c.innerHTML = htmlContent;
+
+                // 3. On remplit les onglets (Dynamique)
+                const tabsContainer = document.getElementById('group-tabs');
                 Object.keys(this.state.groups).forEach(g => {
-                    document.getElementById('group-tabs').innerHTML += `<button onclick="app.setVG('${g}')" class="tab-btn ${this.state.viewingGroup===g?'active':''}">Gr. ${g}</button>`;
+                    tabsContainer.innerHTML += `<button onclick="app.setVG('${g}')" class="tab-btn ${this.state.viewingGroup===g?'active':''}">Gr. ${g}</button>`;
                 });
-                c.innerHTML += `<div class="glass-panel rounded-xl overflow-hidden border border-slate-700 shadow-xl"><table class="w-full text-xs text-left"><thead class="bg-slate-800 text-slate-500 uppercase"><tr><th class="p-3 font-bold text-slate-400">NATION</th><th class="p-3 text-center font-bold text-slate-400">PTS</th></tr></thead><tbody id="cal-body"></tbody></table></div><div id="res-f" class="mt-4 space-y-1 pb-20"></div>`;
+
+                // 4. On remplit le classement (Dynamique)
                 const b = document.getElementById('cal-body');
-                Object.keys(this.state.standings).filter(k=>this.state.standings[k].grp===this.state.viewingGroup).sort((a,b)=>this.state.standings[b].pts-this.state.standings[a].pts).forEach(t => {
-                    b.innerHTML += `<tr class="border-b border-white/5"><td class="p-3 font-bold text-white">${t}</td><td class="p-3 text-center font-teko text-lg text-orange-500">${this.state.standings[t].pts}</td></tr>`;
-                });
-                const rF = document.getElementById('res-f'); if(rF) (this.state.globalResults || []).forEach(r => rF.innerHTML += `<div class="bg-slate-900/50 p-2 text-[9px] border border-white/5 rounded italic text-slate-400">${r}</div>`);
+                Object.keys(this.state.standings)
+                    .filter(k => this.state.standings[k].grp === this.state.viewingGroup)
+                    .sort((a,b) => this.state.standings[b].pts - this.state.standings[a].pts)
+                    .forEach(t => {
+                        b.innerHTML += `<tr class="border-b border-white/5"><td class="p-3 font-bold text-white">${t}</td><td class="p-3 text-center font-teko text-lg text-orange-500">${this.state.standings[t].pts}</td></tr>`;
+                    });
+
+                // 5. On remplit les résultats globaux (Dynamique)
+                const rF = document.getElementById('res-f'); 
+                if(rF) {
+                    (this.state.globalResults || []).forEach(r => {
+                        rF.innerHTML += `<div class="bg-slate-900/50 p-2 text-[9px] border border-white/5 rounded italic text-slate-400">${r}</div>`;
+                    });
+                }
             }
             setVG(g) { this.state.viewingGroup = g; this.renderCalendar(); }
 
@@ -1203,15 +2474,26 @@
                     c.innerHTML += `<div class="glass-panel p-4 rounded-xl flex items-center justify-between mb-3 shadow-md border-l-4 border-orange-500/50"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center font-teko text-2xl border border-orange-500 italic shadow-lg text-orange-500">${p.ovr}</div><div><div class="font-bold text-white uppercase text-sm">${p.name}</div><div class="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">${p.pos} • ${p.age} ans • ${p.energy}% Energie</div></div></div><button onclick="app.boost('${p.id}')" class="px-5 py-2 bg-slate-800 rounded-lg text-[10px] font-bold uppercase hover:bg-orange-600 transition">Booster</button></div>`;
                 });
             }
-            boost(id) { 
-                if(this.state.budget<0.2) return this.toast("Manque de budget !"); 
-                this.state.budget-=0.2; 
-                const p=this.state.players.find(x=>x.id===id); 
-                const gain = 1 + (this.state.infra.training.level * 0.5);
-                p.ovr += Math.round(gain); 
+           boost(id) { 
+                if(this.state.budget < 0.2) return this.toast("Manque de budget !"); 
+                
+                const p = this.state.players.find(x => x.id === id);
+                
+                // VÉRIFICATION : Si déjà à 99, on ne paie pas et on arrête
+                if (p.ovr >= 99) return this.toast("Potentiel maximum atteint (99) !");
+
+                this.state.budget -= 0.2; 
+                
+                // Calcul du gain
+                const gain = 1 + this.state.infra.training.level;
+                
+                // APPLICATION DU PLAFOND (Math.min prend le plus petit des deux)
+                p.ovr = Math.min(99, p.ovr + gain); 
+                
                 this.renderTraining(); 
+                this.save(); 
                 this.updateUI(); 
-                this.toast(`${p.name} progresse vite !`); 
+                this.toast(`${p.name} progresse (+${gain}) !`); 
             }
 
             renderScout() {
@@ -1220,12 +2502,32 @@
                 const l = document.getElementById('scout-list');
                 this.state.scoutPool.forEach(p => { l.innerHTML += `<div class="glass-panel p-4 rounded-xl flex items-center justify-between border-l-4 ${p.ovr >= 80 ? 'border-yellow-500' : 'border-orange-500'}"><div><div class="font-bold text-white uppercase text-sm">${p.name}</div><div class="text-[9px] text-slate-500 uppercase font-bold">${p.pos} • OVR ${p.ovr} • ${p.age} ans</div></div><button onclick="app.recruit('${p.id}')" class="px-5 py-2 bg-green-600 rounded-xl text-[10px] font-bold uppercase shadow-md active:scale-90 transition">Recruter</button></div>`; });
             }
-            scoutPlayers(type) {
-                const cost = type === 'elite' ? 10.0 : 3.0; if (this.state.budget < cost) return this.toast("Budget trop faible !");
-                this.state.budget -= cost;
-                if (type === 'elite') { this.state.rareScoutUsed = true; this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 18, ovr: 81 + Math.floor(Math.random()*6), role: 'sub', energy: 100 }); }
-                else { for(let i=0; i<5; i++) { this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 17 + Math.floor(Math.random()*5), ovr: 58 + Math.floor(Math.random()*15), role: 'sub', energy: 100 }); } }
-                this.renderScout(); this.updateUI(); this.toast("Nouveau rapport scout !");
+           scoutPlayers(type) {
+                // 1. Calcul du coût de base
+                let baseCost = type === 'elite' ? 10.0 : 3.0;
+                
+                // 2. Bonus Directeur : -10% par niveau
+                const directorLevel = this.state.staff ? this.state.staff.director.level : 1;
+                const discount = (directorLevel - 1) * 0.10; // Niv 1 = 0%, Niv 5 = 40%
+                const finalCost = baseCost * (1 - discount);
+
+                if (this.state.budget < finalCost) return this.toast(`Budget insuffisant (${finalCost.toFixed(1)}M€ requis) !`);
+                
+                this.state.budget -= finalCost;
+                
+                if (type === 'elite') { 
+                    this.state.rareScoutUsed = true; 
+                    this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 18, ovr: 81 + Math.floor(Math.random()*6), role: 'sub', energy: 100 }); 
+                } else { 
+                    for(let i=0; i<5; i++) { 
+                        this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 17 + Math.floor(Math.random()*5), ovr: 58 + Math.floor(Math.random()*15), role: 'sub', energy: 100 }); 
+                    } 
+                }
+                
+                this.save();
+                this.renderScout(); 
+                this.updateUI(); 
+                this.toast(`Scouting lancé ! Coût : ${finalCost.toFixed(1)}M€ (-${(discount*100).toFixed(0)}%)`);
             }
             recruit(id) { const idx = this.state.scoutPool.findIndex(x => x.id === id); if (idx > -1) { this.state.players.push(this.state.scoutPool.splice(idx, 1)[0]); this.renderScout(); this.save(); this.toast("Joueur intégré à l'effectif !"); } }
 
@@ -1236,17 +2538,63 @@
                 if(this.isLiveCoaching) this.renderPitch('pitch-cards-layer-live'); 
             }
             
-            openSwapModal(idx) {
-                this.currentSwapSlot = idx; const f = FORMATIONS[this.state.formation];
-                const list = document.getElementById('swap-candidates-list'); if(!list) return;
+       openSwapModal(idx) {
+                this.currentSwapSlot = idx; 
+                const form = FORMATIONS[this.state.formation];
+                const targetPos = form.zones[idx]; 
+                
+                const titlePos = document.getElementById('swap-target-pos');
+                if(titlePos) titlePos.innerText = `Remplacer : ${targetPos}`;
+
+                const list = document.getElementById('swap-candidates-list'); 
+                if(!list) return;
+                
+                list.className = "p-4 flex-1 overflow-y-auto no-scrollbar flex flex-wrap gap-3 justify-center content-start";
                 list.innerHTML = '';
-                this.state.players.filter(p => p.role !== 'starter').sort((a,b) => (b.pos===f.zones[idx]) - (a.pos===f.zones[idx]) || b.ovr-a.ovr).forEach(p => {
-                    const el = document.createElement('div'); el.className = 'glass-panel p-4 rounded-2xl flex items-center justify-between mb-2 cursor-pointer border-slate-800 hover:border-orange-500 transition';
+                
+                const candidates = this.state.players.filter(p => p.role !== 'starter')
+                    .sort((a,b) => (b.pos === targetPos) - (a.pos === targetPos) || b.ovr - a.ovr);
+
+                candidates.forEach(p => {
+                    const isGoodPos = p.pos === targetPos;
+                    
+                    // Couleurs
+                    const borderColor = isGoodPos ? 'border-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]' : 'border-slate-700 opacity-60 grayscale-[0.8]';
+                    const bgStyle = isGoodPos ? 'bg-gradient-to-br from-orange-600 to-orange-800' : 'bg-gradient-to-br from-slate-800 to-slate-900';
+                    const posColor = isGoodPos ? 'text-orange-200' : 'text-slate-500';
+                    const badgeColor = isGoodPos ? 'text-white' : 'text-slate-400';
+
+                    const el = document.createElement('div');
+                    
+                    // STRUCTURE IDENTIQUE AU TERRAIN (50x78px)
+                    // On utilise 'flex-col' sans justify-center, c'est le mt-auto du nom qui gère l'espace.
+                    el.className = `relative w-[50px] h-[78px] rounded-md border ${borderColor} ${bgStyle} flex flex-col items-center cursor-pointer transition-all active:scale-95 hover:scale-110 overflow-hidden`;
+                    
                     el.onclick = () => { this.confirmSwap(p.id); };
-                    el.innerHTML = `<div class="flex items-center gap-4"><div class="font-teko text-3xl text-orange-500 italic">${p.ovr}</div><div><div class="font-bold text-white uppercase text-xs">${p.name}</div><div class="text-[9px] font-bold text-slate-400 uppercase">${p.pos} • ${p.energy}% Forme</div></div></div>`;
+                    
+                    el.innerHTML = `
+                        <div class="mt-1 text-[6px] font-bold text-slate-300 mb-px">${p.age} ans</div>
+                        
+                        <div class="font-teko text-[20px] font-bold leading-none ${badgeColor} drop-shadow-md">
+                            ${p.ovr}
+                        </div>
+                        
+                        <div class="text-[7px] font-black uppercase ${posColor} -mt-0.5">${p.pos}</div>
+                        
+                        <div class="w-[75%] h-[2px] bg-white/20 rounded-full overflow-hidden mt-0.5">
+                            <div class="h-full ${p.energy > 80 ? 'bg-white' : (p.energy > 50 ? 'bg-yellow-400' : 'bg-red-500')}" style="width: ${p.energy}%"></div>
+                        </div>
+
+                        <div class="mt-auto w-full bg-black/60 py-[2px] text-center">
+                            <div class="font-sans text-[7px] font-bold text-white truncate px-0.5 leading-none">${p.name.split(' ').pop()}</div>
+                        </div>
+                    `;
+                    
                     list.appendChild(el);
                 });
-                const modal = document.getElementById('swap-modal'); if(modal) modal.classList.remove('hidden');
+                
+                const modal = document.getElementById('swap-modal'); 
+                if(modal) modal.classList.remove('hidden');
             }
             
             confirmSwap(id) {
@@ -1265,23 +2613,16 @@
                 const t = document.getElementById('feedback-toast'); 
                 const msg = document.getElementById('toast-msg'); 
                 if(!t || !msg) return;
-                
                 msg.innerText = m;
                 t.classList.remove('hidden');
-                // Force layout reflow for animation
                 void t.offsetWidth;
                 t.classList.remove('opacity-0', 'translate-y-4');
                 t.classList.add('opacity-100', 'translate-y-0');
-
-                // Clear previous timeout if any
                 if(this.toastTimeout) clearTimeout(this.toastTimeout);
-                
                 this.toastTimeout = setTimeout(() => {
                     t.classList.remove('opacity-100', 'translate-y-0');
                     t.classList.add('opacity-0', 'translate-y-4');
-                    setTimeout(() => {
-                        t.classList.add('hidden');
-                    }, 500);
+                    setTimeout(() => { t.classList.add('hidden'); }, 500);
                 }, 2500);
             }
             
@@ -1306,9 +2647,53 @@
             }
             
             setFormation(f) { this.state.formation = f; this.autoPick(); }
-            setMatchTactic(t) { this.match.tactic = t; document.querySelectorAll('#view-match .grid button').forEach(b => b.classList.replace('bg-slate-700', 'bg-slate-800')); const target = document.getElementById('tac-'+t); if(target) target.classList.replace('bg-slate-800', 'bg-slate-700'); }
-            showGoalAnim(n) { const sc = document.getElementById('goal-scorer-name'); if(sc) sc.innerText = n; const go = document.getElementById('goal-overlay'); if(go) { go.classList.add('active'); setTimeout(()=>go.classList.remove('active'), 3000); } }
-            addCommentary(t) { const log = document.getElementById('commentary-log'); if(log) log.insertAdjacentHTML('afterbegin', `<div class="mb-2 p-3 rounded-xl bg-white/5 border border-white/5 animate-news"><span class="opacity-30 text-[9px] mr-2 font-mono italic">${this.match.time}'</span> ${t}</div>`); }
+           setMatchTactic(t) { 
+                this.match.tactic = t; 
+                document.querySelectorAll('#view-match .grid button').forEach(b => b.classList.replace('bg-slate-700', 'bg-slate-800')); 
+                const target = document.getElementById('tac-'+t); 
+                if(target) target.classList.replace('bg-slate-800', 'bg-slate-700'); 
+                
+                // Affiche le commentaire lié à l'action
+                this.addCommentary(COMMS_TACTICAL[t]);
+            }
+           // Ajoutez une variable pour stocker le timer du but
+// (Vous pouvez l'ajouter dans le constructor ou l'utiliser directement ici via this.goalTimer)
+
+showGoalAnim(n) { 
+    const sc = document.getElementById('goal-scorer-name'); 
+    const go = document.getElementById('goal-overlay'); 
+    
+    if(!go || !sc) return;
+
+    // 1. Annuler le timer précédent s'il existe (CORRECTION DU BUG)
+    if (this.goalTimeout) clearTimeout(this.goalTimeout);
+
+    // 2. Mise à jour texte
+    sc.innerText = n; 
+    
+    // 3. Affichage (Reset des classes pour relancer l'animation si besoin)
+    go.classList.remove('hidden'); 
+    go.classList.remove('active'); 
+    void go.offsetWidth; // Force le reflow CSS pour redéclencher l'anim si besoin
+    go.classList.add('active'); 
+    
+    // 4. Masquage après 3.5s
+    this.goalTimeout = setTimeout(() => {
+        go.classList.remove('active');
+        setTimeout(() => go.classList.add('hidden'), 300); 
+    }, 3500); 
+    }
+            addCommentary(t) { 
+                const log = document.getElementById('commentary-log'); 
+                if(log) {
+                    // Récupère le nom du manager, ou met "Coach" par défaut
+                    const mName = this.state.managerName || "Le Coach";
+                    // Remplace la balise {MANAGER} par le vrai nom en couleur
+                    const finalTxt = t.replace(/{MANAGER}/g, `<span class="text-orange-400 font-bold">${mName}</span>`);
+                    
+                    log.insertAdjacentHTML('afterbegin', `<div class="mb-2 p-3 rounded-xl bg-white/5 border border-white/5 animate-news"><span class="opacity-30 text-[9px] mr-2 font-mono italic">${this.match.time}'</span> ${finalTxt}</div>`); 
+                }
+            }
             resetGame() { if (confirm("RAZ TOTAL ?")) { localStorage.clear(); location.reload(); } }
             
             setTacticalInstruction(type, val) { this.state.instructions[type] = val; this.renderTacticalUI(); }
@@ -1336,4 +2721,5 @@
         window.onload = () => { window.app = new EliteManager(); };
     </script>
 </body>
+
 </html>
