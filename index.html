@@ -1550,6 +1550,8 @@
             sc = pool[Math.floor(Math.random()*pool.length)];
         }
         if (!sc) sc = s[0] || { name: "Joueur Inconnu" };
+
+        this.registerGoal(sc.name, "Côte d'Ivoire");
         this.showGoalAnim(sc.name); 
         this.addCommentary(`${SVGS.ball} BUT !! ${sc.name} trouve la faille pour la CIV !`);
     }
@@ -1565,6 +1567,8 @@
         if (others.length > 0 && Math.random() < 0.40) {
             scorerName = others[Math.floor(Math.random() * others.length)];
         }
+
+        this.registerGoal(scorerName, this.match.opp.n);
         this.addCommentary(`${SVGS.alert} But pour ${this.match.opp.n} par ${scorerName}.`);
     }
 
@@ -2024,6 +2028,9 @@
                 this.state.players.forEach(p => { 
                     p.energy = 100; 
                     p.age += 2; 
+
+                    this.state.goalScorers = [];   // <--- AJOUT : Remise à zéro des buteurs
+                    this.state.playerRatings = []; // <--- AJOUT : Remise à zéro des notes MVP
                     
                     // Calcul de l'évolution
                     let evolution = (p.age < 28 ? 3 : (p.age > 33 ? -3 : 0));
@@ -2321,7 +2328,8 @@
                         <tbody id="cal-body"></tbody>
                     </table>
                 </div>`;
-               
+                // ... (Fin du tableau classement groupe) ...
+                htmlContent += `</div>`; // Fermeture du glass-panel précédent
 
                 // --- NOUVEAU : TOP BUTEURS ---
                 // On trie les buteurs par nombre de buts décroissant
@@ -2361,10 +2369,8 @@
                                 <span class="bg-slate-800 border border-slate-600 px-2 py-1 rounded text-orange-500 font-teko text-lg font-bold shadow-lg">${p.c}</span>
                             </td>
                         </tr>
-                        
                     `;
                 });
-                htmlContent += `</tbody></table></div></div>`;
                 // --- TOP JOUEURS (MVP) - Toujours visible ---
                 
                 // On prépare les données (même si vide)
