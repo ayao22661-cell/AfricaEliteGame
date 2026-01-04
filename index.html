@@ -1795,14 +1795,39 @@
                 if (n.scorers && n.scorers.length > 0) return n.scorers[Math.floor(Math.random() * n.scorers.length)];
                 return n.topAtt || n.star;
             }
-            simulateOthers() {
-                this.state.globalResults = [];
-                for (let g in this.state.groups) {
-                    const t = this.state.groups[g];
-                    if (g !== this.state.standings['Côte d\'Ivoire'].grp) { this.simM(t[0].n, t[1].n); this.simM(t[2].n, t[3].n); } 
-                    else { const riv = t.filter(x => x.n !== 'Côte d\'Ivoire' && x.n !== this.match.opp.n); if (riv.length === 2) this.simM(riv[0].n, riv[1].n); }
-                }
+           simulateOthers() {
+        // Sécurité : On ne simule que pendant la phase de groupes
+        if (this.state.stage !== 'groups') return;
+
+        Object.keys(this.state.groups).forEach(g => {
+            // On ne touche pas au groupe du joueur (C'est ton match qui gère ça)
+            if (g === this.state.standings['Côte d\'Ivoire'].grp) return;
+
+            const t = this.state.groups[g]; // Liste des 4 équipes du groupe (0, 1, 2, 3)
+            
+            // Pour savoir quel match jouer, on regarde combien de matchs 
+            // la 1ère équipe du groupe a déjà joué dans le classement.
+            const played = this.state.standings[t[0].n].matchs;
+
+            // LOGIQUE DE ROTATION (Tout le monde joue contre tout le monde)
+            if (played === 0) {
+                // JOURNÉE 1 : Équipe 1 vs 2  ET  Équipe 3 vs 4
+                this.simM(t[0].n, t[1].n);
+                this.simM(t[2].n, t[3].n);
+            } 
+            else if (played === 1) {
+                // JOURNÉE 2 : Équipe 1 vs 3  ET  Équipe 2 vs 4
+                this.simM(t[0].n, t[2].n);
+                this.simM(t[1].n, t[3].n);
+            } 
+            else if (played === 2) {
+                // JOURNÉE 3 : Équipe 1 vs 4  ET  Équipe 2 vs 3
+                this.simM(t[0].n, t[3].n);
+                this.simM(t[1].n, t[2].n);
             }
+            // Si played >= 3, la phase de poule est finie pour ce groupe, on ne fait rien.
+        });
+    }
            simM(t1, t2) {
                 const s1 = this.state.standings[t1]; const s2 = this.state.standings[t2];
                 const r = s1.ovr / s2.ovr; let g1 = 0, g2 = 0;
@@ -2337,17 +2362,22 @@
     let htmlContent = '';
 
     // --- CAS 1 : PHASE DE POULES (Tableau de classement) ---
-    if (this.state.stage === 'groups') {
+   if (this.state.stage === 'groups') {
         htmlContent += '<div id="group-tabs" class="flex gap-2 overflow-x-auto mb-4 no-scrollbar"></div>';
         htmlContent += `<div class="glass-panel rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-6">
             <table class="w-full text-xs text-left">
                 <thead class="bg-slate-800 text-slate-500 uppercase">
-                    <tr><th class="p-3 font-bold text-slate-400">NATION</th><th class="p-3 text-center font-bold text-slate-400">PTS</th></tr>
+                    <tr>
+                        <th class="p-3 font-bold text-slate-400 pl-4">NATION</th>
+                        <th class="p-3 text-center font-bold text-slate-500">J</th>
+                        <th class="p-3 text-center font-bold text-slate-500">DIFF</th>
+                        <th class="p-3 text-center font-bold text-orange-500">PTS</th>
+                    </tr>
                 </thead>
                 <tbody id="cal-body"></tbody>
             </table>
         </div>`;
-    } 
+    }
     // --- CAS 2 : PHASES FINALES (Tableau des rencontres) ---
     else {
         const stageConfigs = { 
@@ -2484,9 +2514,38 @@
         }
         const b = document.getElementById('cal-body');
         if (b) {
-            Object.keys(this.state.standings).filter(k => this.state.standings[k].grp === this.state.viewingGroup).sort((a,b) => this.state.standings[b].pts - this.state.standings[a].pts).forEach(t => {
-                b.innerHTML += `<tr class="border-b border-white/5"><td class="p-3 font-bold text-white">${t}</td><td class="p-3 text-center font-teko text-lg text-orange-500">${this.state.standings[t].pts}</td></tr>`;
-            });
+            Object.keys(this.state.standings)
+                .filter(k => this.state.standings[k].grp === this.state.viewingGroup)
+                .sort((a,b) => {
+                    // Tri avancé : Points > Différence de buts > Buts Marqués
+                    const teamA = this.state.standings[a];
+                    const teamB = this.state.standings[b];
+                    const ptsDiff = teamB.pts - teamA.pts;
+                    if (ptsDiff !== 0) return ptsDiff;
+                    const goalDiff = (teamB.gf - teamB.ga) - (teamA.gf - teamA.ga);
+                    if (goalDiff !== 0) return goalDiff;
+                    return teamB.gf - teamA.gf;
+                })
+                .forEach(t => {
+                    const team = this.state.standings[t];
+                    const diff = team.gf - team.ga;
+                    // Couleur dynamique pour la différence de buts
+                    const diffColor = diff > 0 ? "text-green-400" : (diff < 0 ? "text-red-400" : "text-slate-500");
+                    const diffSign = diff > 0 ? "+" : "";
+
+                    b.innerHTML += `
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                            <td class="p-3 font-bold text-white pl-4">
+                                <div class="flex flex-col leading-none">
+                                    <span class="text-[11px]">${t}</span>
+                                    <span class="text-[9px] text-slate-500 font-normal mt-0.5">${team.code}</span>
+                                </div>
+                            </td>
+                            <td class="p-3 text-center text-slate-400 font-mono text-[10px]">${team.p}</td>
+                            <td class="p-3 text-center font-bold text-[10px] ${diffColor}">${diffSign}${diff}</td>
+                            <td class="p-3 text-center font-teko text-xl text-white bg-slate-800/50">${team.pts}</td>
+                        </tr>`;
+                });
         }
     }
 }
