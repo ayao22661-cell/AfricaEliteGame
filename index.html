@@ -1405,9 +1405,10 @@
                 const pModal = document.getElementById('preview-modal');
                 if(pModal) pModal.classList.add('hidden');
                 
-                this.playSound('whistle');  // Sifflet
-                this.playSound('stadium');  // Ambiance fond
-                // -------------------
+                // GESTION AUDIO
+            this.stopMenuMusic();       // On coupe la musique funky
+            this.synthCrowdDynamic();   // On lance la foule réaliste
+            this.playSound('whistle');  // Sifflet
 
                 // 2. Activer le match (Lancement du Timer)
                 this.match.active = true;
@@ -1635,9 +1636,14 @@
                 clearInterval(this.match.timer); 
                 this.match.active = false;
 
-                this.stopAmbience();        // Arrêter le bruit de fond
+                // GESTION AUDIO
+                this.stopCrowd();           // On coupe la foule
                 this.playSound('whistle');  // Sifflet final
 
+                // Petit délai pour laisser le sifflet finir avant de relancer le groove
+                setTimeout(() => {
+                this.startMenuMusic();  // Retour de la musique "Winning Eleven"
+                 }, 2000);
                 // 1. D'ABORD : On récupère les scores et on détermine le vainqueur
                 const scoreHome = this.match.score[0];
                 const scoreAway = this.match.score[1];
@@ -2826,17 +2832,301 @@ showGoalAnim(n) {
             this.ambianceNode = null;
         }
     }
+    // --- MOTEUR MUSICAL "EPIC DRILL" (140 BPM) ---
+
+    // --- MOTEUR "DRILL IVOIRE" (Style Himra/Suspect 95) ---
+
+    // --- MOTEUR "PRO DRILL" (Clean & Dark) ---
+
+    // --- MOTEUR MUSICAL "DRILL SYMPHONIC" (Variations Multiples) ---
+
+   // --- MOTEUR "FIFA 20 / VOLTA LEGACY" (Urban Future Bass) ---
+
+    // --- MOTEUR "SPEED ORCHESTRA" (150 BPM - Action Hero) ---
+
+    startMenuMusic() {
+        if (!this.audioCtx) return;
+        if (this.musicInterval) return; 
+
+        const tempo = 150; // Très Rapide (Rythme course-poursuite)
+        const beatTime = 60 / tempo; 
         
+        this.songStep = 0; 
+
+        // Progression Héroïque (Dm - Bb - F - C)
+        // Fréquences (Ré min, Si bémol Maj, Fa Maj, Do Maj)
+        this.chords = [
+            [146.8, 174.6, 220.0], // Dm (Tension)
+            [116.5, 174.6, 233.1], // Bb (Epique)
+            [174.6, 220.0, 261.6], // F (Victoire)
+            [130.8, 196.0, 261.6]  // C (Puissance)
+        ];
+
+        // --- STRUCTURE DE LA CHANSON (3 Minutes) ---
+        // On définit l'intensité (0.0 à 1.0) selon le moment
+        // 1 tour de boucle = 1/4 de temps (double croche)
+        
+        this.musicInterval = setInterval(() => {
+            if (!this.audioCtx) return;
+            const t = this.audioCtx.currentTime;
+            
+            // Calcul de la structure temporelle
+            // 150 BPM = 2.5 battements/sec = 10 steps/sec
+            // 3 minutes = ~1800 steps
+            
+            let section = 'INTRO';
+            let intensity = 0.3;
+
+            if (this.songStep > 128) { section = 'BUILDUP'; intensity = 0.6; }
+            if (this.songStep > 384) { section = 'CLIMAX_1'; intensity = 1.0; }
+            if (this.songStep > 640) { section = 'BREAK'; intensity = 0.2; } // Calme
+            if (this.songStep > 768) { section = 'CLIMAX_2'; intensity = 1.0; } // Explosion finale
+            if (this.songStep > 1100) { this.songStep = 0; } // Boucle
+
+            // Accord actuel (Change toutes les 2 mesures = 32 steps)
+            const chordIdx = Math.floor(this.songStep / 32) % 4;
+            const currentChord = this.chords[chordIdx];
+            const rootNote = currentChord[0];
+
+            // --- 1. LE MOTEUR (OSTINATO DE CORDES) ---
+            // C'est ce qui donne la vitesse. Des cordes rapides (Ta-ta-ta-ta)
+            // On joue sur toutes les doubles croches
+            if (section !== 'BREAK') {
+                // On alterne note fondamentale et quinte pour le mouvement
+                const note = (this.songStep % 2 === 0) ? rootNote : currentChord[2];
+                // Accentuation sur les temps forts (tous les 4 steps)
+                const vol = (this.songStep % 4 === 0) ? 0.3 : 0.15;
+                this.playSpiccatoString(t, note, vol * intensity);
+            }
+
+            // --- 2. PERCUSSIONS DE GUERRE (TAIKOS) ---
+            // Kick lourd sur les temps 1 et 3
+            if (this.songStep % 8 === 0 && intensity > 0.4) {
+                this.playWarPercussion(t, 'kick');
+            }
+            // Gros Impact de Cymbale au changement d'accord
+            if (this.songStep % 32 === 0 && intensity > 0.5) {
+                this.playOrchestralHit(t);
+            }
+            // Caisse claire militaire (Snare) en marche
+            if (section === 'CLIMAX_1' || section === 'CLIMAX_2') {
+                if (this.songStep % 4 === 2) this.playWarPercussion(t, 'snare');
+            }
+
+            // --- 3. LES CUIVRES (FRENCH HORNS) ---
+            // La mélodie lente et puissante par dessus le rythme rapide
+            if (this.songStep % 32 === 0 && intensity > 0.4) {
+                // Mélodie simple : Fondamentale -> Tierce -> Quinte
+                // On joue un accord long qui enfle
+                this.playEpicHorn(t, currentChord, intensity);
+            }
+
+            // --- 4. LE PIANO VIRTUOSE (Arpèges Rapides) ---
+            // Uniquement dans les moments intenses pour ajouter du "brillant"
+            if ((section === 'CLIMAX_1' || section === 'CLIMAX_2') && this.songStep % 2 === 0) {
+                const arpNotes = [0, 4, 7, 12, 7, 4]; // Motif
+                const noteOffset = arpNotes[this.songStep % 6];
+                const freq = rootNote * 2 * Math.pow(2, noteOffset/12);
+                this.playPianoArp(t, freq);
+            }
+
+            this.songStep++;
+        }, (beatTime / 4) * 1000);
+    }
+
+    // --- INSTRUMENTS ORCHESTRAUX (150 BPM TUNED) ---
+
+    playSpiccatoString(t, freq, vol) {
+        // Violons courts et incisifs (Action style)
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.type = 'sawtooth'; // Dent de scie = Cordes
+        osc.frequency.value = freq;
+
+        const filter = this.audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 800 + (vol * 2000); // Plus c'est fort, plus c'est brillant
+
+        osc.connect(filter); filter.connect(gain); gain.connect(this.audioCtx.destination);
+
+        // Enveloppe très courte (Staccato)
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(vol, t + 0.02); // Attaque
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1); // Coupe rapide
+
+        osc.start(t);
+        osc.stop(t + 0.1);
+    }
+
+    playEpicHorn(t, chord, intensity) {
+        // Cors d'harmonie (Son large et majestueux)
+        chord.forEach((freq, i) => {
+            const osc = this.audioCtx.createOscillator();
+            const osc2 = this.audioCtx.createOscillator(); // Double osc pour l'épaisseur
+            const gain = this.audioCtx.createGain();
+            const filter = this.audioCtx.createBiquadFilter();
+
+            osc.type = 'sawtooth'; osc.frequency.value = freq;
+            osc2.type = 'sawtooth'; osc2.frequency.value = freq;
+            osc2.detune.value = 10; // Effet "Chorus" naturel
+
+            filter.type = 'lowpass';
+            filter.frequency.value = 400;
+            // Effet "Wah" (Le son s'ouvre comme un vrai souffle)
+            filter.frequency.linearRampToValueAtTime(1500 * intensity, t + 1.5);
+
+            osc.connect(filter); osc2.connect(filter);
+            filter.connect(gain); gain.connect(this.audioCtx.destination);
+
+            // Enveloppe longue
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(0.15 * intensity, t + 0.5); // Montée lente
+            gain.gain.linearRampToValueAtTime(0, t + 3.5); // Long sustain
+
+            osc.start(t); osc2.start(t);
+            osc.stop(t + 4); osc2.stop(t + 4);
+        });
+    }
+
+    playWarPercussion(t, type) {
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        if (type === 'kick') {
+            // Gros Tambour (Taiko)
+            osc.frequency.setValueAtTime(120, t);
+            osc.frequency.exponentialRampToValueAtTime(30, t + 0.2);
+            gain.gain.setValueAtTime(0.8, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+        } else {
+            // Caisse claire militaire
+            osc.type = 'triangle'; // + Bruit blanc simulé par pitch rapide
+            osc.frequency.setValueAtTime(200, t);
+            osc.frequency.linearRampToValueAtTime(600, t + 0.05);
+            gain.gain.setValueAtTime(0.4, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        }
+
+        osc.start(t);
+        osc.stop(t + 0.3);
+    }
+
+    playOrchestralHit(t) {
+        // Le fameux "BAM" de bande-annonce
+        // Mélange bruit blanc + basse
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(80, t);
+        osc.frequency.exponentialRampToValueAtTime(20, t + 0.5);
+
+        gain.gain.setValueAtTime(0.6, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 1.5); // Longue résonance
+
+        osc.connect(gain); gain.connect(this.audioCtx.destination);
+        osc.start(t); osc.stop(t + 1.5);
+    }
+
+    playPianoArp(t, freq) {
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+
+        gain.gain.setValueAtTime(0.08, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+
+        osc.connect(gain); gain.connect(this.audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.3);
+    }
+
+    stopMenuMusic() {
+        if (this.musicInterval) {
+            clearInterval(this.musicInterval);
+            this.musicInterval = null;
+        }
+    }
+    // 2. Amélioration de l'ambiance de match (Foule dynamique)
+    synthCrowdDynamic() {
+        if (this.crowdNode) return;
+
+        // Création du bruit rose (plus naturel pour une foule que le bruit blanc)
+        const bufferSize = this.audioCtx.sampleRate * 10; // Boucle de 10 sec
+        const buffer = this.audioCtx.createBuffer(2, bufferSize, this.audioCtx.sampleRate); // Stéréo !
+
+        for (let channel = 0; channel < 2; channel++) {
+            const data = buffer.getChannelData(channel);
+            let lastOut = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                // Formule simple pour convertir blanc -> rose
+                data[i] = (lastOut + (0.02 * white)) / 1.02;
+                lastOut = data[i];
+                data[i] *= 3.5; 
+            }
+        }
+
+        this.crowdNode = this.audioCtx.createBufferSource();
+        this.crowdNode.buffer = buffer;
+        this.crowdNode.loop = true;
+
+        // Filtre pour étouffer le son (comme si on était dans le stade)
+        this.crowdFilter = this.audioCtx.createBiquadFilter();
+        this.crowdFilter.type = 'lowpass';
+        this.crowdFilter.frequency.value = 600; // Son sourd de base
+
+        this.crowdGain = this.audioCtx.createGain();
+        this.crowdGain.gain.value = 0.08; // Volume de base
+
+        this.crowdNode.connect(this.crowdFilter);
+        this.crowdFilter.connect(this.crowdGain);
+        this.crowdGain.connect(this.audioCtx.destination);
+
+        this.crowdNode.start();
+        
+        // Simulation des vagues de foule (LFO maison)
+        this.crowdInterval = setInterval(() => {
+            if(!this.crowdGain) return;
+            // Le volume monte et descend doucement
+            const time = this.audioCtx.currentTime;
+            const fluctuation = Math.random() * 0.05;
+            this.crowdGain.gain.setTargetAtTime(0.08 + fluctuation, time, 1.5);
+            // Le filtre s'ouvre quand ça crie plus fort
+            this.crowdFilter.frequency.setTargetAtTime(600 + (fluctuation * 4000), time, 1.5);
+        }, 2000);
+    }
+
+    stopCrowd() {
+        if (this.crowdNode) {
+            try { this.crowdNode.stop(); } catch(e){}
+            this.crowdNode = null;
+        }
+        if (this.crowdInterval) {
+            clearInterval(this.crowdInterval);
+            this.crowdInterval = null;
+        }
+    }
         }
 
         window.onload = () => { window.app = new EliteManager(); };
     </script>
-    <script>
+   <script>
     // Ecouteur global pour les clics
     document.addEventListener('click', (e) => {
         // Active le son au premier clic (obligatoire sur Chrome)
         if (window.app && window.app.audioCtx && window.app.audioCtx.state === 'suspended') {
-            window.app.audioCtx.resume();
+            window.app.audioCtx.resume().then(() => {
+                // Si on n'est pas en match, on lance la musique du menu !
+                if (!window.app.match.active) {
+                    window.app.startMenuMusic();
+                }
+            });
         }
 
         // Si on clique sur un bouton ou un élément de nav
