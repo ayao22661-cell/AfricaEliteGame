@@ -1076,6 +1076,12 @@
             }
 
             init() { 
+                // --- 1. AJOUTE CE BLOC AU DÉBUT DE INIT() ---
+             // Initialisation du synthétiseur (Web Audio API)
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.audioCtx = new AudioContext();
+                this.ambianceNode = null; // Pour stocker le bruit du stade
+    // ---------------------------------------------
                 // --- PATCH DE COMPATIBILITÉ (SANS RAZ) ---
                 
                 // 1. Si le STAFF manque, on l'ajoute
@@ -1399,6 +1405,10 @@
                 const pModal = document.getElementById('preview-modal');
                 if(pModal) pModal.classList.add('hidden');
                 
+                this.playSound('whistle');  // Sifflet
+                this.playSound('stadium');  // Ambiance fond
+                // -------------------
+
                 // 2. Activer le match (Lancement du Timer)
                 this.match.active = true;
                 this.match.timer = setInterval(() => this.tick(), 1000);
@@ -1536,6 +1546,8 @@
         this.match.stats.shots++; // Un but compte comme un tir
         const sh = document.getElementById('score-home'); 
         if(sh) sh.innerText = this.match.score[0];
+
+        this.playSound('goal');
         
         const s = this.state.players.filter(p=>p.role==='starter'); 
         let sc = null;
@@ -1622,6 +1634,9 @@
             finishMatch() {
                 clearInterval(this.match.timer); 
                 this.match.active = false;
+
+                this.stopAmbience();        // Arrêter le bruit de fond
+                this.playSound('whistle');  // Sifflet final
 
                 // 1. D'ABORD : On récupère les scores et on détermine le vainqueur
                 const scoreHome = this.match.score[0];
@@ -2371,6 +2386,7 @@
                         </tr>
                     `;
                 });
+                htmlContent += `</tbody></table></div></div>`;
                 // --- TOP JOUEURS (MVP) - Toujours visible ---
                 
                 // On prépare les données (même si vide)
@@ -2723,10 +2739,116 @@ showGoalAnim(n) {
                 if(sBtn) { sBtn.innerText = s.style.toUpperCase(); sBtn.className = `py-4 rounded-xl border text-[11px] font-bold uppercase transition ${s.style==='possession'?'bg-orange-600 border-orange-400 text-white shadow-lg shadow-orange-600/30':'bg-slate-800 border-slate-700 text-slate-400'}`; }
                 if(pBtn) { pBtn.innerText = s.pressing==='high'?'PRESSING HAUT':'PRESSING NORMAL'; pBtn.className = `py-4 rounded-xl border text-[11px] font-bold uppercase transition ${s.pressing==='high'?'bg-orange-600 border-orange-400 text-white shadow-lg shadow-orange-600/30':'bg-slate-800 border-slate-700 text-slate-400'}`; }
             }
+        // --- MOTEUR SONORE ELECTRONIQUE (A COLLER A LA FIN DE LA CLASSE) ---
+
+    playSound(type) {
+        if (!this.audioCtx) return;
+        if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+
+        switch (type) {
+            case 'click': this.synthClick(); break;
+            case 'whistle': this.synthWhistle(); break;
+            case 'goal': this.synthGoal(); break;
+            case 'stadium': this.synthAmbience(); break;
+        }
+    }
+
+    synthClick() {
+        const t = this.audioCtx.currentTime;
+        const o = this.audioCtx.createOscillator();
+        const g = this.audioCtx.createGain();
+        o.connect(g); g.connect(this.audioCtx.destination);
+        o.type = 'sine'; 
+        o.frequency.setValueAtTime(800, t);
+        o.frequency.exponentialRampToValueAtTime(300, t + 0.1);
+        g.gain.setValueAtTime(0.1, t);
+        g.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        o.start(); o.stop(t + 0.1);
+    }
+
+    synthWhistle() {
+        const t = this.audioCtx.currentTime;
+        const o = this.audioCtx.createOscillator();
+        const g = this.audioCtx.createGain();
+        o.connect(g); g.connect(this.audioCtx.destination);
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(2500, t);
+        
+        // 3 coups de sifflet rapides
+        [0, 0.15, 0.3].forEach(d => {
+            g.gain.setValueAtTime(0.15, t + d);
+            g.gain.linearRampToValueAtTime(0, t + d + 0.1);
+        });
+        o.start(); o.stop(t + 0.5);
+    }
+
+    synthGoal() {
+        const dur = 2.5;
+        const buf = this.audioCtx.createBuffer(1, this.audioCtx.sampleRate * dur, this.audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = this.audioCtx.createBufferSource();
+        noise.buffer = buf;
+        const f = this.audioCtx.createBiquadFilter();
+        f.type = 'lowpass'; f.frequency.value = 500;
+        const g = this.audioCtx.createGain();
+        
+        noise.connect(f); f.connect(g); g.connect(this.audioCtx.destination);
+        
+        f.frequency.linearRampToValueAtTime(1500, this.audioCtx.currentTime + 1); // Le cri monte
+        g.gain.setValueAtTime(0, this.audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0.3, this.audioCtx.currentTime + 0.5);
+        g.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + dur);
+        
+        noise.start();
+    }
+
+    synthAmbience() {
+        if (this.ambianceNode) return; // Déjà en cours
+        const size = this.audioCtx.sampleRate * 2;
+        const buf = this.audioCtx.createBuffer(1, size, this.audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < size; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+
+        this.ambianceNode = this.audioCtx.createBufferSource();
+        this.ambianceNode.buffer = buf;
+        this.ambianceNode.loop = true;
+        
+        const f = this.audioCtx.createBiquadFilter();
+        f.type = 'lowpass'; f.frequency.value = 250; // Grondement sourd
+        const g = this.audioCtx.createGain();
+        g.gain.value = 0.05; // Volume bas
+        
+        this.ambianceNode.connect(f); f.connect(g); g.connect(this.audioCtx.destination);
+        this.ambianceNode.start();
+    }
+
+    stopAmbience() {
+        if (this.ambianceNode) {
+            try { this.ambianceNode.stop(); } catch(e){}
+            this.ambianceNode = null;
+        }
+    }
+        
         }
 
         window.onload = () => { window.app = new EliteManager(); };
     </script>
+    <script>
+    // Ecouteur global pour les clics
+    document.addEventListener('click', (e) => {
+        // Active le son au premier clic (obligatoire sur Chrome)
+        if (window.app && window.app.audioCtx && window.app.audioCtx.state === 'suspended') {
+            window.app.audioCtx.resume();
+        }
+
+        // Si on clique sur un bouton ou un élément de nav
+        if (window.app && (e.target.closest('button') || e.target.closest('.btn-nav') || e.target.closest('.player-card'))) {
+             window.app.playSound('click');
+        }
+    });
+</script>
 </body>
 
 </html>
