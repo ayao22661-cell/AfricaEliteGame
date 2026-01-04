@@ -2325,169 +2325,165 @@
 
 
        renderCalendar() {
-                const c = document.getElementById('calendar-content'); 
-                if(!c) return;
+    const c = document.getElementById('calendar-content'); 
+    if(!c) return;
 
-                // 1. On prépare tout le HTML d'un coup (plus propre)
-                let htmlContent = '';
+    let htmlContent = '';
 
-                // -- SECTION ONGLETS GROUPES --
-                htmlContent += '<div id="group-tabs" class="flex gap-2 overflow-x-auto mb-4 no-scrollbar"></div>';
+    // --- CAS 1 : PHASE DE POULES (Tableau de classement) ---
+    if (this.state.stage === 'groups') {
+        htmlContent += '<div id="group-tabs" class="flex gap-2 overflow-x-auto mb-4 no-scrollbar"></div>';
+        htmlContent += `<div class="glass-panel rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-6">
+            <table class="w-full text-xs text-left">
+                <thead class="bg-slate-800 text-slate-500 uppercase">
+                    <tr><th class="p-3 font-bold text-slate-400">NATION</th><th class="p-3 text-center font-bold text-slate-400">PTS</th></tr>
+                </thead>
+                <tbody id="cal-body"></tbody>
+            </table>
+        </div>`;
+    } 
+    // --- CAS 2 : PHASES FINALES (Tableau des rencontres) ---
+    else {
+        const stageConfigs = { 
+            '8iemes': { label: 'Huitièmes de Finale', count: 8 }, 
+            'quarts': { label: 'Quarts de Finale', count: 4 }, 
+            'demis': { label: 'Demi-Finale', count: 2 }, 
+            'finale': { label: 'GRANDE FINALE', count: 1 } 
+        };
+        
+        const config = stageConfigs[this.state.stage];
+        const oppData = this.state.knockout[this.state.stage];
+        const oppName = oppData ? oppData.n : "Adversaire";
+        const oppCode = oppData ? oppData.code : "ADV";
 
-                // -- SECTION CLASSEMENT (Tableau) --
-                htmlContent += `<div class="glass-panel rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-6">
-                    <table class="w-full text-xs text-left">
-                        <thead class="bg-slate-800 text-slate-500 uppercase">
-                            <tr><th class="p-3 font-bold text-slate-400">NATION</th><th class="p-3 text-center font-bold text-slate-400">PTS</th></tr>
-                        </thead>
-                        <tbody id="cal-body"></tbody>
-                    </table>
-                </div>`;
-                // ... (Fin du tableau classement groupe) ...
-                htmlContent += `</div>`; // Fermeture du glass-panel précédent
-
-                // --- NOUVEAU : TOP BUTEURS ---
-                // On trie les buteurs par nombre de buts décroissant
-                const topScorers = (this.state.goalScorers || [])
-                    .sort((a,b) => b.c - a.c)
-                    .slice(0, 5); // On garde le Top 5
-
-                htmlContent += `
-                <div class="mb-6">
-                    <div class="flex items-center gap-2 mb-2 ml-1">
-                        <span class="text-orange-500">${SVGS.boot}</span>
-                        <h3 class="font-teko text-2xl text-white uppercase">Meilleurs Buteurs</h3>
-                    </div>
-                    
-                    <div class="glass-panel rounded-xl overflow-hidden border border-slate-700/50">
-                        ${topScorers.length === 0 ? '<div class="p-4 text-xs text-slate-500 italic text-center">La compétition vient de commencer...</div>' : ''}
-                        
-                        <table class="w-full text-xs text-left">
-                            <tbody class="divide-y divide-white/5">
-                `;
-
-                topScorers.forEach((p, idx) => {
-                    // Couleur Or/Argent/Bronze pour le top 3
-                    let rankColor = "text-slate-500";
-                    if(idx===0) rankColor="text-yellow-400";
-                    if(idx===1) rankColor="text-slate-300";
-                    if(idx===2) rankColor="text-orange-400";
-
-                    htmlContent += `
-                        <tr class="bg-slate-900/40">
-                            <td class="p-3 font-teko text-lg w-8 text-center ${rankColor}">#${idx+1}</td>
-                            <td class="p-3">
-                                <div class="font-bold text-white uppercase text-[10px]">${p.n}</div>
-                                <div class="text-[9px] text-slate-500 uppercase font-bold">${p.t}</div>
-                            </td>
-                            <td class="p-3 text-right">
-                                <span class="bg-slate-800 border border-slate-600 px-2 py-1 rounded text-orange-500 font-teko text-lg font-bold shadow-lg">${p.c}</span>
-                            </td>
-                        </tr>
-                    `;
-                });
-                htmlContent += `</tbody></table></div></div>`;
-                // --- TOP JOUEURS (MVP) - Toujours visible ---
-                
-                // On prépare les données (même si vide)
-                const ratingsList = this.state.playerRatings || [];
-                const topPlayers = ratingsList
-                    .filter(p => p.matchs >= 1)
-                    .map(p => ({ ...p, avg: p.total / p.matchs }))
-                    .sort((a,b) => b.avg - a.avg)
-                    .slice(0, 5);
-
-                htmlContent += `
-                <div class="mb-6">
-                    <div class="flex items-center gap-2 mb-2 ml-1">
-                        <span class="text-yellow-400">${SVGS.star}</span>
-                        <h3 class="font-teko text-2xl text-white uppercase">Course au MVP</h3>
-                    </div>
-                    
-                    <div class="glass-panel rounded-xl overflow-hidden border border-slate-700/50">
-                        ${topPlayers.length === 0 ? '<div class="p-4 text-xs text-slate-500 italic text-center">En attente du premier match...</div>' : ''}
-                        
-                        <table class="w-full text-xs text-left">
-                            <tbody class="divide-y divide-white/5">
-                `;
-
-                topPlayers.forEach((p, idx) => {
-                    let rankColor = idx===0 ? "text-yellow-400" : "text-slate-500";
-                    htmlContent += `
-                        <tr class="bg-slate-900/40">
-                            <td class="p-3 font-teko text-lg w-8 text-center ${rankColor}">#${idx+1}</td>
-                            <td class="p-3">
-                                <div class="font-bold text-white uppercase text-[10px]">${p.n}</div>
-                                <div class="text-[9px] text-slate-500 uppercase font-bold">${p.t}</div>
-                            </td>
-                            <td class="p-3 text-right">
-                                <span class="bg-slate-800 border ${idx===0 ? 'border-yellow-500 text-yellow-400' : 'border-slate-600 text-blue-400'} px-2 py-1 rounded font-teko text-lg font-bold shadow-lg">
-                                    ${p.avg.toFixed(2)}
-                                </span>
-                            </td>
-                        </tr>
-                    `;
-                });
-                
-                htmlContent += `</tbody></table></div></div>`;
-
-                // -- SECTION SUIVANTE (Palmarès ou Résultats) --
-                // ...
-
-                // -- NOUVELLE SECTION : PALMARÈS HISTORIQUE --
-                // On vérifie si l'historique existe, sinon tableau vide
-                const history = this.state.pastWinners || []; 
-                
-                htmlContent += `<div class="mb-6 border-t border-slate-800 pt-4">
-                    <h3 class="font-teko text-3xl text-white uppercase italic mb-2">Palmarès Historique</h3>
-                    <div class="space-y-2">`;
-                
-                if (history.length === 0) {
-                    htmlContent += `<div class="text-[10px] text-slate-500 italic p-2">Aucune donnée historique.</div>`;
-                } else {
-                    // On affiche du plus récent au plus ancien (.slice().reverse())
-                    history.slice().reverse().forEach(h => {
-                        const isPlayer = h.n === "Côte d'Ivoire";
-                        htmlContent += `
-                            <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border ${isPlayer ? 'border-orange-500/50' : 'border-white/5'}">
-                                <span class="text-orange-500 font-teko text-xl font-bold">${h.year}</span>
-                                <span class="text-xs font-bold ${isPlayer ? 'text-white' : 'text-slate-400'} uppercase">${h.n}</span>
+        // 1. Ton Match (En Vedette)
+        htmlContent += `
+        <div class="mb-6">
+            <h3 class="font-teko text-4xl text-white uppercase italic text-center mb-1">${config.label}</h3>
+            <div class="text-[10px] text-orange-500 font-bold uppercase tracking-widest text-center mb-4">Match Principal</div>
+            
+            <div class="relative p-1 rounded-3xl bg-gradient-to-b from-orange-600 to-slate-900 shadow-2xl mb-8">
+                <div class="bg-slate-900 rounded-[22px] p-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+                    <div class="flex items-center justify-between relative z-10">
+                        <div class="flex flex-col items-center gap-2 w-1/3">
+                            <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl flex items-center justify-center border-4 border-slate-800 shadow-xl">
+                                <span class="font-teko text-3xl text-white font-bold italic">CIV</span>
                             </div>
-                        `;
-                    });
-                }
-                htmlContent += `</div></div>`;
+                            <span class="text-[10px] font-bold text-white uppercase">Côte d'Ivoire</span>
+                        </div>
+                        <div class="flex flex-col items-center w-1/3">
+                            <span class="font-teko text-5xl text-slate-700 italic opacity-50">VS</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 w-1/3">
+                            <div class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center border-4 border-slate-700 shadow-xl">
+                                <span class="font-teko text-3xl text-slate-400 font-bold italic">${oppCode}</span>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-500 uppercase">${oppName}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                // -- SECTION RÉSULTATS MATCHS --
-                htmlContent += `<h3 class="font-teko text-2xl text-slate-500 uppercase mb-2">Résultats Récents</h3>`;
-                htmlContent += `<div id="res-f" class="space-y-1 pb-20"></div>`;
+            <div class="flex items-center gap-2 mb-3 ml-1">
+                <span class="text-slate-400">${SVGS.layout}</span>
+                <h3 class="font-teko text-2xl text-slate-300 uppercase">Programme du Tour</h3>
+            </div>
+            <div class="space-y-2">
+        `;
 
-                // 2. On injecte le tout dans la page
-                c.innerHTML = htmlContent;
+        // Génération des autres matchs (Fictifs mais réalistes pour l'immersion)
+        // On exclut la CIV et l'adversaire actuel
+        const otherTeams = NATIONS_DB.filter(n => n.n !== "Côte d'Ivoire" && n.n !== oppName);
+        
+        // On affiche d'abord ton match dans la liste pour confirmer
+        htmlContent += `
+            <div class="flex justify-between items-center bg-orange-900/20 p-3 rounded-lg border border-orange-500/30">
+                <div class="flex items-center gap-3 w-5/12 justify-end">
+                    <span class="text-[10px] font-bold text-white uppercase text-right">Côte d'Ivoire</span>
+                    <span class="text-[9px] font-bold text-orange-500 w-6">CIV</span>
+                </div>
+                <div class="w-2/12 text-center font-teko text-lg text-slate-500">VS</div>
+                <div class="flex items-center gap-3 w-5/12">
+                    <span class="text-[9px] font-bold text-slate-400 w-6 text-right">${oppCode}</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase truncate">${oppName}</span>
+                </div>
+            </div>
+        `;
 
-                // 3. On remplit les onglets (Dynamique)
-                const tabsContainer = document.getElementById('group-tabs');
-                Object.keys(this.state.groups).forEach(g => {
-                    tabsContainer.innerHTML += `<button onclick="app.setVG('${g}')" class="tab-btn ${this.state.viewingGroup===g?'active':''}">Gr. ${g}</button>`;
-                });
+        // On génère les autres lignes (Total matchs - 1)
+        for(let i = 0; i < config.count - 1; i++) {
+            // On prend 2 équipes au hasard dans la liste restante
+            if(otherTeams.length >= 2) {
+                const idx1 = Math.floor(Math.random() * otherTeams.length);
+                const t1 = otherTeams.splice(idx1, 1)[0];
+                
+                const idx2 = Math.floor(Math.random() * otherTeams.length);
+                const t2 = otherTeams.splice(idx2, 1)[0];
 
-                // 4. On remplit le classement (Dynamique)
-                const b = document.getElementById('cal-body');
-                Object.keys(this.state.standings)
-                    .filter(k => this.state.standings[k].grp === this.state.viewingGroup)
-                    .sort((a,b) => this.state.standings[b].pts - this.state.standings[a].pts)
-                    .forEach(t => {
-                        b.innerHTML += `<tr class="border-b border-white/5"><td class="p-3 font-bold text-white">${t}</td><td class="p-3 text-center font-teko text-lg text-orange-500">${this.state.standings[t].pts}</td></tr>`;
-                    });
-
-                // 5. On remplit les résultats globaux (Dynamique)
-                const rF = document.getElementById('res-f'); 
-                if(rF) {
-                    (this.state.globalResults || []).forEach(r => {
-                        rF.innerHTML += `<div class="bg-slate-900/50 p-2 text-[9px] border border-white/5 rounded italic text-slate-400">${r}</div>`;
-                    });
-                }
+                htmlContent += `
+                    <div class="flex justify-between items-center bg-slate-900/40 p-3 rounded-lg border border-white/5">
+                        <div class="flex items-center gap-3 w-5/12 justify-end">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase text-right truncate">${t1.n}</span>
+                            <span class="text-[9px] font-bold text-slate-600 w-6">${t1.code}</span>
+                        </div>
+                        <div class="w-2/12 text-center font-teko text-lg text-slate-700">VS</div>
+                        <div class="flex items-center gap-3 w-5/12">
+                            <span class="text-[9px] font-bold text-slate-600 w-6 text-right">${t2.code}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase truncate">${t2.n}</span>
+                        </div>
+                    </div>
+                `;
             }
+        }
+        htmlContent += `</div></div>`;
+    }
+
+    // --- SUITE STANDARD (BUTEURS, MVP, PALMARÈS) ---
+    // (Cette partie ne change pas, c'est ton code corrigé précédent)
+
+    // TOP BUTEURS
+    const topScorers = (this.state.goalScorers || []).sort((a,b) => b.c - a.c).slice(0, 5);
+    htmlContent += `<div class="mb-6"><div class="flex items-center gap-2 mb-2 ml-1"><span class="text-orange-500">${SVGS.boot}</span><h3 class="font-teko text-2xl text-white uppercase">Meilleurs Buteurs</h3></div><div class="glass-panel rounded-xl overflow-hidden border border-slate-700/50">${topScorers.length === 0 ? '<div class="p-4 text-xs text-slate-500 italic text-center">...</div>' : ''}<table class="w-full text-xs text-left"><tbody class="divide-y divide-white/5">`;
+    topScorers.forEach((p, idx) => {
+        let rc = idx===0?"text-yellow-400":(idx===1?"text-slate-300":(idx===2?"text-orange-400":"text-slate-500"));
+        htmlContent += `<tr class="bg-slate-900/40"><td class="p-3 font-teko text-lg w-8 text-center ${rc}">#${idx+1}</td><td class="p-3"><div class="font-bold text-white uppercase text-[10px]">${p.n}</div><div class="text-[9px] text-slate-500 uppercase font-bold">${p.t}</div></td><td class="p-3 text-right"><span class="bg-slate-800 border border-slate-600 px-2 py-1 rounded text-orange-500 font-teko text-lg font-bold shadow-lg">${p.c}</span></td></tr>`;
+    });
+    htmlContent += `</tbody></table></div></div>`;
+
+    // COURSE MVP
+    const topPlayers = (this.state.playerRatings || []).filter(p => p.matchs >= 1).map(p => ({ ...p, avg: p.total / p.matchs })).sort((a,b) => b.avg - a.avg).slice(0, 5);
+    htmlContent += `<div class="mb-6"><div class="flex items-center gap-2 mb-2 ml-1"><span class="text-yellow-400">${SVGS.star}</span><h3 class="font-teko text-2xl text-white uppercase">Course au MVP</h3></div><div class="glass-panel rounded-xl overflow-hidden border border-slate-700/50">${topPlayers.length === 0 ? '<div class="p-4 text-xs text-slate-500 italic text-center">...</div>' : ''}<table class="w-full text-xs text-left"><tbody class="divide-y divide-white/5">`;
+    topPlayers.forEach((p, idx) => {
+        htmlContent += `<tr class="bg-slate-900/40"><td class="p-3 font-teko text-lg w-8 text-center ${idx===0?'text-yellow-400':'text-slate-500'}">#${idx+1}</td><td class="p-3"><div class="font-bold text-white uppercase text-[10px]">${p.n}</div><div class="text-[9px] text-slate-500 uppercase font-bold">${p.t}</div></td><td class="p-3 text-right"><span class="bg-slate-800 border ${idx===0?'border-yellow-500 text-yellow-400':'border-slate-600 text-blue-400'} px-2 py-1 rounded font-teko text-lg font-bold shadow-lg">${p.avg.toFixed(2)}</span></td></tr>`;
+    });
+    htmlContent += `</tbody></table></div></div>`;
+
+    // PALMARES
+    const history = this.state.pastWinners || [];
+    htmlContent += `<div class="mb-6 border-t border-slate-800 pt-4"><h3 class="font-teko text-3xl text-white uppercase italic mb-2">Palmarès Historique</h3><div class="space-y-2">`;
+    if(history.length===0) htmlContent+=`<div class="text-[10px] text-slate-500 italic p-2">Aucune donnée.</div>`;
+    else history.slice().reverse().forEach(h=>{ htmlContent+=`<div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border ${h.n==="Côte d'Ivoire"?'border-orange-500/50':'border-white/5'}"><span class="text-orange-500 font-teko text-xl font-bold">${h.year}</span><span class="text-xs font-bold ${h.n==="Côte d'Ivoire"?'text-white':'text-slate-400'} uppercase">${h.n}</span></div>`;});
+    htmlContent += `</div></div>`;
+
+    c.innerHTML = htmlContent;
+
+    // --- LOGIQUE JS (Pour les onglets des poules) ---
+    if (this.state.stage === 'groups') {
+        const tabsContainer = document.getElementById('group-tabs');
+        if (tabsContainer) {
+            Object.keys(this.state.groups).forEach(g => {
+                tabsContainer.innerHTML += `<button onclick="app.setVG('${g}')" class="tab-btn ${this.state.viewingGroup===g?'active':''}">Gr. ${g}</button>`;
+            });
+        }
+        const b = document.getElementById('cal-body');
+        if (b) {
+            Object.keys(this.state.standings).filter(k => this.state.standings[k].grp === this.state.viewingGroup).sort((a,b) => this.state.standings[b].pts - this.state.standings[a].pts).forEach(t => {
+                b.innerHTML += `<tr class="border-b border-white/5"><td class="p-3 font-bold text-white">${t}</td><td class="p-3 text-center font-teko text-lg text-orange-500">${this.state.standings[t].pts}</td></tr>`;
+            });
+        }
+    }
+}
             setVG(g) { this.state.viewingGroup = g; this.renderCalendar(); }
 
             renderTraining() {
