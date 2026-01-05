@@ -386,8 +386,8 @@
                         </div>
                     </div>
                     
-                    <div class="p-4">
-                        <div class="grid grid-cols-2 gap-3 mb-8 px-2">
+                    <div class="p-4 overflow-y-auto no-scrollbar pb-32">
+                        <div class="grid grid-cols-2 gap-3 mb-6 px-1">
                             <div class="flex flex-col gap-1">
                                  <span class="text-[9px] font-bold text-slate-500 uppercase ml-1">Style Actuel</span>
                                  <button onclick="app.toggleMatchInstruction('style')" id="live-inst-style" class="py-4 rounded-xl bg-orange-600 text-white border border-orange-400 text-[11px] font-bold uppercase shadow-lg">POSSESSION</button>
@@ -398,11 +398,20 @@
                             </div>
                         </div>
 
+                        <div class="mb-6">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase ml-1 mb-2 block">Changer Dispositif</span>
+                            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2" id="live-formation-list">
+                                <button onclick="app.setLiveFormation('4-3-3')" class="live-fmt-btn px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-[10px] font-bold shrink-0 transition" data-fmt="4-3-3">4-3-3</button>
+                                <button onclick="app.setLiveFormation('4-4-2')" class="live-fmt-btn px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-[10px] font-bold shrink-0 transition" data-fmt="4-4-2">4-4-2</button>
+                                <button onclick="app.setLiveFormation('3-5-2')" class="live-fmt-btn px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-[10px] font-bold shrink-0 transition" data-fmt="3-5-2">3-5-2</button>
+                                <button onclick="app.setLiveFormation('4-2-3-1')" class="live-fmt-btn px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-[10px] font-bold shrink-0 transition" data-fmt="4-2-3-1">4-2-3-1</button>
+                                <button onclick="app.setLiveFormation('5-4-1')" class="live-fmt-btn px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-[10px] font-bold shrink-0 transition" data-fmt="5-4-1">5-4-1</button>
+                            </div>
+                        </div>
+
                         <div class="pitch-container scale-[0.9] origin-top mx-auto shadow-2xl mb-24">
                              <div id="pitch-cards-layer-live"></div>
                         </div>
-                        
-                        <div class="h-40"></div>
                     </div>
                 </div>
 
@@ -2750,7 +2759,13 @@
                 this.isLiveCoaching = !this.isLiveCoaching; 
                 const overlay = document.getElementById('live-coach-overlay');
                 if(overlay) overlay.classList.toggle('active', this.isLiveCoaching); 
-                if(this.isLiveCoaching) this.renderPitch('pitch-cards-layer-live'); 
+                
+                if(this.isLiveCoaching) {
+                    // On met à jour l'affichage de la formation actuelle
+                    this.setLiveFormation(this.state.formation);
+                    // On dessine le terrain
+                    this.renderPitch('pitch-cards-layer-live'); 
+                }
             }
             
        openSwapModal(idx) {
@@ -2930,6 +2945,30 @@ showGoalAnim(n) {
                 const pBtn = document.getElementById('live-inst-pressing');
                 if(sBtn) { sBtn.innerText = s.style.toUpperCase(); sBtn.className = `py-4 rounded-xl border text-[11px] font-bold uppercase transition ${s.style==='possession'?'bg-orange-600 border-orange-400 text-white shadow-lg shadow-orange-600/30':'bg-slate-800 border-slate-700 text-slate-400'}`; }
                 if(pBtn) { pBtn.innerText = s.pressing==='high'?'PRESSING HAUT':'PRESSING NORMAL'; pBtn.className = `py-4 rounded-xl border text-[11px] font-bold uppercase transition ${s.pressing==='high'?'bg-orange-600 border-orange-400 text-white shadow-lg shadow-orange-600/30':'bg-slate-800 border-slate-700 text-slate-400'}`; }
+            }
+            // --- GESTION FORMATION LIVE ---
+            setLiveFormation(fmt) {
+                // 1. Mise à jour de la donnée
+                this.state.formation = fmt;
+                
+                // 2. Mise à jour visuelle des boutons (Active/Inactive)
+                document.querySelectorAll('.live-fmt-btn').forEach(btn => {
+                    if (btn.dataset.fmt === fmt) {
+                        btn.classList.remove('bg-slate-800', 'border-slate-700', 'text-slate-400');
+                        btn.classList.add('bg-orange-600', 'border-orange-500', 'text-white', 'shadow-lg');
+                    } else {
+                        btn.classList.add('bg-slate-800', 'border-slate-700', 'text-slate-400');
+                        btn.classList.remove('bg-orange-600', 'border-orange-500', 'text-white', 'shadow-lg');
+                    }
+                });
+
+                // 3. Re-dessiner le terrain immédiatement
+                this.renderPitch('pitch-cards-layer-live');
+                
+                // 4. Ajouter un commentaire
+                this.addCommentary(`${SVGS.layout} Changement tactique : L'équipe passe en <b class="text-white">${fmt}</b>.`);
+                
+                this.toast(`Dispositif changé en ${fmt}`);
             }
         // --- MOTEUR SONORE ELECTRONIQUE (A COLLER A LA FIN DE LA CLASSE) ---
 
@@ -3130,3 +3169,4 @@ showGoalAnim(n) {
 </body>
 
 </html>
+
