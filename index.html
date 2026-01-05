@@ -1368,18 +1368,53 @@
                     } else { card.innerHTML = `<div class="card-ovr opacity-20">?</div>`; }
                     container.appendChild(card);
                 }
-                if (layerId === 'pitch-cards-layer') {
-                    const bC = document.getElementById('bench-list-container'); bC.innerHTML = '';
-                    this.state.players.filter(p => p.role !== 'starter').forEach(p => {
-                        const it = document.createElement('div'); it.className = 'bench-item shadow-lg';
-                        it.innerHTML = `<div class="font-teko text-2xl text-orange-500 font-bold">${p.ovr}</div><div class="flex flex-col leading-tight"><span class="text-[9px] font-bold text-white uppercase">${p.name.split(' ').pop()}</span><span class="text-[8px] text-slate-500">${p.pos} • ${p.age} ans</span></div>`;
-                        bC.appendChild(it);
-                    });
-                    const bcCount = document.getElementById('bench-count');
-                    if(bcCount) bcCount.innerText = `${this.state.players.filter(p => p.role !== 'starter').length}/20`;
-                    const avgEl = document.getElementById('squad-avg-ovr');
-                    if(avgEl) avgEl.innerText = Math.round(this.getTeamPower());
-                }
+                // --- MODIFICATION : BANC DE TOUCHE (Cartes Compactes Colorées) ---
+        if (layerId === 'pitch-cards-layer') {
+            const bC = document.getElementById('bench-list-container'); 
+            bC.innerHTML = '';
+            
+            // On garde le conteneur en flex-wrap pour avoir des "cartes" côte à côte
+            bC.className = "flex flex-wrap gap-2 justify-center pb-20"; 
+
+            this.state.players.filter(p => p.role !== 'starter').forEach(p => {
+                const it = document.createElement('div');
+                
+                // 1. Définition des COULEURS (La logique "Entraînement")
+                // Vert = >80%, Orange = >50%, Rouge = <50%
+                const borderColor = p.energy > 80 ? "border-green-500" : (p.energy > 50 ? "border-orange-500" : "border-red-500");
+                const textColor = p.energy > 80 ? "text-green-400" : (p.energy > 50 ? "text-orange-400" : "text-red-400");
+                const glow = p.energy > 80 ? "shadow-[0_0_10px_rgba(34,197,94,0.15)]" : "";
+
+                // 2. Style de la Carte (On garde la forme "Bench Item" mais boostée)
+                it.className = `relative min-w-[110px] h-[60px] bg-slate-900/90 border-l-4 ${borderColor} border-y border-r border-white/5 rounded-lg p-2 flex items-center gap-3 cursor-pointer hover:bg-slate-800 transition active:scale-95 ${glow}`;
+                
+                // Action au clic
+                it.onclick = () => { this.toast(`Remplaçant : ${p.name} (${p.energy}% Forme)`); };
+
+                // 3. Contenu Visuel
+                it.innerHTML = `
+                    <div class="flex flex-col items-center justify-center w-10">
+                        <span class="font-teko text-2xl ${textColor} font-bold leading-none">${p.ovr}</span>
+                        <span class="text-[8px] text-slate-500 font-bold uppercase">${p.pos}</span>
+                    </div>
+                    
+                    <div class="flex flex-col justify-center border-l border-white/10 pl-2">
+                        <span class="text-[10px] font-bold text-white uppercase leading-tight truncate w-16">${p.name.split(' ').pop()}</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <div class="w-full h-1 bg-slate-800 rounded-full w-12 overflow-hidden">
+                                <div class="h-full ${p.energy > 80 ? 'bg-green-500' : (p.energy > 50 ? 'bg-orange-500' : 'bg-red-500')}" style="width: ${p.energy}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                bC.appendChild(it);
+            });
+
+            const bcCount = document.getElementById('bench-count');
+            if(bcCount) bcCount.innerText = `${this.state.players.filter(p => p.role !== 'starter').length}/20`;
+            const avgEl = document.getElementById('squad-avg-ovr');
+            if(avgEl) avgEl.innerText = Math.round(this.getTeamPower());
+        }
             }
 
             getTeamPower() {
@@ -3152,63 +3187,89 @@
             }
             
        openSwapModal(idx) {
-                this.currentSwapSlot = idx; 
-                const form = FORMATIONS[this.state.formation];
-                const targetPos = form.zones[idx]; 
-                
-                const titlePos = document.getElementById('swap-target-pos');
-                if(titlePos) titlePos.innerText = `Remplacer : ${targetPos}`;
+        this.currentSwapSlot = idx; 
+        const form = FORMATIONS[this.state.formation];
+        const targetPos = form.zones[idx]; 
+        
+        const titlePos = document.getElementById('swap-target-pos');
+        if(titlePos) titlePos.innerText = `Remplacer : ${targetPos}`;
 
-                const list = document.getElementById('swap-candidates-list'); 
-                if(!list) return;
-                
-                list.className = "p-4 flex-1 overflow-y-auto no-scrollbar flex flex-wrap gap-3 justify-center content-start";
-                list.innerHTML = '';
-                
-                const candidates = this.state.players.filter(p => p.role !== 'starter')
-                    .sort((a,b) => (b.pos === targetPos) - (a.pos === targetPos) || b.ovr - a.ovr);
+        const list = document.getElementById('swap-candidates-list'); 
+        if(!list) return;
+        
+        // GRILLE : 2 colonnes pour bien voir les cartes
+        list.className = "p-4 flex-1 overflow-y-auto no-scrollbar grid grid-cols-2 gap-3 content-start";
+        list.innerHTML = '';
+        
+        const candidates = this.state.players.filter(p => p.role !== 'starter')
+            .sort((a,b) => (b.pos === targetPos) - (a.pos === targetPos) || b.ovr - a.ovr);
 
-                candidates.forEach(p => {
-                    const isGoodPos = p.pos === targetPos;
-                    
-                    // Couleurs
-                    const borderColor = isGoodPos ? 'border-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]' : 'border-slate-700 opacity-60 grayscale-[0.8]';
-                    const bgStyle = isGoodPos ? 'bg-gradient-to-br from-orange-600 to-orange-800' : 'bg-gradient-to-br from-slate-800 to-slate-900';
-                    const posColor = isGoodPos ? 'text-orange-200' : 'text-slate-500';
-                    const badgeColor = isGoodPos ? 'text-white' : 'text-slate-400';
+        candidates.forEach(p => {
+            const isGoodPos = p.pos === targetPos;
+            
+            // COULEURS DYNAMIQUES (Le coeur de votre demande)
+            // Si bonne position : Bordure selon l'ÉNERGIE (Vert/Orange/Rouge)
+            // Si mauvaise position : Grisé
+            let borderColor = "border-slate-700";
+            let textColor = "text-slate-500";
+            let bgGradient = "bg-slate-900";
+            let energyBarColor = "bg-slate-600";
 
-                    const el = document.createElement('div');
-                    
-                    // STRUCTURE IDENTIQUE AU TERRAIN (50x78px)
-                    // On utilise 'flex-col' sans justify-center, c'est le mt-auto du nom qui gère l'espace.
-                    el.className = `relative w-[50px] h-[78px] rounded-md border ${borderColor} ${bgStyle} flex flex-col items-center cursor-pointer transition-all active:scale-95 hover:scale-110 overflow-hidden`;
-                    
-                    el.onclick = () => { this.confirmSwap(p.id); };
-                    
-                    el.innerHTML = `
-                        <div class="mt-1 text-[6px] font-bold text-slate-300 mb-px">${p.age} ans</div>
-                        
-                        <div class="font-teko text-[20px] font-bold leading-none ${badgeColor} drop-shadow-md">
-                            ${p.ovr}
-                        </div>
-                        
-                        <div class="text-[7px] font-black uppercase ${posColor} -mt-0.5">${p.pos}</div>
-                        
-                        <div class="w-[75%] h-[2px] bg-white/20 rounded-full overflow-hidden mt-0.5">
-                            <div class="h-full ${p.energy > 80 ? 'bg-white' : (p.energy > 50 ? 'bg-yellow-400' : 'bg-red-500')}" style="width: ${p.energy}%"></div>
-                        </div>
-
-                        <div class="mt-auto w-full bg-black/60 py-[2px] text-center">
-                            <div class="font-sans text-[7px] font-bold text-white truncate px-0.5 leading-none">${p.name.split(' ').pop()}</div>
-                        </div>
-                    `;
-                    
-                    list.appendChild(el);
-                });
-                
-                const modal = document.getElementById('swap-modal'); 
-                if(modal) modal.classList.remove('hidden');
+            if (isGoodPos) {
+                if (p.energy > 80) {
+                    borderColor = "border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.2)]";
+                    textColor = "text-green-400";
+                    energyBarColor = "bg-green-500";
+                    bgGradient = "bg-gradient-to-br from-green-900/20 to-slate-900";
+                } else if (p.energy > 50) {
+                    borderColor = "border-orange-500";
+                    textColor = "text-orange-400";
+                    energyBarColor = "bg-orange-500";
+                    bgGradient = "bg-gradient-to-br from-orange-900/20 to-slate-900";
+                } else {
+                    borderColor = "border-red-500";
+                    textColor = "text-red-400";
+                    energyBarColor = "bg-red-500";
+                    bgGradient = "bg-gradient-to-br from-red-900/20 to-slate-900";
+                }
+            } else {
+                // Joueur hors poste : style éteint
+                borderColor = "border-white/5 opacity-60";
             }
+
+            const el = document.createElement('div');
+            
+            // On garde la forme rectangulaire horizontale "Carte Compacte"
+            el.className = `relative h-[60px] rounded-lg border ${borderColor} ${bgGradient} flex items-center p-2 cursor-pointer transition active:scale-95 hover:bg-slate-800`;
+            
+            el.onclick = () => { this.confirmSwap(p.id); };
+            
+            el.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-10 border-r border-white/5 pr-2 mr-2">
+                    <span class="font-teko text-2xl ${isGoodPos ? textColor : 'text-slate-600'} font-bold leading-none">${p.ovr}</span>
+                    <span class="text-[8px] text-slate-500 font-bold uppercase">${p.pos}</span>
+                </div>
+                
+                <div class="flex flex-col justify-center flex-1 min-w-0">
+                    <span class="text-[10px] font-bold ${isGoodPos ? 'text-white' : 'text-slate-500'} uppercase truncate">${p.name.split(' ').pop()}</span>
+                    
+                    <div class="flex items-center gap-2 mt-1">
+                        <div class="w-full h-1 bg-slate-950 rounded-full overflow-hidden">
+                            <div class="h-full ${energyBarColor}" style="width: ${p.energy}%"></div>
+                        </div>
+                        <span class="text-[8px] ${textColor} font-bold">${p.energy}%</span>
+                    </div>
+                </div>
+                
+                ${isGoodPos ? `<div class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${energyBarColor}"></div>` : ''}
+            `;
+            
+            list.appendChild(el);
+        });
+        
+        const modal = document.getElementById('swap-modal'); 
+        if(modal) modal.classList.remove('hidden');
+    }
             
             confirmSwap(id) {
                 const old = this.state.players.find(x => x.role === 'starter' && x.slot === this.currentSwapSlot);
