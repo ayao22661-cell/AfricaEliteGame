@@ -2110,12 +2110,11 @@
                 const msgText = document.getElementById('pen-action-text');
                 msgBox.classList.remove('hidden');
 
-                // --- TIR DU JOUEUR (CIV) ---
+                // --- 1. TIR DU JOUEUR (CIV) ---
                 // Calcul : OVR Joueur vs OVR Gardien Adverse (simulé ~80)
-                // Bonus de base 75% + Différence de niveau
                 let successChance = 0.75 + ((player.ovr - 80) * 0.01);
-                if (player.pos === 'FWD') successChance += 0.10; // Attaquants meilleurs
-                if (player.energy < 50) successChance -= 0.10; // Fatigue
+                if (player.pos === 'FWD') successChance += 0.10; // Bonus Attaquants
+                if (player.energy < 50) successChance -= 0.10;   // Malus Fatigue
 
                 const isGoalHome = Math.random() < successChance;
                 
@@ -2139,13 +2138,33 @@
                     this.updatePenaltyUI();
                     this.penState.shootersUsed.push(player.id);
 
-                    // --- TIR DE L'IA (ADVERSAIRE) ---
+                    // --- 2. TIR DE L'IA (ADVERSAIRE) ---
                     setTimeout(() => {
                         msgText.innerText = "L'adversaire tire...";
                         msgText.className = "font-teko text-4xl text-slate-400 uppercase italic";
 
                         setTimeout(() => {
-                            const isGoalAway = Math.random() < 0.75; // IA standard
+                            // --- CORRECTION : PRISE EN COMPTE DE VOTRE GARDIEN ---
+                            
+                            // 1. On trouve votre gardien titulaire
+                            const myGK = this.state.players.find(p => p.role === 'starter' && p.pos === 'GK');
+                            const gkRating = myGK ? myGK.ovr : 70; // 70 par défaut si pas de gardien (bug)
+                            
+                            // 2. Note du tireur adverse (Moyenne de l'équipe adverse)
+                            const oppShooterRating = this.match.opp.ovr;
+
+                            // 3. Calcul de la difficulté pour l'IA
+                            // Base de 70% (au lieu de 75%)
+                            let aiChance = 0.70; 
+                            
+                            // Si votre gardien est meilleur que le tireur, l'IA perd des chances
+                            // Ex: Gardien 85 vs Tireur 80 = -5% de chance de but
+                            aiChance += (oppShooterRating - gkRating) * 0.01;
+
+                            // Plafonds pour éviter les bugs (Min 30%, Max 90%)
+                            aiChance = Math.max(0.30, Math.min(0.90, aiChance));
+
+                            const isGoalAway = Math.random() < aiChance;
                             
                             if (isGoalAway) {
                                 msgText.innerText = "L'adversaire marque.";
@@ -2153,7 +2172,9 @@
                                 this.penState.score[1]++;
                                 this.penState.history[1].push(1);
                             } else {
-                                msgText.innerText = "ARRÊT DU GARDIEN !";
+                                // On félicite le gardien par son nom !
+                                const gkName = myGK ? myGK.name.split(' ').pop() : "GARDIEN";
+                                msgText.innerText = `ARRÊT DE ${gkName.toUpperCase()} !`;
                                 msgText.className = "font-teko text-5xl text-green-500 uppercase italic";
                                 this.penState.history[1].push(0);
                                 this.playSound('stadium'); // Foule contente
@@ -3875,20 +3896,7 @@ showGoalAnim(n) {
             this.ambianceNode = null;
         }
     }
-    // --- MOTEUR MUSICAL "EPIC DRILL" (140 BPM) ---
-
-    // --- MOTEUR "DRILL IVOIRE" (Style Himra/Suspect 95) ---
-
-    // --- MOTEUR "PRO DRILL" (Clean & Dark) ---
-
-    // --- MOTEUR MUSICAL "DRILL SYMPHONIC" (Variations Multiples) ---
-
-   // --- MOTEUR "FIFA 20 / VOLTA LEGACY" (Urban Future Bass) ---
-
-    // --- MOTEUR "SPEED ORCHESTRA" (150 BPM - Action Hero) ---
-
-    // --- MUSIQUE DU MENU (DÉSACTIVÉE) ---
-    // --- MUSIQUE DU MENU (DÉSACTIVÉE) ---
+    
     startMenuMusic() {
         return;
     }
