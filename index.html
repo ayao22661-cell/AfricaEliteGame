@@ -2937,10 +2937,52 @@
 
             renderTraining() {
                 const c = document.getElementById('training-content'); if(!c) return;
-                c.innerHTML = '<h3 class="font-teko text-4xl mb-4 uppercase italic leading-none">Centre d\'Entraînement</h3><p class="text-[10px] text-slate-500 mb-6 uppercase tracking-widest">Optimisez les performances de vos éléphants.</p>';
-                this.state.players.sort((a,b)=>b.ovr-a.ovr).forEach(p => {
-                    c.innerHTML += `<div class="glass-panel p-4 rounded-xl flex items-center justify-between mb-3 shadow-md border-l-4 border-orange-500/50"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center font-teko text-2xl border border-orange-500 italic shadow-lg text-orange-500">${p.ovr}</div><div><div class="font-bold text-white uppercase text-sm">${p.name}</div><div class="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">${p.pos} • ${p.age} ans • ${p.energy}% Energie</div></div></div><button onclick="app.boost('${p.id}')" class="px-5 py-2 bg-slate-800 rounded-lg text-[10px] font-bold uppercase hover:bg-orange-600 transition">Booster</button></div>`;
+                
+                // 1. En-tête
+                let html = `
+                    <div class="mb-6">
+                        <h3 class="font-teko text-4xl text-white uppercase italic leading-none mb-1">Centre d'Entraînement</h3>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Développez le potentiel de vos éléphants.</p>
+                    </div>
+                    
+                    <div class="space-y-2 pb-20">
+                `;
+                
+                // 3. Boucle des joueurs
+                // Tri : Titulaires d'abord, puis par Note OVR
+                const sortedPlayers = this.state.players.sort((a,b) => (a.role === 'starter' ? -1 : 1) || b.ovr - a.ovr);
+                
+                sortedPlayers.forEach(p => {
+                    // Badge Position (Style neutre/scout)
+                    const badgeClass = "bg-slate-800 border-slate-600 text-slate-400 border";
+                    
+                    // Couleur Energie
+                    const enColor = p.energy > 80 ? "text-green-400" : (p.energy > 50 ? "text-orange-400" : "text-red-400");
+
+                    html += `
+                        <div class="glass-panel p-3 rounded-xl flex items-center justify-between border border-white/5 hover:bg-slate-800 transition group">
+                            <div class="flex items-center gap-3">
+                                <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-slate-900 border border-slate-700">
+                                    <span class="font-teko text-xl text-white font-bold">${p.ovr}</span>
+                                </div>
+                                
+                                <div>
+                                    <div class="font-bold text-white uppercase text-xs mb-0.5">${p.name}</div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${badgeClass}">${p.pos}</span>
+                                        <span class="text-[9px] text-slate-500 uppercase font-bold">${p.age} ans • <span class="${enColor}">${p.energy}%</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button onclick="app.boost('${p.id}')" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-[9px] font-bold uppercase shadow-md active:scale-95 transition tracking-widest flex items-center gap-1">
+                                <span id="icon-zap-mini"></span> Booster
+                            </button>
+                        </div>`;
                 });
+                
+                html += `</div>`; // Fermeture du conteneur
+                c.innerHTML = html;
             }
            boost(id) { 
                 if(this.state.budget < 0.2) return this.toast("Manque de budget !"); 
