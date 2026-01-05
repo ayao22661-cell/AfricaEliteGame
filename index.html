@@ -257,8 +257,8 @@
                             </div>
                         </div>
                         <div class="p-4 bg-slate-800/80 border-t border-slate-700/50">
-                            <button onclick="app.startMatch()" class="w-full py-5 bg-white text-slate-900 rounded-2xl text-xs font-bold uppercase flex items-center justify-center gap-2 active:scale-95 transition shadow-xl">
-                                <span id="icon-play-main"></span> JOUER LE MATCH
+                            <button onclick="app.startMatch()" class="w-full py-5 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white rounded-2xl text-xs font-bold uppercase flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-orange-900/20">
+                              <span id="icon-play-main"></span> JOUER LE MATCH
                             </button>
                         </div>
                     </div>
@@ -275,7 +275,9 @@
             <div id="view-squad" class="view-section hidden flex flex-col h-full bg-slate-900 absolute inset-0 z-10 overflow-y-auto no-scrollbar">
                 <div class="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-40 shadow-2xl">
                     <div class="flex justify-between items-center mb-4 px-1">
-                        <button onclick="app.autoPick()" class="px-4 py-2 bg-blue-600 rounded-xl text-[10px] font-bold text-white uppercase flex items-center gap-2"><span id="icon-zap-mini"></span> Composition Auto.</button>
+                        <button onclick="app.autoPick()" class="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-xl text-[10px] font-bold text-white uppercase flex items-center gap-2 transition">
+                            <span id="icon-zap-mini"></span> Composition Auto.
+                        </button>
                         <div id="squad-avg-ovr" class="text-white text-3xl font-teko font-bold">--</div>
                     </div>
                     <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
@@ -361,12 +363,13 @@
                         </div>
                 </div>
 
-                <div id="commentary-log" class="flex-1 overflow-y-auto space-y-2 p-6 flex flex-col h-full text-slate-400 text-[11px] no-scrollbar italic"></div>
+               <div id="commentary-log" class="flex-1 overflow-y-auto space-y-2 p-6 flex flex-col h-full text-slate-400 text-[11px] no-scrollbar italic"></div>
 
                 <div class="bg-slate-900 p-4 pb-12 border-t border-slate-800 shrink-0 shadow-2xl">
-                    <button onclick="app.toggleLiveCoaching()" class="w-full bg-blue-600 text-white py-4 rounded-xl text-[10px] font-bold mb-4 uppercase shadow-xl flex items-center justify-center gap-2 active:scale-95 transition">
+                    <button onclick="app.toggleLiveCoaching()" class="w-full bg-slate-800 border border-orange-500/30 text-white py-4 rounded-xl text-[10px] font-bold mb-4 uppercase shadow-lg flex items-center justify-center gap-2 active:scale-95 transition hover:bg-slate-700">
                         <span id="icon-repeat-match"></span> Stratégie en Direct
                     </button>
+                    
                     <div class="grid grid-cols-3 gap-3">
                         <button onclick="app.setMatchTactic('def')" id="tac-def" class="py-3 bg-slate-800 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase transition">VERROU</button>
                         <button onclick="app.setMatchTactic('bal')" id="tac-bal" class="py-3 bg-slate-700 border border-orange-500 rounded-xl text-[10px] font-bold text-white shadow-lg uppercase transition">ÉQUILIBRE</button>
@@ -517,8 +520,8 @@
                                 </div>
                             </div>
 
-                            <button onclick="app.closeEndModal()" class="w-full py-5 bg-white hover:bg-slate-200 text-slate-900 font-bold rounded-xl uppercase shadow-lg shadow-white/10 active:scale-95 transition-all text-sm tracking-widest">
-                                Continuer la Saison
+                            <button onclick="app.closeEndModal()" class="w-full py-5 bg-white text-slate-900 hover:bg-slate-200 font-bold rounded-xl uppercase shadow-lg shadow-white/5 active:scale-95 transition-all text-sm tracking-widest">
+                              Continuer la Saison
                             </button>
                         </div>
                     </div>
@@ -568,8 +571,8 @@
                 </div>
 
                 <div class="p-4 bg-slate-900 border-t border-slate-800 absolute bottom-0 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-                    <button onclick="app.kickOff()" class="w-full py-4 bg-white hover:bg-orange-500 hover:text-white text-slate-900 rounded-xl font-bold uppercase tracking-widest transition-all shadow-xl text-sm flex items-center justify-center gap-2">
-                        <span id="icon-play-preview"></span> DONNER LE COUP D'ENVOI
+                    <button onclick="app.kickOff()" class="w-full py-4 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-bold uppercase tracking-widest transition-all shadow-xl text-sm flex items-center justify-center gap-2 border border-orange-400">
+                     <span id="icon-play-preview"></span> DONNER LE COUP D'ENVOI
                     </button>
                 </div>
             </div>
@@ -2960,40 +2963,137 @@
                 this.toast(`${p.name} progresse (+${gain}) !`); 
             }
 
-            renderScout() {
+          renderScout() {
                 const c = document.getElementById('scout-content'); if(!c) return;
-                c.innerHTML = `<div class="space-y-4 mb-6"><div class="glass-panel p-6 rounded-3xl text-center bg-slate-900/40 shadow-2xl"><h3 class="text-xl font-bold uppercase mb-4 font-teko tracking-widest text-slate-300">Recrutement Standard</h3><button onclick="app.scoutPlayers('standard')" class="w-full py-4 bg-blue-600 rounded-2xl font-bold uppercase shadow-xl transition hover:bg-blue-500 active:scale-95">Détecter 5 Talents (3.0M€)</button></div><div class="glass-panel p-6 rounded-3xl text-center border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/10 to-transparent shadow-2xl"><h3 class="text-xl font-bold uppercase mb-2 font-teko text-yellow-500 text-shadow-glow">Projet Golden Boy (10.0 M€)</h3><p class="text-[9px] text-slate-400 mb-4 font-bold uppercase tracking-widest">Un talent pur de -21 ans (OVR 80+).</p><button onclick="app.scoutPlayers('elite')" id="btn-scout-elite" class="w-full py-4 ${this.state.rareScoutUsed ? 'bg-slate-800 text-slate-600' : 'bg-yellow-600 text-white'} rounded-2xl font-bold uppercase shadow-xl" ${this.state.rareScoutUsed ? 'disabled' : ''}>${this.state.rareScoutUsed ? 'DÉJÀ DÉTECTÉ' : 'RECHERCHER PÉPITE'}</button></div></div><div id="scout-list" class="space-y-2 pb-20"></div>`;
+                
+                c.innerHTML = `
+                    <div class="space-y-4 mb-8">
+                        <div class="glass-panel p-5 rounded-3xl text-center bg-green-900/10 shadow-2xl border border-white/5 relative overflow-hidden group hover:border-green-500/30 transition-all">
+                            <div class="absolute top-0 right-0 p-4 opacity-5 grayscale group-hover:opacity-10 transition">${SVGS.globe}</div>
+                            <h3 class="text-2xl font-bold uppercase mb-1 font-teko text-green-500">Ligue 1 Ivoirienne</h3>
+                            <p class="text-[9px] text-slate-400 mb-4 font-bold uppercase tracking-widest">Dénicher les pépites locales.</p>
+                            <button onclick="app.scoutPlayers('standard')" class="w-full py-4 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-bold uppercase shadow-lg transition active:scale-95 text-[11px] tracking-wide flex items-center justify-center gap-2">
+                                Financer Détection (3.0 M€)
+                            </button>
+                        </div>
+
+                        <div class="glass-panel p-5 rounded-3xl text-center bg-blue-900/10 shadow-2xl border border-white/5 relative overflow-hidden group hover:border-blue-500/30 transition-all">
+                            <div class="absolute top-0 right-0 p-4 opacity-5 grayscale group-hover:opacity-10 transition">${SVGS.plane || SVGS.globe}</div>
+                            <h3 class="text-2xl font-bold uppercase mb-1 font-teko text-blue-400">Diaspora Europe</h3>
+                            <p class="text-[9px] text-slate-400 mb-4 font-bold uppercase tracking-widest">Convaincre les binationaux.</p>
+                            <button onclick="app.scoutPlayers('elite')" id="btn-scout-elite" class="w-full py-4 ${this.state.rareScoutUsed ? 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700' : 'bg-orange-600 hover:bg-orange-500 text-white'} rounded-xl font-bold uppercase shadow-lg transition active:scale-95 text-[11px] tracking-wide flex items-center justify-center gap-2" ${this.state.rareScoutUsed ? 'disabled' : ''}>
+                                ${this.state.rareScoutUsed ? 'MISSION DÉJÀ EFFECTUÉE' : 'LANCER LA MISSION (10.0 M€)'}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 mb-3 px-1 border-b border-white/5 pb-2">
+                         <span class="text-orange-500">${SVGS.search}</span>
+                         <h3 class="font-teko text-2xl text-white uppercase tracking-wide">Joueurs Supervisés</h3>
+                    </div>
+                    
+                    <div id="scout-list" class="space-y-2 pb-20"></div>
+                `;
+
                 const l = document.getElementById('scout-list');
-                this.state.scoutPool.forEach(p => { l.innerHTML += `<div class="glass-panel p-4 rounded-xl flex items-center justify-between border-l-4 ${p.ovr >= 80 ? 'border-yellow-500' : 'border-orange-500'}"><div><div class="font-bold text-white uppercase text-sm">${p.name}</div><div class="text-[9px] text-slate-500 uppercase font-bold">${p.pos} • OVR ${p.ovr} • ${p.age} ans</div></div><button onclick="app.recruit('${p.id}')" class="px-5 py-2 bg-green-600 rounded-xl text-[10px] font-bold uppercase shadow-md active:scale-90 transition">Recruter</button></div>`; });
+                
+                if (this.state.scoutPool.length === 0) {
+                    l.innerHTML = `<div class="text-center text-slate-600 italic text-xs py-10">Aucun rapport de scout disponible.<br>Lancez une mission ci-dessus.</div>`;
+                }
+
+                this.state.scoutPool.forEach(p => { 
+                    const origin = p.ovr >= 79 ? "Binational" : "Local";
+                    // On garde juste une petite puce de couleur pour l'info, mais le bouton reste Orange
+                    const badgeColor = p.ovr >= 79 ? "text-blue-400 border-blue-500/30 bg-blue-500/10" : "text-green-400 border-green-500/30 bg-green-500/10";
+
+                    l.innerHTML += `
+                        <div class="glass-panel p-3 rounded-xl flex items-center justify-between border border-white/5 hover:bg-slate-800 transition group">
+                            <div class="flex items-center gap-3">
+                                <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-slate-900 border border-slate-700">
+                                    <span class="font-teko text-xl text-white font-bold">${p.ovr}</span>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-white uppercase text-xs mb-0.5">${p.name}</div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${badgeColor} border">${p.pos}</span>
+                                        <span class="text-[9px] text-slate-500 uppercase">${p.age} ans • ${origin}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="app.recruit('${p.id}')" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-[9px] font-bold uppercase shadow-md active:scale-95 transition tracking-widest flex items-center gap-1">
+                                <span class="hidden group-hover:inline transition-all">+</span> Convoquer
+                            </button>
+                        </div>`; 
+                });
             }
            scoutPlayers(type) {
-                // 1. Calcul du coût de base
+                // 1. Calcul du coût de la mission
                 let baseCost = type === 'elite' ? 10.0 : 3.0;
                 
-                // 2. Bonus Directeur : -10% par niveau
+                // Bonus Directeur : -10% par niveau
                 const directorLevel = this.state.staff ? this.state.staff.director.level : 1;
-                const discount = (directorLevel - 1) * 0.10; // Niv 1 = 0%, Niv 5 = 40%
+                const discount = (directorLevel - 1) * 0.10; 
                 const finalCost = baseCost * (1 - discount);
 
-                if (this.state.budget < finalCost) return this.toast(`Budget insuffisant (${finalCost.toFixed(1)}M€ requis) !`);
+                if (this.state.budget < finalCost) return this.toast(`Frais de mission insuffisants (${finalCost.toFixed(1)}M€ requis) !`);
                 
                 this.state.budget -= finalCost;
                 
                 if (type === 'elite') { 
                     this.state.rareScoutUsed = true; 
-                    this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 18, ovr: 81 + Math.floor(Math.random()*6), role: 'sub', energy: 100 }); 
+                    // On génère un joueur fort (Binational) - OVR entre 79 et 86
+                    this.state.scoutPool.push({ 
+                        id: crypto.randomUUID(), 
+                        name: this.generateRealName(), 
+                        pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], 
+                        age: 18 + Math.floor(Math.random()*4), // 18-22 ans
+                        ovr: 79 + Math.floor(Math.random()*8), 
+                        role: 'sub', energy: 100 
+                    }); 
                 } else { 
+                    // On génère des locaux - OVR entre 60 et 78
                     for(let i=0; i<5; i++) { 
-                        this.state.scoutPool.push({ id: crypto.randomUUID(), name: this.generateRealName(), pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], age: 17 + Math.floor(Math.random()*5), ovr: 58 + Math.floor(Math.random()*15), role: 'sub', energy: 100 }); 
+                        this.state.scoutPool.push({ 
+                            id: crypto.randomUUID(), 
+                            name: this.generateRealName(), 
+                            pos: ["GK","DEF","MID","FWD"][Math.floor(Math.random()*4)], 
+                            age: 17 + Math.floor(Math.random()*8), // 17-25 ans
+                            ovr: 60 + Math.floor(Math.random()*19), 
+                            role: 'sub', energy: 100 
+                        }); 
                     } 
                 }
                 
                 this.save();
                 this.renderScout(); 
                 this.updateUI(); 
-                this.toast(`Scouting lancé ! Coût : ${finalCost.toFixed(1)}M€ (-${(discount*100).toFixed(0)}%)`);
+                this.toast(`Mission de détection lancée (-${finalCost.toFixed(1)} M€)`);
             }
-            recruit(id) { const idx = this.state.scoutPool.findIndex(x => x.id === id); if (idx > -1) { this.state.players.push(this.state.scoutPool.splice(idx, 1)[0]); this.renderScout(); this.save(); this.toast("Joueur intégré à l'effectif !"); } }
+
+            recruit(id) { 
+                const idx = this.state.scoutPool.findIndex(x => x.id === id); 
+                if (idx > -1) { 
+                    const p = this.state.scoutPool[idx];
+                    
+                    // On retire le joueur de la liste des scouts
+                    this.state.scoutPool.splice(idx, 1)[0];
+                    
+                    // On l'ajoute à l'équipe nationale
+                    this.state.players.push(p); 
+                    
+                    this.renderScout(); 
+                    this.save(); 
+                    this.playSound('click');
+                    
+                    // Flash Info Roleplay
+                    this.state.news.unshift({
+                        id: Date.now(), 
+                        text: `SÉLECTION : ${p.name} (${p.ovr}) a accepté de rejoindre les Éléphants !`
+                    });
+
+                    this.toast(`${p.name} a rejoint la sélection !`); 
+                } 
+            }
 
             toggleLiveCoaching() { 
                 this.isLiveCoaching = !this.isLiveCoaching; 
@@ -3409,3 +3509,4 @@ showGoalAnim(n) {
 </body>
 
 </html>
+
