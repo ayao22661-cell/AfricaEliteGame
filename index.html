@@ -2592,10 +2592,49 @@
                     }
                 }
                 
-                const nBox = document.getElementById('news-feed'); if(nBox) {
-                    nBox.innerHTML = '';
-                    this.state.news.slice(0, 15).forEach(n => { nBox.innerHTML += `<div class=\"news-item\"><b> Flash Info :</b> ${n.text}</div>`; });
-                }
+                // Remplacez UNIQUEMENT le bloc "nBox" à la fin de renderInbox()
+            const nBox = document.getElementById('news-feed'); 
+                if(nBox) {
+                nBox.innerHTML = '';
+    
+               this.state.news.slice(0, 15).forEach(n => { 
+              // 1. Préparation des données (Catégorie / Message)
+               let [category, ...msgParts] = n.text.split(':');
+               let message = msgParts.join(':').trim();
+               if(!message) { message = category; category = "INFO"; }
+               category = category.trim().toUpperCase();
+
+               // 2. Choix de l'icône (remplace la note OVR)
+               let icon = SVGS.mega; 
+              let iconColor = "text-white";
+        
+             if (["MERCATO", "TRANSFERT", "OFFICIEL"].some(k => category.includes(k))) { icon = SVGS.briefcase; iconColor = "text-green-400"; }
+             else if (["BLESSURE", "CLASH", "COLÈRE"].some(k => category.includes(k))) { icon = SVGS.alert; iconColor = "text-red-400"; }
+             else if (["VICTOIRE", "TITRE", "MVP"].some(k => category.includes(k))) { icon = SVGS.trophy; iconColor = "text-yellow-400"; }
+             else if (["RUMEUR", "BUZZ"].some(k => category.includes(k))) { icon = SVGS.globe; iconColor = "text-blue-400"; }
+ 
+        // 3. LE DESIGN EXACT DU SCOUT
+        // On utilise la structure : Flex > Box Carrée (Gauche) > Textes (Droite)
+        nBox.innerHTML += `
+            <div class="glass-panel p-3 rounded-xl flex items-start gap-3 border border-white/5 hover:bg-slate-800 transition group mb-2">
+                
+                <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-slate-900 border border-slate-700 shrink-0 shadow-lg">
+                    <span class="${iconColor}">${icon}</span>
+                </div>
+                
+                <div class="flex-1 min-w-0 pt-0.5">
+                    <div class="font-bold text-white uppercase text-xs mb-0.5 tracking-wide">
+                        ${category}
+                    </div>
+                    
+                    <div class="text-[10px] text-slate-400 font-medium leading-tight">
+                        ${message}
+                    </div>
+                </div>
+
+                </div>`;
+           });
+        }   
             }
 
            renderInfra() {
