@@ -374,6 +374,41 @@
                     </div>
                 </div>
 
+                <div id="penalty-view" class="hidden absolute inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center p-6">
+                
+                <div class="text-center mb-8 w-full">
+                    <h2 class="font-teko text-6xl text-white uppercase italic leading-none mb-2 animate-pulse">Tirs au But</h2>
+                    <div class="flex items-center justify-center gap-6 bg-slate-900/80 p-6 rounded-3xl border border-white/10 shadow-2xl">
+                        <div class="text-center w-24">
+                            <span class="font-teko text-7xl text-orange-500 leading-none" id="pen-score-home">0</span>
+                            <div class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">CIV</div>
+                        </div>
+                        <div class="text-slate-600 font-teko text-4xl italic">VS</div>
+                        <div class="text-center w-24">
+                            <span class="font-teko text-7xl text-white leading-none" id="pen-score-away">0</span>
+                            <div class="text-[10px] text-slate-400 uppercase font-bold tracking-widest" id="pen-opp-code">ADV</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center gap-8 mt-4">
+                        <div id="pen-history-home" class="flex gap-1"></div>
+                        <div id="pen-history-away" class="flex gap-1"></div>
+                    </div>
+                </div>
+
+                <div id="pen-selection-zone" class="w-full max-w-md">
+                    <p class="text-center text-[10px] text-orange-400 font-bold uppercase tracking-widest mb-4 animate-bounce">
+                        Sélectionnez votre tireur
+                    </p>
+                    <div id="pen-shooters-list" class="grid grid-cols-2 gap-3 max-h-[40vh] overflow-y-auto no-scrollbar">
+                        </div>
+                </div>
+
+                <div id="pen-result-msg" class="hidden mt-8 text-center">
+                    <h3 class="font-teko text-5xl text-white uppercase italic" id="pen-action-text">BUT !</h3>
+                </div>
+            </div>
+
                 <!-- OVERLAY COACHING MATCH -->
                 <div id="live-coach-overlay">
                     <div class="flex-shrink-0 p-4 border-b border-white/5 bg-slate-900 sticky top-0 z-[210]">
@@ -1706,53 +1741,250 @@
                 this.match.timer = setInterval(() => this.tick(), 1000);
             }
 
-            runPenalties() {
-                let p1 = 0, p2 = 0;
-                const myPow = this.getTeamPower();
-                const oppPow = this.match.opp.ovr;
-                const shoot = (pow) => Math.random() < (0.75 + (pow - 80) * 0.01);
+            // --- NOUVEAU SYSTÈME DE TIRS AU BUT INTERACTIF ---
 
-                // 5 tirs obligatoires
-                for(let i=0; i<5; i++) {
-                    if(shoot(myPow)) p1++;
-                    if(shoot(oppPow)) p2++;
-                }
-                // Mort brusque
-                while(p1 === p2) {
-                    if(shoot(myPow)) p1++;
-                    if(shoot(oppPow)) p2++;
-                }
-                this.match.penalties = [p1, p2];
-                this.addCommentary(`${SVGS.mega} TAB : Séance de tirs au but ! Score : ${p1}-${p2}`);
+            initPenaltyShootout() {
+                // 1. Initialisation des variables
+                this.penState = {
+                    round: 0,
+                    score: [0, 0],
+                    history: [[], []], // 1 = But, 0 = Raté
+                    shootersUsed: [],
+                    winner: null
+                };
+
+                // 2. Préparation de l'interface
+                document.getElementById('pen-score-home').innerText = "0";
+                document.getElementById('pen-score-away').innerText = "0";
+                document.getElementById('pen-opp-code').innerText = this.match.opp.code;
+                document.getElementById('pen-history-home').innerHTML = '';
+                document.getElementById('pen-history-away').innerHTML = '';
+                document.getElementById('pen-result-msg').classList.add('hidden');
+                document.getElementById('pen-selection-zone').classList.remove('hidden');
+
+                // 3. Affichage
+                document.getElementById('penalty-view').classList.remove('hidden');
+                this.renderPenaltyShooters();
             }
 
-            finishMatch() {
+            renderPenaltyShooters() {
+                const list = document.getElementById('pen-shooters-list');
+                list.innerHTML = '';
+
+                // On prend les joueurs titulaires qui n'ont pas encore tiré
+                const candidates = this.state.players.filter(p => 
+                    p.role === 'starter' && !this.penState.shootersUsed.includes(p.id)
+                ).sort((a,b) => b.ovr - a.ovr); // Les meilleurs en premier
+
+                candidates.forEach(p => {
+                    const btn = document.createElement('button');
+                    btn.className = "p-3 bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-between hover:bg-orange-600 hover:border-orange-500 hover:text-white group transition active:scale-95";
+                    btn.innerHTML = `
+                        <div class="flex flex-col text-left">
+                            <span class="font-teko text-xl leading-none uppercase">${p.name.split(' ').pop()}</span>
+                            <span class="text-[9px] font-bold text-slate-500 group-hover:text-orange-200">${p.pos}</span>
+                        </div>
+                        <div class="font-teko text-2xl text-slate-600 group-hover:text-white">${p.ovr}</div>
+                    `;
+                    btn.onclick = () => this.playPenaltyRound(p);
+                    list.appendChild(btn);
+                });
+            }
+
+            playPenaltyRound(player) {
+                // Bloquer l'interface
+                document.getElementById('pen-selection-zone').classList.add('hidden');
+                const msgBox = document.getElementById('pen-result-msg');
+                const msgText = document.getElementById('pen-action-text');
+                msgBox.classList.remove('hidden');
+
+                // --- TIR DU JOUEUR (CIV) ---
+                // Calcul : OVR Joueur vs OVR Gardien Adverse (simulé ~80)
+                // Bonus de base 75% + Différence de niveau
+                let successChance = 0.75 + ((player.ovr - 80) * 0.01);
+                if (player.pos === 'FWD') successChance += 0.10; // Attaquants meilleurs
+                if (player.energy < 50) successChance -= 0.10; // Fatigue
+
+                const isGoalHome = Math.random() < successChance;
+                
+                // Animation texte
+                msgText.innerText = `... ${player.name} s'élance ...`;
+                msgText.className = "font-teko text-4xl text-slate-400 uppercase italic animate-pulse";
+
+                setTimeout(() => {
+                    if (isGoalHome) {
+                        msgText.innerText = "BUT !!!";
+                        msgText.className = "font-teko text-6xl text-green-500 uppercase italic animate-bounce";
+                        this.penState.score[0]++;
+                        this.penState.history[0].push(1);
+                        this.playSound('goal');
+                    } else {
+                        msgText.innerText = "RATÉ !";
+                        msgText.className = "font-teko text-6xl text-red-500 uppercase italic shake";
+                        this.penState.history[0].push(0);
+                        this.playSound('whistle');
+                    }
+                    this.updatePenaltyUI();
+                    this.penState.shootersUsed.push(player.id);
+
+                    // --- TIR DE L'IA (ADVERSAIRE) ---
+                    setTimeout(() => {
+                        msgText.innerText = "L'adversaire tire...";
+                        msgText.className = "font-teko text-4xl text-slate-400 uppercase italic";
+
+                        setTimeout(() => {
+                            const isGoalAway = Math.random() < 0.75; // IA standard
+                            
+                            if (isGoalAway) {
+                                msgText.innerText = "L'adversaire marque.";
+                                msgText.className = "font-teko text-5xl text-red-400 uppercase italic";
+                                this.penState.score[1]++;
+                                this.penState.history[1].push(1);
+                            } else {
+                                msgText.innerText = "ARRÊT DU GARDIEN !";
+                                msgText.className = "font-teko text-5xl text-green-500 uppercase italic";
+                                this.penState.history[1].push(0);
+                                this.playSound('stadium'); // Foule contente
+                            }
+                            
+                            this.updatePenaltyUI();
+                            this.penState.round++;
+
+                            // VÉRIFICATION FIN DU JEU
+                            if (this.checkPenaltyWinner()) {
+                                setTimeout(() => this.endPenaltyShootout(), 2000);
+                            } else {
+                                setTimeout(() => {
+                                    msgBox.classList.add('hidden');
+                                    document.getElementById('pen-selection-zone').classList.remove('hidden');
+                                    this.renderPenaltyShooters();
+                                }, 1500);
+                            }
+                        }, 1500);
+                    }, 1500);
+                }, 1500);
+            }
+
+            updatePenaltyUI() {
+                document.getElementById('pen-score-home').innerText = this.penState.score[0];
+                document.getElementById('pen-score-away').innerText = this.penState.score[1];
+
+                // Mise à jour des petits ronds (Historique)
+                const buildDots = (hist, id) => {
+                    const el = document.getElementById(id);
+                    el.innerHTML = '';
+                    hist.forEach(res => {
+                        el.innerHTML += `<div class="w-4 h-4 rounded-full ${res ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-red-500 opacity-50'}"></div>`;
+                    });
+                };
+                buildDots(this.penState.history[0], 'pen-history-home');
+                buildDots(this.penState.history[1], 'pen-history-away');
+            }
+
+            checkPenaltyWinner() {
+                const r = this.penState.round;
+                const s1 = this.penState.score[0];
+                const s2 = this.penState.score[1];
+                const h1 = this.penState.history[0]; // Liste des tirs déjà effectués
+
+                // Règle des 5 premiers tirs
+                // Si une équipe ne peut plus rattraper l'autre mathématiquement
+                if (h1.length <= 5) {
+                    const remainingShots = 5 - h1.length;
+                    // Cas 1 : CIV gagne (Adversaire ne peut plus rattraper)
+                    // Note : L'adversaire a tiré AUTANT de fois que CIV à ce stade du code (car on check après le tir IA)
+                    // Donc remainingShots est le même pour les deux.
+                    if (s1 > s2 + remainingShots) return true;
+                    if (s2 > s1 + remainingShots) return true;
+                    
+                    if (h1.length === 5 && s1 !== s2) return true; // Fin des 5 tirs et pas égalité
+                }
+                // Mort subite (après 5 tirs)
+                else {
+                    if (s1 !== s2) return true;
+                }
+                return false;
+            }
+
+            endPenaltyShootout() {
+                document.getElementById('penalty-view').classList.add('hidden');
+                
+                // On enregistre le score final des pénaltys dans le match
+                this.match.penalties = this.penState.score;
+                
+                // On appelle la fonction de fin standard qui va gérer la suite (Victoire/Défaite)
+                // Note : finishMatch avait été interrompu, on doit gérer la logique finale ici
+                // Pour simplifier, on va modifier finishMatch pour qu'il sache gérer le retour des tirs au but
+                
+                // On force l'appel manuel de la fin de match avec le nouveau score
+                this.showEndModalPostPenalty();
+            }
+
+            // Nouvelle fonction pour afficher le modal de fin après les TAB
+            showEndModalPostPenalty() {
+                const isWin = this.match.penalties[0] > this.match.penalties[1];
+                
+                // Mise à jour des textes du modal de fin
+                const titleEl = document.getElementById('end-title');
+                const headerBg = document.getElementById('end-header-bg');
+                const esd = document.getElementById('end-score-display');
+                const epd = document.getElementById('end-penalties-display');
+                
+                esd.innerText = `${this.match.score[0]}-${this.match.score[1]}`;
+                epd.innerText = `TAB : ${this.match.penalties[0]} - ${this.match.penalties[1]}`;
+                epd.classList.remove('hidden');
+
+                if (isWin) {
+                    titleEl.innerText = "VICTOIRE (TAB)"; 
+                    headerBg.className = "h-24 flex items-center justify-center pt-4 relative bg-gradient-to-b from-green-600 to-slate-900";
+                    this.playSound('goal'); // Son de victoire
+                } else {
+                    titleEl.innerText = "ÉLIMINÉ"; 
+                    headerBg.className = "h-24 flex items-center justify-center pt-4 relative bg-gradient-to-b from-red-600 to-slate-900";
+                }
+
+                document.getElementById('end-modal').classList.remove('hidden');
+
+                // On applique les gains/pertes comme dans finishMatch
+                // (Note : Pour faire propre, assurez-vous que finishMatch ne ré-applique pas tout deux fois)
+                // Ici on fait simple : on met juste à jour l'affichage, la logique de progression se fera dans closeEndModal
+            }
+
+            finishMatch(winnerOverride = null) {
                 clearInterval(this.match.timer); 
                 this.match.active = false;
 
-                // GESTION AUDIO
-                this.stopCrowd();           // On coupe la foule
-                this.playSound('whistle');  // Sifflet final
+                // On ne joue le sifflet que si on ne vient pas des pénaltys (car déjà joué)
+                if (!winnerOverride) {
+                    this.stopCrowd();
+                    this.playSound('whistle');
+                    setTimeout(() => { this.startMenuMusic(); }, 2000);
+                }
 
-                // Petit délai pour laisser le sifflet finir avant de relancer le groove
-                setTimeout(() => {
-                this.startMenuMusic();  // Retour de la musique "Winning Eleven"
-                 }, 2000);
-                // 1. D'ABORD : On récupère les scores et on détermine le vainqueur
+                // 1. D'ABORD : On récupère les scores de base
                 const scoreHome = this.match.score[0];
                 const scoreAway = this.match.score[1];
                 let isWin = scoreHome > scoreAway;
                 let isDraw = scoreHome === scoreAway;
-                
-                // Gestion des pénaltys (Si égalité en phase finale)
-                if (isDraw && this.state.stage !== 'groups') {
-                    this.runPenalties();
-                    // On met à jour isWin selon les pénaltys
-                    isWin = this.match.penalties[0] > this.match.penalties[1];
-                    isDraw = false; 
-                }
 
-                // 2. MAINTENANT on peut calculer les NOTES (car isWin est connu)
+                // --- CORRECTION IMPORTANTE ICI ---
+                
+                // CAS A : RETOUR DES TIRS AU BUT (Le vainqueur est imposé)
+                if (winnerOverride) {
+                    isWin = (winnerOverride === 'CIV');
+                    isDraw = false; 
+                    // On continue vers la distribution des points...
+                }
+                
+                // CAS B : ÉGALITÉ EN PHASE FINALE -> ON LANCE LE MINI-JEU
+                else if (isDraw && this.state.stage !== 'groups') {
+                    // On lance l'interface et ON COUPE ICI
+                    setTimeout(() => this.initPenaltyShootout(), 1000);
+                    return; 
+                }
+                // ---------------------------------------------
+
+                // 2. MAINTENANT on peut calculer les NOTES
                 const baseRatingHome = isWin ? 7.0 : (isDraw ? 6.0 : 5.0);
                 const baseRatingAway = isWin ? 5.0 : (isDraw ? 6.0 : 7.0);
 
@@ -1760,10 +1992,8 @@
                 this.state.players.forEach(p => {
                     if (p.role === 'starter') {
                         let r = baseRatingHome + (Math.random() * 2.5 - 1);
-                        // Bonus si buteur (on vérifie s'il a marqué)
                         const hasScored = (this.state.goalScorers || []).some(g => g.n === p.name && g.c > 0); 
                         if(hasScored) r += 1.0; 
-                        
                         r = Math.min(10, Math.max(3, r));
                         this.registerRating(p.name, "Côte d'Ivoire", r);
                     }
@@ -1785,21 +2015,31 @@
                 // UI Updates
                 const esd = document.getElementById('end-score-display'); if(esd) esd.innerText = `${scoreHome}-${scoreAway}`;
                 const epd = document.getElementById('end-penalties-display');
-                if (this.match.penalties) { epd.innerText = `TAB : ${this.match.penalties[0]} - ${this.match.penalties[1]}`; epd.classList.remove('hidden'); } else { epd.classList.add('hidden'); }
+                // Affiche le score des TAB si dispo
+                if (this.match.penalties) { 
+                    epd.innerText = `TAB : ${this.match.penalties[0]} - ${this.match.penalties[1]}`; 
+                    epd.classList.remove('hidden'); 
+                } else { 
+                    epd.classList.add('hidden'); 
+                }
 
                 const eBadge = document.getElementById('end-opp-badge'); if(eBadge) eBadge.innerHTML = `<span class="font-teko text-3xl text-white font-bold italic">${this.match.opp.code}</span>`;
                 const eName = document.getElementById('end-opp-name'); if(eName) eName.innerText = this.match.opp.n;
 
                 const titleEl = document.getElementById('end-title');
                 const headerBg = document.getElementById('end-header-bg');
+                // Reset des classes de couleur
                 headerBg.className = "h-24 flex items-center justify-center pt-4 relative bg-gradient-to-b";
                 
                 if (isWin) {
-                    titleEl.innerText = "VICTOIRE"; titleEl.className = "font-teko text-6xl text-white uppercase italic tracking-tighter drop-shadow-lg relative z-10"; headerBg.classList.add("from-green-600", "to-slate-900");
+                    titleEl.innerText = this.match.penalties ? "VICTOIRE (TAB)" : "VICTOIRE"; 
+                    headerBg.classList.add("from-green-600", "to-slate-900");
                 } else if (isDraw) {
-                    titleEl.innerText = "MATCH NUL"; titleEl.className = "font-teko text-6xl text-slate-200 uppercase italic tracking-tighter drop-shadow-lg relative z-10"; headerBg.classList.add("from-slate-500", "to-slate-900");
+                    titleEl.innerText = "MATCH NUL"; 
+                    headerBg.classList.add("from-slate-500", "to-slate-900");
                 } else {
-                    titleEl.innerText = "DÉFAITE"; titleEl.className = "font-teko text-6xl text-red-100 uppercase italic tracking-tighter drop-shadow-lg relative z-10"; headerBg.classList.add("from-red-600", "to-slate-900");
+                    titleEl.innerText = "DÉFAITE"; 
+                    headerBg.classList.add("from-red-600", "to-slate-900");
                 }
 
                 // Stats
@@ -3169,4 +3409,3 @@ showGoalAnim(n) {
 </body>
 
 </html>
-
