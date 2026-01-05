@@ -959,6 +959,88 @@
             counter: "{MANAGER} demande des transitions foudroyantes !",
             pressing: "Les joueurs répondent au pressing demandé par {MANAGER} !"
         };
+        // --- NOUVEAU : BASE DE DONNÉES GAZETTE (VERSION XXL) ---
+        const NEWS_RUMORS = [
+            // TRANSFERTS
+            "MERCATO : Le PSG préparerait une offre de 60M€ pour {PLAYER} !",
+            "SCOOP : L'agent de {PLAYER} a été aperçu à Londres hier soir.",
+            "RUMEUR : Al-Nassr veut offrir un pont d'or à {PLAYER}.",
+            "TRANSFERT : Le Real Madrid supervise attentivement les progrès de {PLAYER}.",
+            "OFFICIEL : {PLAYER} déclare 'vouloir rester à vie' en sélection.",
+            "BOMBE : Chelsea prêt à lever la clause libératoire de {PLAYER}.",
+            "INTÉRÊT : Le Bayern Munich en pince pour le profil de {PLAYER}.",
+            "MLS : L'Inter Miami de Messi rêve d'attirer {PLAYER}.",
+            "CONTRAT : Les négociations pour la prolongation de {PLAYER} sont au point mort.",
+            "AGENT : 'Si mon client ne joue pas plus, on part', menace l'agent de {PLAYER}.",
+            
+            // LIFESTYLE & DRAMA
+            "BUZZ : La nouvelle célébration de {PLAYER} devient virale sur TikTok.",
+            "LIFESTYLE : {PLAYER} fait la une de Vogue Afrique ce mois-ci.",
+            "DISCIPLINE : {PLAYER} arrivé en retard à l'entraînement, le coach est furieux.",
+            "CLASH : Tension palpable entre {PLAYER} et le staff technique ce matin.",
+            "SPONSOR : Nike et Puma se battent pour signer {PLAYER}.",
+            "INSOLITE : {PLAYER} a oublié son passeport à l'hôtel avant le départ !",
+            "LOOK : La nouvelle coiffure de {PLAYER} fait jaser sur la toile.",
+            "SORTIE : {PLAYER} aperçu dans un maquis célèbre d'Abidjan très tard hier.",
+            
+            // SANTÉ & FORME
+            "BLESSURE : Plus de peur que de mal pour {PLAYER} après un choc à l'entraînement.",
+            "FORME : Le staff médical impressionné par les tests physiques de {PLAYER}.",
+            "RÉCUPÉRATION : {PLAYER} s'entraîne à l'écart du groupe par précaution.",
+            "DIÉTÉTIQUE : Le coach impose un régime strict à {PLAYER}."
+        ];
+
+        const NEWS_FANS = [
+            // AMBIANCE STADE
+            "SUPPORTERS : 'On veut voir du beau jeu, assez de la défense !'",
+            "AMBIANCE : Les billets pour le prochain match s'arrachent au marché noir.",
+            "ULTRAS : Le comité des supporters prépare un tifo géant.",
+            "RUE : Abidjan est en ébullition avant le prochain choc.",
+            "JOIE : Des scènes de liesse observées à Yamoussoukro !",
+            "BRUIT : Les vuvuzelas résonnent déjà autour du stade.",
+            "FERVEUR : Des milliers de fans attendent le bus des joueurs.",
+            "STADE : La pelouse est jugée 'en parfait état' par les jardiniers.",
+            
+            // RÉSEAUX SOCIAUX & AVIS
+            "SOCIAL : Le hashtag #ElephantsCAN est en top tendance sur X.",
+            "SONDAGE : 88% des Ivoiriens font confiance au nouveau manager.",
+            "CRITIQUE : 'Certains joueurs ne mouillent pas assez le maillot' selon un fan.",
+            "COLÈRE : Des tags hostiles découverts près du centre d'entraînement.",
+            "SOUVENIR : Les fans rendent hommage aux héros de 2015.",
+            "VIRAL : Un petit supporter en pleurs consolé par {PLAYER}.",
+            "MEME : Une photo du coach devient un mème viral sur Facebook.",
+            "INSTAGRAM : {PLAYER} gagne 1 million d'abonnés en 24h.",
+            "DÉBAT : Les fans divisés sur le choix du capitaine.",
+            "LOVE : 'C'est la meilleure équipe depuis 10 ans' s'enflamme un supporter.",
+            "CHANT : Un nouveau chant à la gloire de {PLAYER} inventé par les fans.",
+            "MAILLOT : Rupture de stock des maillots floqués {PLAYER} en boutique."
+        ];
+
+        const NEWS_PUNDITS = [
+            // MÉDIA & ANALYSE
+            "CANAL+ : 'Cette équipe a le potentiel pour tout écraser' selon les experts.",
+            "RADIO : Le système tactique du coach fait débat sur les ondes.",
+            "PRESSE : 'Une génération dorée qui doit assumer son statut.'",
+            "ANALYSE : La défense inquiète les observateurs avant le prochain match.",
+            "TV : Didier Drogba demande plus d'intensité au milieu de terrain.",
+            "CAF : La Côte d'Ivoire remonte au classement FIFA ce mois-ci.",
+            "TACTIQUE : Les spécialistes louent le pressing mis en place.",
+            "INTERVIEW : Le sélectionneur adverse tente de mettre la pression.",
+            
+            // LÉGENDES & EXPERTS
+            "DÉBAT : 'Faut-il changer de gardien ?' La question qui divise.",
+            "LÉGENDE : Yaya Touré rend visite aux joueurs pour les encourager.",
+            "AVIS : 'Il manque un vrai tueur devant le but', analyse un ancien buteur.",
+            "COACHING : 'Les remplacements sont trop tardifs', critique un consultant.",
+            "PHYSIQUE : 'Ils vont craquer physiquement en fin de tournoi', prévient un expert.",
+            "STAT : La Côte d'Ivoire possède la meilleure possession du tournoi.",
+            "ARBITRAGE : La presse étrangère critique l'arbitrage du dernier match.",
+            "MENTAL : 'Cette équipe a enfin trouvé un mental de guerrier'.",
+            "JEUNESSE : Les experts impressionnés par la maturité des jeunes.",
+            "HISTOIRE : 'On n'a pas vu un tel engouement depuis 1992'.",
+            "ÉTRANGER : La BBC consacre un reportage au phénomène ivoirien.",
+            "PRONOSTIC : 60% des journalistes voient la CIV en finale."
+        ];
 
       const SVGS = {
             // --- UI GÉNÉRALE (Garder celles-ci) ---
@@ -1198,7 +1280,10 @@
                 if (v === 'training') this.renderTraining();
                 if (v === 'calendar') this.renderCalendar();
                 if (v === 'scout') this.renderScout();
-                if (v === 'inbox') this.renderInbox();
+                if (v === 'inbox') {
+                    this.generateAmbientNews(); // <--- AJOUTEZ CETTE LIGNE
+                    this.renderInbox();
+                }
                 if (v === 'infra') this.renderInfra();
             }
 
@@ -1751,6 +1836,36 @@
                 const analyses = ["Le plan de jeu a fonctionné.", "Match tendu.", "Le manager est aux anges.", "Les fans réclament du changement."];
                 const res = win ? `Victoire héroïque ${s[0]}-${s[1]}` : `Résultat mitigé ${s[0]}-${s[1]}`;
                 this.state.news.unshift({id: Date.now(), text: `PRESSE : ${res} contre ${opp}. ${analyses[Math.floor(Math.random()*4)]}`});
+            }
+            // --- GÉNÉRATEUR DE RUMEURS ET COMMENTAIRES ---
+            generateAmbientNews() {
+                // On mélange les 3 sources (Rumeurs, Fans, Experts)
+                const categories = [NEWS_RUMORS, NEWS_FANS, NEWS_PUNDITS];
+                const selectedCat = categories[Math.floor(Math.random() * categories.length)];
+                
+                // On pioche une phrase au hasard
+                let text = selectedCat[Math.floor(Math.random() * selectedCat.length)];
+
+                // Si la phrase contient {PLAYER}, on met un vrai nom de joueur
+                if (text.includes("{PLAYER}")) {
+                    // On cherche les titulaires pour que ce soit crédible
+                    const starters = this.state.players.filter(p => p.role === 'starter');
+                    const randomPlayer = starters.length > 0 
+                        ? starters[Math.floor(Math.random() * starters.length)].name 
+                        : "Le Capitaine";
+                    
+                    // On remplace {PLAYER} par le nom en orange
+                    text = text.replace("{PLAYER}", `<b class="text-orange-400">${randomPlayer}</b>`);
+                }
+
+                // On ajoute la news en haut de la liste
+                this.state.news.unshift({
+                    id: Date.now() + Math.random(), 
+                    text: text
+                });
+                
+                // On garde seulement les 20 dernières pour ne pas ralentir le jeu
+                if (this.state.news.length > 20) this.state.news.pop();
             }
             
             updateStd(s, gf, ga) { if(!s) return; s.p++; s.gf+=gf; s.ga+=ga; if(gf>ga){s.w++; s.pts+=3;} else if(gf===ga){s.d++; s.pts+=1;} else s.l++; }
