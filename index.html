@@ -2644,16 +2644,17 @@
                     const data = this.state.staff[st.id];
                     const upgradeCost = data.level * 2.5; 
                     
+                    // CORRECTION ICI : Tout le bleu a été remplacé par de l'orange
                     list.innerHTML += `
-                        <div class="infra-card group relative overflow-hidden transition-all duration-300 hover:bg-slate-800/80 border-l-4 border-l-blue-500">
+                        <div class="infra-card group relative overflow-hidden transition-all duration-300 hover:bg-slate-800/80 border-l-4 border-l-orange-500">
                             <div class="flex justify-between items-start z-10 relative">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-blue-400 shadow-xl">
+                                    <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-500 shadow-xl">
                                         ${st.icon}
                                     </div>
                                     <div>
                                         <div class="text-white font-bold uppercase text-xs tracking-wider font-teko text-xl leading-none">${data.name}</div>
-                                        <div class="text-[9px] text-blue-400 uppercase font-bold mt-1">Niveau ${data.level} / 5</div>
+                                        <div class="text-[9px] text-orange-500 uppercase font-bold mt-1">Niveau ${data.level} / 5</div>
                                     </div>
                                 </div>
                                 <div class="flex flex-col items-end">
@@ -2669,7 +2670,7 @@
                             </p>
                             
                             <button onclick="app.upgradeStaff('${st.id}')" 
-                                class="w-full py-3 bg-slate-900 border border-slate-700 hover:bg-blue-600 hover:border-blue-500 hover:text-white rounded-xl text-[10px] font-bold uppercase transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 ${data.level >= 5 ? 'opacity-40 pointer-events-none grayscale' : ''}">
+                                class="w-full py-3 bg-slate-900 border border-slate-700 hover:bg-orange-600 hover:border-orange-500 hover:text-white rounded-xl text-[10px] font-bold uppercase transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 ${data.level >= 5 ? 'opacity-40 pointer-events-none grayscale' : ''}">
                                 ${data.level >= 5 ? 'Niveau Max' : `Promouvoir (Coût: ${upgradeCost.toFixed(1)} M€)`}
                             </button>
                         </div>
@@ -3509,4 +3510,3 @@ showGoalAnim(n) {
 </body>
 
 </html>
-
