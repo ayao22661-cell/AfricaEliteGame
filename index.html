@@ -2333,13 +2333,17 @@ if(this.state.scoutPool) {
     if (inst.width === 'wide') oppRisk *= 1.1;
     if (inst.tempo === 'fast') oppRisk *= 1.1;
     
-    // Si la défense est faible en moyenne, on encaisse plus
     if (avgStats.def < 70) oppRisk *= 1.15;
 
     if (Math.random() < chance * (1 / powerRatio) * oppRisk) {
         this.match.score[1]++; 
         this.match.stats.shotsAway++; 
         const sa = document.getElementById('score-away'); if(sa) sa.innerText = this.match.score[1];
+        
+        // --- C'EST ICI QU'ON AJOUTE LE SON ---
+        this.playSound('opp_goal'); 
+        // -------------------------------------
+
         this.registerGoal(this.match.opp.star, this.match.opp.n);
         this.addCommentary(`${SVGS.alert} But pour ${this.match.opp.n}.`);
     }
@@ -4432,10 +4436,10 @@ showGoalAnim(n) {
             case 'click': this.synthClick(); break;
             case 'whistle': this.synthWhistle(); break;
             case 'goal': this.synthGoal(); break;
+            case 'opp_goal': this.synthOpponentGoal(); break; // <--- AJOUTER CETTE LIGNE
             case 'stadium': this.synthAmbience(); break;
         }
     }
-
     synthClick() {
         const t = this.audioCtx.currentTime;
         const o = this.audioCtx.createOscillator();
@@ -4486,7 +4490,48 @@ showGoalAnim(n) {
         
         noise.start();
     }
+      // --- À AJOUTER DANS LA SECTION AUDIO (VERS LA FIN DU SCRIPT) ---
+    
+    synthOpponentGoal() {
+        if (!this.audioCtx) return;
+        
+        const t = this.audioCtx.currentTime;
+        const dur = 2.0;
 
+        // 1. Bruit de foule (Grondement)
+        const buf = this.audioCtx.createBuffer(1, this.audioCtx.sampleRate * dur, this.audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1);
+
+        const noise = this.audioCtx.createBufferSource();
+        noise.buffer = buf;
+
+        // Filtre Passe-Bas (Lowpass) qui descend pour faire un effet "déception"
+        const f = this.audioCtx.createBiquadFilter();
+        f.type = 'lowpass';
+        f.frequency.setValueAtTime(400, t); // On commence un peu haut
+        f.frequency.linearRampToValueAtTime(100, t + dur); // On descend dans les graves
+
+        const g = this.audioCtx.createGain();
+        g.gain.setValueAtTime(0.4, t);
+        g.gain.exponentialRampToValueAtTime(0.01, t + dur);
+
+        noise.connect(f); f.connect(g); g.connect(this.audioCtx.destination);
+        noise.start();
+
+        // 2. Ton Grave (Dissonance)
+        const o = this.audioCtx.createOscillator();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(70, t); // Fréquence très basse (70Hz)
+        o.frequency.linearRampToValueAtTime(50, t + 1.5); // Descend encore
+
+        const g2 = this.audioCtx.createGain();
+        g2.gain.setValueAtTime(0.15, t);
+        g2.gain.exponentialRampToValueAtTime(0.01, t + 1.0);
+
+        o.connect(g2); g2.connect(this.audioCtx.destination);
+        o.start(); o.stop(t + dur);
+    }
     synthAmbience() {
         if (this.ambianceNode) return; // Déjà en cours
         const size = this.audioCtx.sampleRate * 2;
