@@ -253,6 +253,41 @@
         .view-section {
             padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important;
         }
+        /* --- CSS POUR LE TUTORIEL INTERACTIF --- */
+/* --- CSS POUR LE TUTORIEL INTERACTIF --- */
+#tutorial-overlay {
+    background: transparent !important; /* <--- MODIFICATION ICI : On force la transparence */
+    pointer-events: none; /* Important pour cliquer au travers si besoin */
+    transition: opacity 0.3s;
+}
+
+/* Classe ajoutée dynamiquement à l'élément ciblé */
+.tuto-highlight {
+    position: relative;
+    z-index: 2010 !important; /* Au-dessus du backdrop (2000), mais SOUS le texte (2050) */
+    box-shadow: 0 0 0 4px #f97316, 0 0 100px rgba(0,0,0,0.9) !important;
+    background-color: #0f172a; 
+    pointer-events: none;
+}
+
+/* Flèche qui pointe l'élément (Animation) */
+.tuto-arrow {
+    position: absolute;
+    z-index: 2020;
+    font-size: 40px;
+    color: #f97316;
+    animation: bounceArrow 1s infinite;
+    text-shadow: 0 4px 10px black;
+}
+
+@keyframes bounceArrow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+   /* Ajoutez ceci à la fin de votre balise <style> */
+.view-section.hidden {
+    display: none !important;
+}
     </style>
 </head>
 
@@ -309,7 +344,7 @@
 
     <div class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-5 pb-4 z-10">
 
-        <div class="relative w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl group shrink-0">
+        <div id="next-match-card" class="relative w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl group shrink-0">
             <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
             <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
             
@@ -373,9 +408,9 @@
         </div>
     </div>
 </div>    <!-- VUE : TACTIQUE -->
-           <div id="view-squad" class="view-section hidden flex flex-col h-full bg-slate-900 absolute inset-0 z-10 overflow-hidden" style="padding-bottom: 0 !important;">
+           <div id="view-squad" class="view-section hidden flex flex-col h-full bg-slate-900 absolute inset-0 overflow-hidden" style="padding-bottom: 0 !important;">
     
-    <div class="bg-slate-900/95 backdrop-blur border-b border-slate-800 p-3 sticky top-0 z-40 shadow-xl flex justify-between items-center shrink-0">
+    <div class="bg-slate-900/95 backdrop-blur border-b border-slate-800 p-3 sticky top-0 z-[2005] shadow-xl flex justify-between items-center shrink-0">
         <button onclick="app.autoPick()" class="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-xl text-[10px] font-bold text-white uppercase flex items-center gap-2 transition active:scale-95">
             <span id="icon-zap-mini"></span> Auto
         </button>
@@ -730,7 +765,7 @@
         </main>
 
         <!-- NAVIGATION -->
-       <nav class="bg-[#0f172a] border-t border-slate-800 grid grid-cols-6 items-center z-[100] shrink-0 relative h-16 pb-safe">
+       <nav class="bg-[#0f172a] border-t border-slate-800 grid grid-cols-6 items-center z-[2005] shrink-0 relative h-16 pb-safe">
     <button onclick="app.goToView('inbox')" id="nav-inbox" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all"><span id="icon-layout-nav"></span><span class="text-[9px] font-bold uppercase">QG</span></button>
     <button onclick="app.goToView('squad')" id="nav-squad" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all"><span id="icon-shield-nav"></span><span class="text-[9px] font-bold uppercase">Tactique</span></button>
     <button onclick="app.goToView('training')" id="nav-training" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all"><span id="icon-zap-nav"></span><span class="text-[9px] font-bold uppercase">Pro</span></button>
@@ -754,6 +789,40 @@
             </div>
         </div>
     </div>
+        <div id="tuto-backdrop" class="fixed inset-0 z-[2000] bg-slate-950/10 hidden transition-opacity duration-500"></div>
+
+<div id="tutorial-overlay" class="fixed inset-0 z-[2050] hidden flex-col items-center justify-center p-6 pointer-events-none">
+    
+    <div class="w-64 bg-slate-900 border border-orange-500/50 rounded-xl shadow-2xl relative overflow-hidden animate-slideIn pointer-events-auto">
+        
+        <div class="absolute top-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full blur-xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-12 h-12 bg-blue-500/5 rounded-full blur-xl pointer-events-none"></div>
+
+        <div class="p-4 relative z-10">
+            <div class="flex items-center gap-3 mb-3 border-b border-white/10 pb-3">
+                <div class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center border border-slate-600 shadow-lg text-orange-500 animate-pulse shrink-0">
+                    <span id="tuto-icon" class="scale-75">
+                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                    </span> 
+                </div>
+                <div>
+                    <h3 class="font-teko text-2xl text-white uppercase italic leading-none">L'Adjoint</h3>
+                    <p class="text-[8px] text-orange-500 font-bold uppercase tracking-widest">Briefing</p>
+                </div>
+            </div>
+
+            <h4 id="tuto-title" class="font-teko text-lg text-white uppercase mb-1 leading-none">Bienvenue Coach</h4>
+            <p id="tuto-text" class="text-[10px] text-slate-300 leading-relaxed mb-4 min-h-[40px] font-medium">...</p>
+
+            <div class="flex justify-between items-center mt-auto">
+                <div class="flex gap-1" id="tuto-dots"></div>
+                <button onclick="app.nextTutorialStep()" class="pointer-events-auto z-[2060] px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold uppercase text-[9px] tracking-widest rounded-lg shadow-lg active:scale-95 transition border border-orange-400/50">
+                        Compris
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
         <div id="feedback-toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-8 py-4 rounded-2xl shadow-2xl z-[500] text-[11px] font-bold hidden opacity-0 transition-all transform translate-y-4">
             <span id="toast-msg">Action effectuée</span>
@@ -992,6 +1061,7 @@
             '4-1-4-1': { coords:[{x:41,y:80},{x:8,y:62},{x:30,y:67},{x:52,y:67},{x:74,y:62},{x:41,y:50},{x:10,y:35},{x:30,y:37},{x:52,y:37},{x:72,y:35},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","MID","MID","MID","MID","MID","FWD"]},
             '5-4-1': { coords:[{x:41,y:80},{x:5,y:62},{x:23,y:65},{x:41,y:68},{x:59,y:65},{x:77,y:62},{x:10,y:38},{x:30,y:40},{x:52,y:40},{x:72,y:38},{x:41,y:12}], zones: ["GK","DEF","DEF","DEF","DEF","DEF","MID","MID","MID","MID","FWD"]}
         };
+
 
         const MATCH_COMMS = [
             "L'intensité monte d'un cran au milieu de terrain.", "L'arbitre surveille de près les duels physiques.", 
@@ -1283,6 +1353,70 @@
             
             hand: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white inline-block align-middle mb-0.5"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>`
         };
+        // --- AJOUTEZ CECI AVANT "class EliteManager" ---
+
+const TUTORIAL_STEPS = [
+    {
+        title: "QG & TABLEAU DE BORD",
+        text: "Ici, c'est votre bureau. Vous y verrez le prochain match, les news et le niveau de confiance.",
+        view: "inbox",
+        targetId: "view-inbox" 
+    },
+    {
+        title: "ACCÈS TACTIQUE",
+        text: "C'est le menu le plus important. Cliquez ici pour gérer votre 11 de départ.",
+        view: "inbox",      
+        targetId: "nav-squad" 
+    },
+    {
+        title: "LE TERRAIN",
+        text: "Votre 11 titulaire. Cliquez sur un maillot pour voir les détails ou sur une case vide pour changer de joueur.",
+        view: "squad",      
+        targetId: "pitch-main" 
+    },
+    {
+        title: "CONSIGNES TACTIQUES", // <-- AJOUT 1
+        text: "Cliquez ici pour définir votre style (4-3-3, Contre-attaque...) et vos instructions de match.",
+        view: "squad",
+        targetId: "btn-toggle-prematch" // On pointe le bouton "Tactique & Formation"
+    },
+    {
+        title: "CENTRE D'ENTRAÎNEMENT", // <-- AJOUT 2 (Navigation)
+        text: "Vos joueurs doivent progresser. Accédez au menu 'Pro' pour gérer leur développement.",
+        view: "squad", 
+        targetId: "nav-training"
+    },
+    {
+        title: "BOOSTER LES JOUEURS", // <-- AJOUT 2 (Vue Entraînement)
+        text: "Utilisez votre budget pour améliorer les stats. Un bon entraînement peut transformer un talent en star.",
+        view: "training", // On force la vue Entraînement
+        targetId: "training-content"
+    },
+    {
+        title: "CELLULE DE RECRUTEMENT", // <-- AJOUT 3 (Navigation)
+        text: "Besoin de renforts ? Envoyez vos scouts chercher des pépites en Afrique ou en Europe.",
+        view: "training",
+        targetId: "nav-scout"
+    },
+    {
+        title: "LE MERCATO", // <-- AJOUT 3 (Vue Scout)
+        text: "Lancez des missions de détection ici pour trouver les futurs cadres de la sélection.",
+        view: "scout", // On force la vue Scout
+        targetId: "scout-content"
+    },
+    {
+        title: "INFRASTRUCTURES",
+        text: "Pour gagner sur le long terme, investissez dans la ville (Stade, Médical).",
+        view: "infra", // On force la vue Ville
+        targetId: "nav-infra"
+    },
+    {
+        title: "PRÊT AU COMBAT",
+        text: "Vous savez l'essentiel. Le premier match vous attend. Bonne chance Coach !",
+        view: "inbox",      
+        targetId: "next-match-card"
+    }
+];
         class EliteManager {
             constructor() {
                 this.state = this.load() || this.initNewGame();
@@ -1589,28 +1723,31 @@ if(this.state.scoutPool) {
 // --- COLLEZ CE BLOC JUSTE APRÈS LA FIN DE LA FONCTION init() ---
             
             submitManagerName() {
-                const input = document.getElementById('input-manager-name');
-                const val = input.value.trim().toUpperCase();
-                
-                if (val.length < 3) return this.toast("Nom trop court !");
-                
-                this.state.managerName = val;
+        const input = document.getElementById('input-manager-name');
+        const val = input.value.trim().toUpperCase();
+        
+        if (val.length < 3) return this.toast("Nom trop court !");
+        
+        this.state.managerName = val;
 
-                // --- AJOUT : Création du flash info personnalisé ICI ---
-                this.state.news.unshift({
-                    id: Date.now(), 
-                    text: `OFFICIEL : Lancement de la dynastie par ${val} !`
-                });
-                //
-                
-                // On cache le modal
-                document.getElementById('welcome-modal').classList.add('hidden');
-                
-                this.save();
-                this.updateUI();
-                this.toast(`Bienvenue Coach ${val} !`);
-            }
-
+        this.state.news.unshift({
+            id: Date.now(), 
+            text: `OFFICIEL : Lancement de la dynastie par ${val} !`
+        });
+        
+        // On cache le modal de bienvenue
+        document.getElementById('welcome-modal').classList.add('hidden');
+        
+        this.save();
+        this.updateUI();
+        
+        // --- MODIFICATION ICI : LANCER LE TUTORIEL ---
+        // On attend 500ms pour que l'interface se charge bien
+        setTimeout(() => {
+            this.startTutorial();
+        }, 500);
+        // ---------------------------------------------
+    }
             // ---------------------------------------------------------------
             injectIcons() {
                 for (const [id, svg] of Object.entries(SVGS)) {
@@ -4627,9 +4764,126 @@ showGoalAnim(n) {
             this.crowdInterval = null;
         }
     }
+    startTutorial() {
+            this.tutoIndex = 0;
+            this.showTutorialModal();
         }
+        nextTutorialStep() {
+        this.tutoIndex++;
+        if (this.tutoIndex < TUTORIAL_STEPS.length) {
+            this.showTutorialModal();
+            this.playSound('click');
+        } else {
+            this.closeTutorial();
+        }
+    }
+
+        // --- NOUVELLE LOGIQUE INTERACTIVE ---
+
+    showTutorialModal() {
+    // 1. Récupération des éléments
+    const backdrop = document.getElementById('tuto-backdrop');
+    const overlay = document.getElementById('tutorial-overlay');
+    const title = document.getElementById('tuto-title');
+    const text = document.getElementById('tuto-text');
+    
+    // 2. NETTOYAGE ROBUSTE (Correction ici)
+    // On annule tout timer en cours pour éviter les bugs si on clique vite
+    if (this.tutoTimer) clearTimeout(this.tutoTimer);
+    
+    // On enlève le highlight
+    document.querySelectorAll('.tuto-highlight').forEach(el => el.classList.remove('tuto-highlight'));
+    
+    // On enlève TOUTES les flèches existantes (par sécurité)
+    document.querySelectorAll('.tuto-arrow').forEach(el => el.remove());
+
+    // 3. Vérification de fin
+    if (!TUTORIAL_STEPS || !TUTORIAL_STEPS[this.tutoIndex]) return this.closeTutorial();
+    const step = TUTORIAL_STEPS[this.tutoIndex];
+
+    // 4. Changement de vue
+    if(step.view) {
+        document.querySelectorAll('.view-section').forEach(e => e.classList.add('hidden'));
+        this.goToView(step.view);
+    }
+
+    // 5. Mise à jour textes
+    if(title) title.innerText = step.title;
+    if(text) text.innerText = step.text;
+
+    // 6. MISE EN LUMIÈRE (Avec Timer stocké)
+    if (step.targetId) {
+        // On stocke le timer dans 'this.tutoTimer'
+        this.tutoTimer = setTimeout(() => {
+            const target = document.getElementById(step.targetId);
+            if (target) {
+                target.classList.add('tuto-highlight'); 
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                const rect = target.getBoundingClientRect();
+                const arrow = document.createElement('div');
+                // On garde l'ID mais on utilise surtout la classe pour le nettoyage
+                arrow.id = 'tuto-arrow-el';
+                arrow.className = 'tuto-arrow';
+                arrow.style.zIndex = "2060"; 
+                
+                if (rect.top > window.innerHeight / 2) {
+                    arrow.style.left = (rect.left + rect.width/2 - 20) + 'px';
+                    arrow.style.top = (rect.top - 50) + 'px';
+                    arrow.innerHTML = '👇'; 
+                } else {
+                    arrow.style.left = (rect.left + rect.width/2 - 20) + 'px';
+                    arrow.style.top = (rect.bottom + 10) + 'px';
+                    arrow.innerHTML = '👆'; 
+                }
+                document.body.appendChild(arrow);
+            }
+        }, 150);
+    }
+
+    // 7. Affichage overlay
+    if(backdrop) backdrop.classList.remove('hidden');
+    if(overlay) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+    }
+
+    // 8. Dots
+    const dots = document.getElementById('tuto-dots');
+    if(dots) {
+        dots.innerHTML = '';
+        TUTORIAL_STEPS.forEach((_, i) => {
+            const dotClass = i === this.tutoIndex ? "bg-orange-500 w-4" : "bg-slate-700 w-1.5";
+            dots.innerHTML += `<div class="h-1.5 rounded-full transition-all duration-300 ${dotClass}"></div>`;
+        });
+    }
+}
+
+    closeTutorial() {
+    // 1. ANNULATION DU TIMER (Crucial si on ferme très vite)
+    if (this.tutoTimer) clearTimeout(this.tutoTimer);
+
+    // 2. Nettoyage complet
+    document.querySelectorAll('.tuto-highlight').forEach(el => el.classList.remove('tuto-highlight'));
+    
+    // Supprime TOUTES les flèches trouvées dans le document
+    document.querySelectorAll('.tuto-arrow').forEach(el => el.remove());
+
+    // 3. Masquage des panneaux
+    const backdrop = document.getElementById('tuto-backdrop');
+    const overlay = document.getElementById('tutorial-overlay');
+    
+    if(backdrop) backdrop.classList.add('hidden');
+    if(overlay) overlay.classList.add('hidden');
+    
+    this.toast("Briefing terminé. Bonne chance !");
+    this.playSound('whistle');
+}
+        }
+        
 
         window.onload = () => { window.app = new EliteManager(); };
+        
     </script>
    <script>
     // Ecouteur global pour les clics
@@ -4653,3 +4907,4 @@ showGoalAnim(n) {
 </body>
 
 </html>
+
