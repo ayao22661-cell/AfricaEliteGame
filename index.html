@@ -118,6 +118,40 @@
             /* CORRECTION ICI : On autorise les éléments à dépasser (pour le badge) */
             overflow: visible;
         }
+        /* --- SÉLECTEUR AVATAR MANAGER --- */
+.manager-option {
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    border: 3px solid #334155; /* Gris foncé par défaut */
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #1e293b; /* Fond sombre */
+    overflow: hidden;
+    position: relative;
+}
+
+.manager-option:hover {
+    transform: scale(1.1);
+    border-color: #94a3b8;
+}
+
+.manager-option.selected {
+    border-color: #f97316; /* Orange */
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.6); /* Lueur orange */
+    transform: scale(1.15);
+    z-index: 10;
+}
+
+/* Badge "Check" quand sélectionné */
+.manager-option.selected::after {
+    content: "✔";
+    position: absolute; bottom: 0; right: 0;
+    background: #f97316; color: white;
+    width: 20px; height: 20px;
+    font-size: 12px; font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+}
 /* --- CORRECTION : STYLE DES AVATARS JOUEURS --- */
 .player-face {
     position: absolute !important;
@@ -868,16 +902,20 @@
         <button onclick="app.goToView('infra')" id="nav-infra" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all"><span id="icon-home-nav"></span><span class="text-[9px] font-bold uppercase">Ville</span></button>
     </nav>
     <div id="welcome-modal" class="absolute inset-0 z-[1000] bg-slate-950 flex flex-col items-center justify-center p-8 hidden">
-        <div class="w-full max-w-sm text-center">
-            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl flex items-center justify-center border-4 border-slate-800 shadow-2xl mb-8">
-                <span class="font-teko text-4xl text-white italic">CIV</span>
-            </div>
-            <h1 class="font-teko text-6xl text-white uppercase italic leading-none mb-2">Nouvelle Ère</h1>
-            <p class="text-xs text-slate-400 mb-8 uppercase tracking-widest">La fédération attend votre signature.</p>
-            <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-xl">
+        <div class="w-full max-w-md text-center"> <h1 class="font-teko text-6xl text-white uppercase italic leading-none mb-2">Nouvelle Ère</h1>
+            <p class="text-xs text-slate-400 mb-6 uppercase tracking-widest">Identifiez-vous, Coach.</p>
+
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl pointer-events-none"></div>
+
+                <label class="block text-[9px] font-bold text-slate-500 uppercase mb-3 text-left">Votre Avatar</label>
+                <div id="manager-avatars-grid" class="flex justify-center gap-3 mb-6 flex-wrap">
+                </div>
+
                 <label class="block text-[9px] font-bold text-slate-500 uppercase mb-2 text-left">Nom du Manager</label>
                 <input type="text" id="input-manager-name" placeholder="Ex: DIDIER DROGBA" class="w-full bg-slate-950 border border-slate-700 text-white p-4 rounded-xl text-center font-teko text-2xl uppercase focus:border-orange-500 focus:outline-none mb-4 placeholder-slate-700 transition">
-                <button onclick="app.submitManagerName()" class="w-full py-4 bg-white text-slate-900 rounded-xl text-xs font-bold uppercase shadow-lg active:scale-95 transition">
+
+                <button onclick="app.submitManagerName()" class="w-full py-4 bg-white text-slate-900 rounded-xl text-xs font-bold uppercase shadow-lg active:scale-95 transition hover:bg-slate-200">
                     Signer le contrat
                 </button>
             </div>
@@ -2137,7 +2175,7 @@ return { stats: s, roleName: specificRole };
                 scoutPool: [], matchIndex: 0, standings: std,
                 groups: g, trophies: 0, stage: 'groups',
                 viewingGroup: 'A',
-                goalScorers: [], playerRatings: [],
+                goalScorers: [],assisters: [], playerRatings: [],
                 seasonsPlayed: 0, globalResults: [], knockout: {},
 
                 instructions: {
@@ -2283,6 +2321,8 @@ return { stats: s, roleName: specificRole };
         this.audioCtx = new AudioContext();
         this.ambianceNode = null;
 
+        if (!this.state.assisters) this.state.assisters = [];
+
         // --- PATCH CRITIQUE : CORRECTION DES DONNÉES JOUEURS ---
         // (On garde votre code existant pour fixer les joueurs)
         const fixPlayer = (p) => {
@@ -2360,29 +2400,34 @@ return { stats: s, roleName: specificRole };
     const input = document.getElementById('input-manager-name');
     const val = input.value.trim().toUpperCase();
 
+    // Validation simple
     if (val.length < 3) return this.toast("Nom trop court !");
 
+    // 1. Enregistrement des données
     this.state.managerName = val;
 
-    // 1. On cache immédiatement le modal (Important : style.display = 'none')
+    // NOUVEAU : On sauvegarde l'avatar choisi (ou le premier par défaut si bug)
+    this.state.managerAvatarSeed = this.tempManagerSeed || 101;
+
+    // 2. Fermeture de l'interface de bienvenue
     const modal = document.getElementById('welcome-modal');
     modal.classList.add('hidden');
     modal.style.display = 'none';
 
-    // 2. On ajoute la news de bienvenue
+    // 3. Petit message d'ambiance dans la Gazette
     this.state.news.unshift({
         id: Date.now(),
-        text: `OFFICIEL : Lancement de la dynastie par ${val} !`
+        text: `OFFICIEL : ${val} est le nouveau sélectionneur !`
     });
 
-    // 3. CORRECTION CRITIQUE : On force l'affichage du QG (Inbox)
-    // Cela permet au tutoriel de trouver les éléments sur l'écran
+    // 4. Sauvegarde et Mise à jour
+    this.save();      // Sauvegarde dans le localStorage
+    this.updateUI();  // Met à jour le header tout de suite
+
+    // 5. Lancement du jeu
     this.goToView('inbox');
 
-    this.save();
-    this.updateUI();
-
-    // 4. Maintenant que le QG est visible, on peut lancer le tutoriel
+    // Lancement du tutoriel après un court délai pour l'animation
     setTimeout(() => {
         this.startTutorial();
     }, 500);
@@ -2408,33 +2453,50 @@ return { stats: s, roleName: specificRole };
     }
 
        updateUI() {
-const bDisplay = document.getElementById('budget-display');
-const xDisplay = document.getElementById('team-xp-display');
-const hSubtitle = document.getElementById('header-subtitle');
-const xBar = document.getElementById('xp-bar-fill');
+    // Récupération des éléments du DOM
+    const bDisplay = document.getElementById('budget-display');
+    const xDisplay = document.getElementById('team-xp-display');
+    const hSubtitle = document.getElementById('header-subtitle');
+    const xBar = document.getElementById('xp-bar-fill');
+    const mName = document.getElementById('header-manager-name');
 
-// Mise à jour du nom du manager
-const mName = document.getElementById('header-manager-name');
-if (mName && this.state.managerName) {
-    mName.innerText = this.state.managerName;
-}
+    // Mise à jour du nom
+    if (mName && this.state.managerName) {
+        mName.innerText = this.state.managerName;
+    }
 
-// --- CORRECTION : Mise à jour du Code Équipe dans le Header ---
-const headerIcon = document.querySelector('header .w-10.h-10'); // On cible la div carrée du logo
-if (headerIcon && this.state.userTeamCode) {
-    headerIcon.innerText = this.state.userTeamCode;
+    // --- MODIFICATION : AFFICHAGE AVATAR MANAGER ---
+    // On cible la div carrée qui contient le logo (classe w-10 h-10 dans le header)
+    const headerIconDiv = document.querySelector('header .w-10.h-10');
 
-    // Bonus visuel : Changer la couleur selon la région si vous voulez pousser le détail
-    // (Optionnel, sinon on garde le orange par défaut)
-}
-// -------------------------------------------------------------
+    if (headerIconDiv && this.state.managerAvatarSeed) {
+        // 1. On génère le SVG avec le seed sauvegardé
+        // (40 est la taille en pixels pour le header)
+        const svg = this.generateManagerIcon(this.state.managerAvatarSeed, 40);
 
-if(bDisplay) bDisplay.innerText = this.state.budget.toFixed(1) + " M€";
-if(xDisplay) xDisplay.innerText = this.state.teamXP + " XP";
-if(hSubtitle) hSubtitle.innerText = "SAISON " + this.state.year;
-if(xBar) xBar.style.width = Math.min(100, (this.state.teamXP / 25000) * 100) + "%";
+        // 2. On change le style pour faire un rond "Avatar" au lieu du carré "Drapeau"
+        // On remplace les classes existantes pour être sûr du rendu
+        headerIconDiv.className = "w-10 h-10 rounded-full border-2 border-slate-600 bg-slate-800 overflow-hidden shadow-lg flex items-center justify-center relative z-50";
 
-this.injectIcons();
+        // 3. On injecte le SVG
+        headerIconDiv.innerHTML = svg;
+    }
+    else if (headerIconDiv && this.state.userTeamCode) {
+        // Fallback : Si pas d'avatar (vieille sauvegarde), on affiche le code pays
+        headerIconDiv.innerText = this.state.userTeamCode;
+    }
+    // -----------------------------------------------
+
+    // Mise à jour des valeurs numériques
+    if(bDisplay) bDisplay.innerText = this.state.budget.toFixed(1) + " M€";
+    if(xDisplay) xDisplay.innerText = this.state.teamXP + " XP";
+    if(hSubtitle) hSubtitle.innerText = "SAISON " + this.state.year;
+
+    // Barre d'expérience (Max 25000 XP pour l'exemple)
+    if(xBar) xBar.style.width = Math.min(100, (this.state.teamXP / 25000) * 100) + "%";
+
+    // Ré-injection des icônes SVG si nécessaire (perte au refresh)
+    this.injectIcons();
 }
 
         goToView(v) {
@@ -2933,6 +2995,78 @@ return `${f} ${l}`;
             if(avgEl) avgEl.innerText = Math.round(this.getTeamPower());
         }
     }
+}
+            // Génère un avatar SVG spécifique pour le manager (Costume cravate)
+generateManagerIcon(seed, size = 64) {
+    // 1. Initialisation du générateur aléatoire basé sur le seed (Nom ou ID)
+    let hash = 0;
+    const seedStr = seed.toString();
+    for (let i = 0; i < seedStr.length; i++) hash = seedStr.charCodeAt(i) + ((hash << 5) - hash);
+    const safeHash = Math.abs(hash);
+    const prng = (min, max) => {
+        const x = Math.sin(hash++) * 10000;
+        return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
+    };
+
+    // 2. Palette de peau (Réaliste)
+    const skinPalette = [
+        { base: "#5D4037", shadow: "#3E2723" }, // Foncé
+        { base: "#8D6E63", shadow: "#5D4037" }, // Moyen
+        { base: "#E0AC69", shadow: "#8D5524" }, // Clair
+        { base: "#F2C490", shadow: "#C69C72" }  // Très clair
+    ];
+    const skin = skinPalette[safeHash % skinPalette.length]; // Choix déterministe
+
+    // 3. Costume (Toujours classe)
+    // Veste foncée (Bleu nuit, Noir, Gris anthracite)
+    const suitColors = ["#1e293b", "#0f172a", "#334155", "#111827"];
+    const suitColor = suitColors[safeHash % suitColors.length];
+
+    // Cravate (Rouge, Bleu, Orange...)
+    const tieColors = ["#ef4444", "#3b82f6", "#f97316", "#eab308"];
+    const tieColor = tieColors[prng(0, tieColors.length - 1)];
+
+    // 4. Dessin du Corps (Costume)
+    const body = `
+        <path d="M12 50 Q32 45, 52 50 V64 H12 Z" fill="${suitColor}"/>
+        <path d="M26 50 L32 58 L38 50" fill="white"/>
+        <path d="M30 50 L34 50 L33 60 L31 60 Z" fill="${tieColor}"/>
+        <path d="M24 38 L24 50 L40 50 L40 38" fill="${skin.base}"/>
+        <path d="M24 40 Q32 45, 40 40" fill="${skin.shadow}" opacity="0.3"/>
+    `;
+
+    // 5. Tête et Visage
+    const head = `
+        <path d="M19 16 C19 6, 45 6, 45 16 V28 C45 38, 40 46, 32 46 C24 46, 19 38, 19 28 V16 Z" fill="${skin.base}"/>
+        <path d="M32 20 L45 20 V28 C45 36, 40 45, 32 46 Z" fill="${skin.shadow}" opacity="0.2"/>
+    `;
+
+    // 6. Cheveux (Plus sages que les joueurs)
+    const hairColors = ["#0F0F0F", "#282828", "#4A3B32", "#888888"]; // Inclut gris
+    const hCol = hairColors[prng(0, hairColors.length - 1)];
+    const hairStyle = prng(0, 4);
+    let hair = '';
+
+    if(hairStyle === 0) hair = `<path d="M18 20 C18 8, 46 8, 46 20 H18 Z" fill="${hCol}"/>`; // Court simple
+    else if(hairStyle === 1) hair = `<path d="M18 24 V16 C18 6, 46 6, 46 16 V24" fill="none" stroke="${hCol}" stroke-width="2"/>`; // Calvitie
+    else if(hairStyle === 2) hair = `<path d="M18 18 C18 5, 46 5, 46 18 L46 24 H18 Z" fill="${hCol}"/>`; // Volume
+    else hair = `<rect x="20" y="10" width="24" height="12" rx="4" fill="${hCol}"/>`; // Brosse
+
+    // 7. Yeux / Nez
+    const faceFeatures = `
+        <circle cx="25" cy="28" r="1.5" fill="#111"/>
+        <circle cx="39" cy="28" r="1.5" fill="#111"/>
+        <path d="M32 28 L30 36 L34 36" fill="none" stroke="${skin.shadow}" stroke-width="1"/>
+        <path d="M26 42 Q32 44, 38 42" fill="none" stroke="#3E2723" stroke-width="1"/>
+    `;
+
+    // Lunettes (Accessoire Manager fréquent - 30% chance)
+    let accessories = '';
+    if(prng(0, 10) > 6) {
+        accessories = `<g stroke="#d4af37" stroke-width="1" fill="none"><circle cx="25" cy="28" r="4"/><circle cx="39" cy="28" r="4"/><line x1="29" y1="28" x2="35" y2="28"/></g>`;
+    }
+
+    return `<svg viewBox="0 0 64 64" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" class="manager-face">${body}${head}${faceFeatures}${hair}${accessories}</svg>`;
 }
 
        getTeamPower() {
@@ -3460,21 +3594,74 @@ triggerActionCommentary(type, teamName) {
 
             // 5. GESTION DES BUTS (Impactés par les cartons via powerRatio)
 
-            // BUT DOMICILE (CIV)
+            // BUT DOMICILE (ÉQUIPE DU JOUEUR)
             if (Math.random() < chance * powerRatio) {
                 this.match.score[0]++;
-                this.match.stats.shots++; // Un but est aussi un tir
+                this.match.stats.shots++;
                 const sh = document.getElementById('score-home'); if(sh) sh.innerText = this.match.score[0];
                 document.getElementById('stats-shots-home').innerText = this.match.stats.shots;
 
                 this.playSound('goal');
 
-                // CORRECTION : Utiliser getScorerName aussi pour nous si besoin, ou garder la logique actuelle
-                const s = this.state.players.filter(p=>p.role==='starter');
-                const scorer = s.length > 0 ? s[Math.floor(Math.random()*s.length)] : {name:"Inconnu"};
+                // --- 1. Récupération des titulaires actuels (Sénégal, Maroc, etc.) ---
+                const starters = this.state.players.filter(p => p.role === 'starter');
+                let candidates = [];
 
-                this.registerGoal(scorer.name, "Côte d'Ivoire");
+                // --- 2. Logique de pondération (Attaquants marquent +) ---
+                starters.forEach(p => {
+                    if (p.pos === 'GK') return; // Pas de gardien buteur
+
+                    let tickets = 1; // Défenseurs
+                    if (p.pos === 'MID') tickets = 4; // Milieux
+                    if (p.pos === 'FWD') tickets = 8; // Attaquants
+
+                    // Bonus stats
+                    if (p.stats && p.stats.sho > 80) tickets += 3;
+
+                    // On ajoute le joueur X fois dans la liste
+                    for(let i=0; i < tickets; i++) candidates.push(p);
+                });
+
+                // --- 3. Tirage au sort ---
+                const scorer = candidates.length > 0
+                    ? candidates[Math.floor(Math.random() * candidates.length)]
+                    : (starters[0] || {name: "Capitaine"});
+
+                // --- 4. CORRECTION DU NOM D'ÉQUIPE ---
+                // Au lieu de "Côte d'Ivoire", on met this.state.userTeamName
+                const myTeamName = this.state.userTeamName || "Mon Équipe";
+                this.registerGoal(scorer.name, myTeamName);
+                // DANS tick(), SECTION BUT DOMICILE
+// Juste après : this.showGoalAnim(scorer.name);
+
+// --- DÉBUT MODIF PASSEUR (USER) ---
+// 70% de chance d'avoir une passe décisive (pas sur pénalty ou exploit solo)
+if (Math.random() < 0.70) {
+    // On cherche un coéquipier (qui n'est pas le buteur et pas le gardien)
+    const teammates = starters.filter(p => p.name !== scorer.name && p.pos !== 'GK');
+
+    if (teammates.length > 0) {
+        // Les milieux (MID) et ailiers ont plus de chance de faire la passe
+        let passerCandidates = [];
+        teammates.forEach(p => {
+            passerCandidates.push(p); // 1 chance de base
+            if (p.pos === 'MID' || p.pos === 'FWD') passerCandidates.push(p); // Bonus +1 chance
+            if (p.stats && p.stats.pas > 80) passerCandidates.push(p); // Bonus Passeur +1 chance
+        });
+
+        // Tirage au sort du passeur
+        const passer = passerCandidates[Math.floor(Math.random() * passerCandidates.length)];
+
+        // Enregistrement
+        this.registerAssist(passer.name, myTeamName);
+
+        // Bonus note pour le passeur (+0.5 à +1.0)
+        this.registerRating(passer.name, myTeamName, 7.0 + Math.random());
+    }
+}
+// --- FIN MODIF PASSEUR ---
                 this.showGoalAnim(scorer.name);
+
 
              // Type de but (Version Pro avec SVGS)
     const rGoal = Math.random();
@@ -3505,6 +3692,18 @@ triggerActionCommentary(type, teamName) {
                 // Utilisation du nouveau générateur de buteur réaliste
                 const scorerName = this.getScorerName(this.match.opp.n);
                 this.registerGoal(scorerName, this.match.opp.n);
+                // DANS tick(), SECTION BUT EXTÉRIEUR (IA)
+
+// --- DÉBUT MODIF PASSEUR (IA) ---
+if (Math.random() < 0.70) {
+    // On génère un nom de passeur différent du buteur
+    let passerName = this.getScorerName(this.match.opp.n);
+    // On s'assure que ce n'est pas le même nom
+    if (passerName === scorerName) passerName = this.getScorerName(this.match.opp.n);
+
+    this.registerAssist(passerName, this.match.opp.n);
+}
+// --- FIN MODIF PASSEUR ---
 
                 const oppNameHTML = `<span class="text-white font-bold">${scorerName}</span>`;
                 this.addCommentary(`${SVGS.alert} But pour ${this.match.opp.n}. ${oppNameHTML} punit la défense.`);
@@ -3838,12 +4037,43 @@ if (this.state.stage === 'finale' && isWin) {
             // Si ce n'est pas la finale gagnée, on continue le déroulement normal :
             setTimeout(() => { this.startMenuMusic(); }, 2000);
 
-            // Calcul Notes (Dynamique)
-            this.state.players.forEach(p => {
-                if (p.role === 'starter') {
-                    this.registerRating(p.name, this.state.userTeamName, isWin ? 7.5 : 6.0);
-                }
-            });
+            // --- CALCUL DES NOTES (VRAI SYSTÈME MVP) ---
+this.state.players.forEach(p => {
+    if (p.role === 'starter') {
+        // 1. Note de base selon le résultat (plus basse pour laisser place aux bonus)
+        let note = isWin ? 6.5 : (isDraw ? 6.0 : 5.0);
+
+        // 2. Le facteur "Match de sa vie" (Aléatoire entre 0 et 1.5 points)
+        // Cela permet à un joueur d'avoir 8.0 même sans marquer, juste parce qu'il a été bon
+        note += Math.random() * 1.5;
+
+        // 3. Bonus Clean Sheet (Pour Gardien et Défenseurs)
+        // Si l'adversaire a mis 0 but (scoreAway === 0)
+        if (scoreAway === 0 && (p.pos === 'GK' || p.pos === 'DEF')) {
+            note += 1.0; // Bonus solidité
+        }
+
+        // 4. Bonus Offensive (Si on a gagné, les attaquants ont sûrement brillé)
+        if (isWin && (p.pos === 'FWD' || p.pos === 'MID')) {
+            // Une chance sur deux d'avoir été décisif
+            if (Math.random() > 0.4) note += 1.5;
+            // Chance rare d'avoir été HÉROÏQUE (Doublé, etc.)
+            if (Math.random() > 0.8) note += 1.0;
+        }
+
+        // 5. Malus défaite lourde (Si on perd par 2 buts ou plus)
+        if (!isWin && !isDraw && (scoreAway - scoreHome >= 2) && p.pos === 'DEF') {
+            note -= 1.0;
+        }
+
+        // Plafond (Max 10, Min 3)
+        if (note > 10) note = 10;
+        if (note < 3) note = 3;
+
+        // Enregistrement
+        this.registerRating(p.name, this.state.userTeamName, note);
+    }
+});
 
             // Score et mise à jour classement
             this.state.budget += isWin ? 2.0 : (isDraw ? 0.8 : 0.4);
@@ -4022,6 +4252,21 @@ if (entry) {
     this.state.goalScorers.push({ n: name, t: team, c: 1 });
 }
 }
+          // AJOUTER DANS LA CLASSE EliteManager
+
+registerAssist(name, team) {
+    if (!this.state.assisters) this.state.assisters = [];
+
+    // Nettoyage au cas où
+    this.state.assisters = this.state.assisters.filter(x => x && x.n && x.t);
+
+    let entry = this.state.assisters.find(x => x.n === name && x.t === team);
+    if (entry) {
+        entry.c++;
+    } else {
+        this.state.assisters.push({ n: name, t: team, c: 1 });
+    }
+}
         // Enregistre une note (ex: 7.5) pour un joueur
         registerRating(name, team, rating) {
             if (!this.state.playerRatings) this.state.playerRatings = [];
@@ -4149,10 +4394,18 @@ if (entry) {
                 for(let k=0; k<goalsScored; k++) {
                     const scorer = this.getScorerName(teamName);
                     this.registerGoal(scorer, teamName);
+                    if (Math.random() < 0.70) {
+    let assister = this.getScorerName(teamName); // On utilise le générateur de nom
+    // Petite vérif pour éviter que le buteur se fasse la passe à lui-même
+    if (assister === scorer) assister = this.getScorerName(teamName);
+
+    this.registerAssist(assister, teamName);
+    }
                     // Un buteur a forcément une bonne note (> 7.5)
                     this.registerRating(scorer, teamName, 7.5 + Math.random() * 1.5);
                 }
             };
+
 
             const t1Win = g1 > g2; const draw = g1 === g2;
             processTeamSim(t1, g1, t1Win, draw);
@@ -4207,100 +4460,195 @@ if (entry) {
 
 
         startNextStage() {
-            // Sauvegarde de sécurité
-            this.save();
+    this.save();
 
-            // 1. PHASE DE POULES -> HUITIÈMES
-            if (this.state.stage === 'groups') {
-                const myTeamName = this.state.userTeamName;
-                const myStats = this.state.standings[myTeamName];
+    // --- INITIALISATION DU VIVIER (Si on sort des poules) ---
+    // On crée la liste des 15 autres qualifiés si elle n'existe pas encore
+    if (this.state.stage === 'groups' || !this.state.tournamentSurvivors) {
+        const myName = this.state.userTeamName;
+        // On prend toutes les nations sauf nous
+        let candidates = NATIONS_DB.filter(n => n.n !== myName);
 
-                // Calcul Classement
-                const groupTeams = Object.keys(this.state.standings)
-                    .filter(k => this.state.standings[k].grp === myStats.grp)
-                    .sort((a,b) => this.state.standings[b].pts - this.state.standings[a].pts || (this.state.standings[b].gf - this.state.standings[b].ga) - (this.state.standings[a].gf - this.state.standings[a].ga));
+        // On garde seulement les meilleures (Réalisme : les petites nations sortent souvent en poules)
+        // On trie par OVR décroissant + un peu d'aléatoire pour les surprises
+        candidates.sort((a, b) => (b.ovr + Math.random() * 10) - (a.ovr + Math.random() * 10));
 
-                const myRank = groupTeams.indexOf(myTeamName) + 1;
+        // On garde les 15 meilleurs pour faire le top 16 avec nous
+        this.state.tournamentSurvivors = candidates.slice(0, 15);
+    }
 
-                // Élimination
-                if (myRank > 2) {
-                    this.playSound('whistle');
-                    this.toast("ÉLIMINÉ ! L'aventure s'arrête ici.");
-                    setTimeout(() => {
-                        alert(`Fin de la saison.\nVotre équipe (${myTeamName}) termine ${myRank}ème de son groupe.`);
-                        this.startNextSeason();
-                    }, 2000);
-                    return;
-                }
+    // --- LOGIQUE DE PROGRESSION ---
 
-                // Qualification
-                this.state.stage = '8iemes';
-                this.state.budget += 3.0;
-                this.state.teamXP += 100;
+    // 1. POULES -> 8ÈMES
+    if (this.state.stage === 'groups') {
+        const myTeamName = this.state.userTeamName;
+        const myStats = this.state.standings[myTeamName];
 
-                // Tirage au sort
-                let pool = NATIONS_DB.filter(n => n.n !== myTeamName && n.star >= 3.5);
-                if (pool.length === 0) pool = NATIONS_DB.filter(n => n.n !== myTeamName);
+        // Vérification classement (Logic existante)
+        const groupTeams = Object.keys(this.state.standings)
+            .filter(k => this.state.standings[k].grp === myStats.grp)
+            .sort((a,b) => this.state.standings[b].pts - this.state.standings[a].pts || (this.state.standings[b].gf - this.state.standings[b].ga) - (this.state.standings[a].gf - this.state.standings[a].ga));
 
-                const opp = pool[Math.floor(Math.random() * pool.length)];
-                this.state.knockout['8iemes'] = this.state.standings[opp.n];
+        const myRank = groupTeams.indexOf(myTeamName) + 1;
 
-                this.state.news.unshift({ id: Date.now(), text: `QUALIFIÉ : ${myTeamName} affrontera ${opp.n} en 8èmes !` });
-            }
-            // 2. HUITIÈMES -> QUARTS
-            else if (this.state.stage === '8iemes') {
-                this.state.stage = 'quarts';
-                this.state.budget += 6.0;
-                this.state.teamXP += 300;
-
-                let pool = NATIONS_DB.filter(n => n.n !== this.state.userTeamName && n.star >= 4.0);
-                if (pool.length === 0) pool = NATIONS_DB.filter(n => n.n !== this.state.userTeamName);
-
-                const opp = pool[Math.floor(Math.random() * pool.length)];
-                this.state.knockout['quarts'] = this.state.standings[opp.n];
-            }
-            // 3. QUARTS -> DEMIS
-            else if (this.state.stage === 'quarts') {
-                this.state.stage = 'demis';
-                this.state.budget += 12.0;
-                this.state.teamXP += 600;
-
-                let pool = NATIONS_DB.filter(n => n.n !== this.state.userTeamName && n.star >= 4.0);
-                if (pool.length === 0) pool = NATIONS_DB.filter(n => n.n !== this.state.userTeamName);
-
-                const opp = pool[Math.floor(Math.random() * pool.length)];
-                this.state.knockout['demis'] = this.state.standings[opp.n];
-            }
-            // 4. DEMIS -> FINALE
-            else if (this.state.stage === 'demis') {
-                this.state.stage = 'finale';
-                this.state.budget += 20.0;
-                this.state.teamXP += 1000;
-
-                let pool = NATIONS_DB.filter(n => n.n !== this.state.userTeamName && n.star >= 4.0);
-                if (pool.length === 0) pool = NATIONS_DB.filter(n => n.n !== this.state.userTeamName);
-
-                const opp = pool[Math.floor(Math.random() * pool.length)];
-                this.state.knockout['finale'] = this.state.standings[opp.n];
-
-                this.playSound('cheer');
-                this.toast("FINALE ! L'Histoire est en marche !");
-            }
-
-            // --- CORRECTION DU BUG D'AFFICHAGE ---
-            this.state.matchIndex = 0;
-            this.save();
-
-            // 1. On force la vue 'calendar' (C'est là que s'affiche le match de coupe)
-            // L'ancienne version disait 'competition' qui n'existe pas dans le HTML
-            this.goToView('calendar');
-
-            // 2. On force le rafraîchissement immédiat
+        if (myRank > 2) { // Note : On simplifie, seuls les 2 premiers passent ici
+            this.playSound('whistle');
+            this.toast("ÉLIMINÉ ! L'aventure s'arrête ici.");
             setTimeout(() => {
-                this.updateUI();
-                this.renderCalendar(); // Anciennement renderCompetition() qui n'existait pas
-            }, 50);
+                alert(`Fin de la saison.\nVotre équipe (${myTeamName}) termine ${myRank}ème de son groupe.`);
+                this.startNextSeason();
+            }, 2000);
+            return;
         }
+
+        // QUALIFICATION EN 8ÈMES
+        this.state.stage = '8iemes';
+        this.state.budget += 3.0;
+        this.state.teamXP += 100;
+
+        // Tirage au sort : On prend un adversaire dans les survivants
+        // On le retire de la liste des survivants (car il joue contre nous)
+        const oppIndex = Math.floor(Math.random() * this.state.tournamentSurvivors.length);
+        const nextOpp = this.state.tournamentSurvivors.splice(oppIndex, 1)[0];
+
+        this.state.knockout['8iemes'] = this.state.standings[nextOpp.n];
+
+        this.state.news.unshift({ id: Date.now(), text: `QUALIFIÉ : ${myTeamName} affrontera ${nextOpp.n} en 8èmes !` });
+    }
+
+    // 2. 8ÈMES -> QUARTS
+    else if (this.state.stage === '8iemes') {
+        this.state.stage = 'quarts';
+        this.state.budget += 6.0;
+        this.state.teamXP += 300;
+
+        // SIMULATION DES AUTRES MATCHS DES 8ÈMES
+        // Il reste 14 équipes dans survivors. On doit faire 7 matchs -> 7 gagnants.
+        this.simulateTournamentRound();
+
+        // Maintenant survivors contient les 7 gagnants potentiels. On en tire un.
+        const oppIndex = Math.floor(Math.random() * this.state.tournamentSurvivors.length);
+        const nextOpp = this.state.tournamentSurvivors.splice(oppIndex, 1)[0];
+
+        this.state.knockout['quarts'] = this.state.standings[nextOpp.n];
+        this.toast("Qualifié pour les Quarts !");
+    }
+
+    // 3. QUARTS -> DEMIS
+    else if (this.state.stage === 'quarts') {
+        this.state.stage = 'demis';
+        this.state.budget += 12.0;
+        this.state.teamXP += 600;
+
+        // SIMULATION DES AUTRES MATCHS DES QUARTS
+        // Il reste 6 équipes. 3 matchs -> 3 gagnants.
+        this.simulateTournamentRound();
+
+        const oppIndex = Math.floor(Math.random() * this.state.tournamentSurvivors.length);
+        const nextOpp = this.state.tournamentSurvivors.splice(oppIndex, 1)[0];
+
+        this.state.knockout['demis'] = this.state.standings[nextOpp.n];
+        this.toast("Direction les Demi-Finales !");
+    }
+
+    // 4. DEMIS -> FINALE
+    else if (this.state.stage === 'demis') {
+        this.state.stage = 'finale';
+        this.state.budget += 20.0;
+        this.state.teamXP += 1000;
+
+        // SIMULATION DE L'AUTRE DEMI-FINALE
+        // Il reste 2 équipes. 1 match -> 1 gagnant (Finaliste).
+        this.simulateTournamentRound();
+
+        // Le dernier survivant est notre adversaire en finale
+        const nextOpp = this.state.tournamentSurvivors[0]; // Pas besoin de splice, c'est le dernier
+
+        this.state.knockout['finale'] = this.state.standings[nextOpp.n];
+
+        this.playSound('cheer');
+        this.toast("FINALE ! L'Histoire est en marche !");
+    }
+
+    // --- RESET ET AFFICHAGE ---
+    this.state.matchIndex = 0;
+    this.save();
+    this.goToView('calendar');
+    setTimeout(() => {
+        this.updateUI();
+        this.renderCalendar();
+    }, 50);
+}
+// Simule les matchs entre les équipes restantes dans le tournoi
+simulateTournamentRound() {
+    const survivors = this.state.tournamentSurvivors; // Liste des équipes encore en lice (hors joueur)
+    const nextRoundSurvivors = [];
+
+    // On fait jouer les équipes 2 par 2
+    while (survivors.length >= 2) {
+        const teamA = survivors.pop();
+        const teamB = survivors.pop();
+
+        // 1. Calcul du Vainqueur (Logique OVR + Aléatoire)
+        const scorePowerA = teamA.ovr + (Math.random() * 20);
+        const scorePowerB = teamB.ovr + (Math.random() * 20);
+
+        const winner = scorePowerA >= scorePowerB ? teamA : teamB;
+        const loser = scorePowerA >= scorePowerB ? teamB : teamA;
+
+        // 2. GÉNÉRATION DU SCORE RÉALISTE (Pour les stats buteurs)
+        // Le vainqueur marque entre 1 et 3 buts (pondéré par son OVR)
+        let goalsWinner = 1 + Math.floor(Math.random() * 3);
+        // Le perdant marque entre 0 et goalsWinner-1 (sauf si tirs au but simulés, on simplifie ici)
+        let goalsLoser = Math.floor(Math.random() * goalsWinner);
+
+        // Cas rare : match serré, prolongation/TAB (ex fictif : 1-1, le vainqueur passe aux TAB)
+        // Pour simplifier l'enregistrement des buts, on force une victoire au temps réglementaire ou prolongation
+        if (goalsWinner === goalsLoser) goalsWinner++;
+
+        // 3. ENREGISTREMENT DES BUTEURS (C'est ce qui manquait !)
+
+        // Pour le vainqueur
+        for (let i = 0; i < goalsWinner; i++) {
+            const scorerName = this.getScorerName(winner.n);
+            this.registerGoal(scorerName, winner.n);
+             if (Math.random() < 0.70) {
+    let assister = this.getScorerName(winner.n);
+    if (assister === scorerName) assister = this.getScorerName(winner.n);
+    this.registerAssist(assister, winner.n);
+    }
+            // On donne une note au passage
+            this.registerRating(scorerName, winner.n, 7.0 + Math.random());
+        }
+
+        // Pour le perdant
+        for (let i = 0; i < goalsLoser; i++) {
+            const scorerName = this.getScorerName(loser.n);
+            if (Math.random() < 0.70) {
+    let assister = this.getScorerName(loser.n);
+    if (assister === scorerName) assister = this.getScorerName(loser.n);
+    this.registerAssist(assister, loser.n);
+     }
+            this.registerGoal(scorerName, loser.n);
+            this.registerRating(scorerName, loser.n, 6.0 + Math.random());
+        }
+
+        // On garde le vainqueur pour le prochain tour
+        nextRoundSurvivors.push(winner);
+
+        // (Optionnel) Ajout dans l'historique des résultats globaux pour plus de réalisme
+        this.state.globalResults.push(`${winner.n} ${goalsWinner}-${goalsLoser} ${loser.n}`);
+    }
+
+    // Si nombre impair (ne devrait pas arriver avec 16 équipes de base), on repousse le dernier
+    if (survivors.length === 1) {
+        nextRoundSurvivors.push(survivors[0]);
+    }
+
+    // Mise à jour de la liste officielle
+    this.state.tournamentSurvivors = nextRoundSurvivors;
+    this.save();
+}
 
         simulateRest(winnerOverrideTeam = null) {
             // 1. Définition des étapes pour parcourir ce qu'il reste du tournoi
@@ -4370,49 +4718,54 @@ if (entry) {
         }
 
         awards(winnerName) {
-            // On retrouve les infos de la nation gagnante dans la DB
-            const nationData = NATIONS_DB.find(n => n.n === winnerName);
-            if (!nationData) return;
+    // On retrouve les infos de la nation gagnante dans la DB
+    const nationData = NATIONS_DB.find(n => n.n === winnerName);
+    if (!nationData) return;
 
-            // 1. MVP : Le joueur avec la meilleure MOYENNE (et non plus la star prédéfinie)
-            let mvpObj = { n: "Inconnu", t: "?", avg: 0 };
+    // 1. MVP : CORRECTION RÉALISTE
+    // Le joueur doit avoir joué au moins 3 ou 4 matchs pour être éligible
+    let mvpObj = { n: "Inconnu", t: "?", avg: 0 };
 
-            if (this.state.playerRatings && this.state.playerRatings.length > 0) {
-                // On recalcule les moyennes et on trie
-                const sortedRatings = this.state.playerRatings
-                    .map(p => ({ ...p, avg: p.total / p.matchs }))
-                    .sort((a,b) => b.avg - a.avg);
+    if (this.state.playerRatings && this.state.playerRatings.length > 0) {
+        const sortedRatings = this.state.playerRatings
+            // ÉTAPE CLÉ : On calcule la moyenne
+            .map(p => ({ ...p, avg: p.total / p.matchs }))
+            // ÉTAPE CLÉ : On filtre les "touristes" (Min 3 matchs joués)
+            .filter(p => p.matchs >= 3)
+            // On trie par meilleure note
+            .sort((a,b) => b.avg - a.avg);
 
-                mvpObj = sortedRatings[0];
-            }
+        // Sécurité : Si personne n'a 3 matchs (ex: bug), on prend le premier tout court
+        mvpObj = sortedRatings.length > 0 ? sortedRatings[0] : this.state.playerRatings[0];
+    }
 
-            this.state.news.unshift({
-                id: Date.now() + 1,
-                text: `${SVGS.medal} MVP : ${mvpObj.n} (${mvpObj.t}) est élu meilleur joueur du tournoi avec une note moyenne de ${mvpObj.avg.toFixed(2)} !`
-            });
+    this.state.news.unshift({
+        id: Date.now() + 1,
+        text: `${SVGS.medal} MVP : ${mvpObj.n} (${mvpObj.t}) est élu meilleur joueur du tournoi avec une note moyenne de ${mvpObj.avg.toFixed(2)} !`
+    });
 
-            // 2. Soulier d'Or : Le meilleur buteur
-           let topScorerObj = { n: "Inconnu", t: "?", c: 0 };
+    // ... (Le reste de la fonction Soulier d'Or et Gant d'Or ne change pas) ...
+    // 2. Soulier d'Or : Le meilleur buteur
+   let topScorerObj = { n: "Inconnu", t: "?", c: 0 };
 
-            // On vérifie si on a des buteurs enregistrés
-            if (this.state.goalScorers && this.state.goalScorers.length > 0) {
-                // On trie la liste du plus grand au plus petit nombre de buts
-                this.state.goalScorers.sort((a,b) => b.c - a.c);
-                // On prend le premier
-                topScorerObj = this.state.goalScorers[0];
-            }
+    // On vérifie si on a des buteurs enregistrés
+    if (this.state.goalScorers && this.state.goalScorers.length > 0) {
+        // On trie la liste du plus grand au plus petit nombre de buts
+        this.state.goalScorers.sort((a,b) => b.c - a.c);
+        // On prend le premier
+        topScorerObj = this.state.goalScorers[0];
+    }
 
-            this.state.news.unshift({
-                id: Date.now() + 2,
-                text: `${SVGS.boot} Soulier d'Or : ${topScorerObj.n} (${topScorerObj.t}) termine en tête avec ${topScorerObj.c} réalisations.`
-            });
+    this.state.news.unshift({
+        id: Date.now() + 2,
+        text: `${SVGS.boot} Soulier d'Or : ${topScorerObj.n} (${topScorerObj.t}) termine en tête avec ${topScorerObj.c} réalisations.`
+    });
 
-            // 3. Gant d'Or : Le gardien du vainqueur
-            let gkName = "";
+    // 3. Gant d'Or : Le gardien du vainqueur
+    let gkName = "";
 
     // --- CORRECTION : ON VÉRIFIE SI C'EST L'ÉQUIPE DU JOUEUR ---
     if (winnerName === this.state.userTeamName) {
-    // -----------------------------------------------------------
         const myGK = this.state.players.find(p => p.role === 'starter' && p.pos === 'GK');
         gkName = myGK ? myGK.name : "Le Gardien";
     } else {
@@ -4420,11 +4773,11 @@ if (entry) {
         gkName = `Le portier (${nationData.code})`;
     }
 
-            this.state.news.unshift({
-                id: Date.now() + 3,
-                text: `${SVGS.glove} Gant d'Or : ${gkName} remporte le trophée Yachine.`
-            });
-        }
+    this.state.news.unshift({
+        id: Date.now() + 3,
+        text: `${SVGS.glove} Gant d'Or : ${gkName} remporte le trophée Yachine.`
+    });
+}
 
         processRetirements() {
 const retired = [];
@@ -4585,166 +4938,193 @@ if(modal) {
 }
 
 startNextSeason() {
-            // --- 0. CHANGEMENT DE PAYS HÔTE ---
-            let newHost;
-            if (NATIONS_DB.length > 1) {
-                do {
-                    newHost = NATIONS_DB[Math.floor(Math.random() * NATIONS_DB.length)];
-                } while (this.state.hostCountry && newHost.n === this.state.hostCountry);
-            } else {
-                newHost = NATIONS_DB[0];
-            }
-
-            this.state.hostCountry = newHost.n;
-            this.state.hostStadiums = newHost.stadiums;
-
-            this.state.news.unshift({
-                id: Date.now() + 9999,
-                text: `${SVGS.globe} OFFICIEL : La CAN ${this.state.year + 2} se déroulera au ${newHost.n} !`
-            });
-
-            // 1. PAIEMENT SALAIRES
-            let totalSalaries = 0;
-            if (this.state.staff) {
-                Object.values(this.state.staff).forEach(s => totalSalaries += s.salary);
-            }
-
-            this.state.budget -= totalSalaries;
-
-            if (this.state.budget < 0) {
-                this.state.budget = 0;
-                this.state.news.unshift({id: Date.now(), text: `⚠️ CRISE : L'État renfloue la fédération pour payer les salaires.`});
-            } else {
-                this.state.news.unshift({id: Date.now(), text: `💰 FINANCES : ${totalSalaries.toFixed(1)}M€ versés au staff technique.`});
-            }
-
-            // 2. CHANGEMENT DE SAISON (+2 ANS POUR TOUT LE MONDE)
-            this.state.year += 2; // <--- ANNEES IMPAIRES (2026 -> 2028)
-            this.state.seasonsPlayed++;
-            this.state.matchIndex = 0;
-            this.state.stage = 'groups';
-            this.state.rareScoutUsed = false;
-
-            this.state.goalScorers = [];
-            this.state.playerRatings = [];
-
-            // --- 3. GESTION DU MONDE VIVANT (IA) ---
-            if (this.state.worldPlayers) {
-                let totalRetired = 0;
-
-                Object.keys(this.state.worldPlayers).forEach(code => {
-                    // SÉCURITÉ : On ignore votre équipe ici pour éviter les bugs
-                    if (code === this.state.userTeamCode) return;
-
-                    const squad = this.state.worldPlayers[code];
-
-                    for (let i = 0; i < squad.length; i++) {
-                        let p = squad[i];
-
-                        // A. Vieillissement IA (+2 ANS)
-                        p.age = (p.age || 25) + 2;
-
-                        // B. Évolution IA
-                        if (p.age > 33) {
-                            // Déclin plus marqué car 2 ans passent
-                            p.spd = Math.max(30, (p.spd || 70) - 2);
-                            p.ovr = Math.max(60, p.ovr - 2);
-                        } else if (p.age < 24) {
-                            // Les jeunes progressent bien (+2 ou +3)
-                            p.ovr = Math.min(99, p.ovr + Math.floor(Math.random() * 2) + 1);
-                        }
-
-                        // C. Retraite IA
-                        // Chance augmente car ils prennent 2 ans d'un coup
-                        const retirementChance = (p.age - 34) * 0.25;
-
-                        if (p.age > 39 || (p.age > 35 && Math.random() < retirementChance)) {
-                            totalRetired++;
-                            // Regen
-                            p.name = this.generateRealName(code);
-                            p.age = 17 + Math.floor(Math.random() * 3);
-                            p.ovr = 68 + Math.floor(Math.random() * 8);
-                            p.spd = 70 + Math.floor(Math.random() * 20);
-                            p.role = 'sub';
-                            p.isStar = p.ovr >= 80;
-                        }
-                    }
-                });
-
-                if (totalRetired > 0) {
-                    this.state.news.unshift({
-                        id: Date.now() + 50,
-                        text: `${SVGS.globe} MONDE : ${totalRetired} joueurs ont pris leur retraite durant l'intersaison.`
-                    });
-                }
-            }
-
-            // 4. ÉVOLUTION DE VOS JOUEURS (USER)
-            this.state.players.forEach(p => {
-                p.energy = 100;
-
-                // A. Vieillissement JOUEUR (+2 ANS)
-                p.age += 2;
-
-                if (!p.stats) p.stats = this.generatePlayerStats(p.pos, p.ovr).stats;
-
-                // B. PROGRESSION (Sur 2 ans)
-                if (p.age <= 24) {
-                    // Jeunes : Grosse progression possible (+2 à +4 points répartis)
-                    const gain = (p.ovr < p.pot) ? Math.floor(Math.random() * 3) + 1 : 0;
-                    Object.keys(p.stats).forEach(k => {
-                        if(Math.random() > 0.5) p.stats[k] += gain;
-                    });
-                }
-                else if (p.age <= 29) {
-                    // Prime : Petite amélioration mentale/technique
-                    if(Math.random() > 0.4) p.stats.def += 1;
-                    if(Math.random() > 0.4) p.stats.pas += 1;
-                    if(Math.random() > 0.4) p.stats.phy += 1;
-                }
-                else {
-                    // Vétérans : Déclin physique plus visible (-2 ou -3)
-                    const physicalLoss = (p.age >= 34) ? 3 : 1;
-                    p.stats.pac -= physicalLoss;
-                    p.stats.phy -= physicalLoss;
-                    p.stats.dri -= 1; // Perte d'agilité
-                }
-
-                // Recalcul OVR
-                let totalStats = 0;
-                Object.keys(p.stats).forEach(k => {
-                    p.stats[k] = Math.max(40, Math.min(99, p.stats[k]));
-                    totalStats += p.stats[k];
-                });
-                p.ovr = Math.round(totalStats / 6);
-            });
-
-            // 5. Retraites User
-            this.processRetirements();
-
-            // 6. Tirage au sort
-            const n = [...NATIONS_DB].sort(()=>Math.random()-0.5);
-            this.state.groups = this.createGroups(n);
-
-            const oldStd = this.state.standings;
-            this.state.standings = this.initStd(n, this.state.groups);
-
-            Object.keys(this.state.standings).forEach(k => {
-                if(oldStd[k]) {
-                    this.state.standings[k].star = oldStd[k].star;
-                    this.state.standings[k].starAge = oldStd[k].starAge;
-                    this.state.standings[k].ovr = oldStd[k].ovr;
-                } else {
-                    this.state.standings[k].starAge = 25;
-                }
-            });
-
-            this.state.globalResults = [];
-            this.updateUI();
-            this.goToView('inbox');
-            this.toast(`Saison ${this.state.year} lancée !`);
-            this.playSound('stadium');
+        // --- 1. CHANGEMENT DE PAYS HÔTE (VOTRE CODE) ---
+        let newHost;
+        if (NATIONS_DB.length > 1) {
+            do {
+                newHost = NATIONS_DB[Math.floor(Math.random() * NATIONS_DB.length)];
+            } while (this.state.hostCountry && newHost.n === this.state.hostCountry);
+        } else {
+            newHost = NATIONS_DB[0];
         }
+        this.state.hostCountry = newHost.n;
+        this.state.hostStadiums = newHost.stadiums;
+
+        this.state.news.unshift({
+            id: Date.now() + 9999,
+            text: `${SVGS.globe} OFFICIEL : La CAN ${this.state.year + 2} se déroulera au ${newHost.n} !`
+        });
+
+        // 2. PAIEMENT SALAIRES
+        let totalSalaries = 0;
+        if (this.state.staff) {
+            Object.values(this.state.staff).forEach(s => totalSalaries += s.salary);
+        }
+        this.state.budget -= totalSalaries;
+
+        if (this.state.budget < 0) {
+            this.state.budget = 0;
+            this.state.news.unshift({id: Date.now(), text: `⚠️ CRISE : L'État renfloue la fédération pour payer les salaires.`});
+        } else {
+            this.state.news.unshift({id: Date.now(), text: `💰 FINANCES : ${totalSalaries.toFixed(1)}M€ versés au staff technique.`});
+        }
+
+        // 3. CHANGEMENT DE SAISON (+2 ANS POUR TOUT LE MONDE)
+        this.state.year += 2;
+        this.state.seasonsPlayed++;
+        this.state.matchIndex = 0;
+        this.state.stage = 'groups';
+        this.state.rareScoutUsed = false;
+
+        // Reset des stats APRES avoir donné les récompenses
+        this.state.goalScorers = [];
+        this.state.assisters = [];
+        this.state.playerRatings = [];
+
+        // --- 4. GESTION DU MONDE VIVANT (IA AMÉLIORÉE) ---
+        if (this.state.worldPlayers) {
+            let totalRetired = 0;
+            let wonderkidsCount = 0;
+
+            Object.keys(this.state.worldPlayers).forEach(code => {
+                // SÉCURITÉ : On ignore votre équipe ici pour éviter les bugs
+                if (code === this.state.userTeamCode) return;
+
+                const squad = this.state.worldPlayers[code];
+                for (let i = 0; i < squad.length; i++) {
+                    let p = squad[i];
+
+                    // A. Vieillissement IA (+2 ANS)
+                    p.age = (p.age || 25) + 2;
+
+                    // B. Évolution IA (BOOSTÉE)
+                    if (p.age > 33) {
+                        // Déclin (ralenti pour les stars pour qu'elles durent plus longtemps)
+                        const decline = p.ovr > 85 ? 1 : 2;
+                        p.spd = Math.max(30, (p.spd || 70) - decline);
+                        p.ovr = Math.max(60, p.ovr - decline);
+                    } else if (p.age < 26) {
+                        // Les jeunes progressent plus vite pour compenser le niveau utilisateur
+                        // +2 à +4 OVR tous les 2 ans
+                        const growth = Math.floor(Math.random() * 3) + 2;
+                        p.ovr = Math.min(95, p.ovr + growth);
+                    }
+
+                    // C. Retraite IA & REGENS INTELLIGENTS
+                    const retirementChance = (p.age - 34) * 0.25;
+
+                    if (p.age > 40 || (p.age > 36 && Math.random() < retirementChance)) {
+                        totalRetired++;
+
+                        // SAUVEGARDE DU NIVEAU DE L'ANCIEN JOUEUR
+                        const oldOvr = p.ovr;
+
+                        // Reset du joueur (Regen)
+                        p.name = this.generateRealName(code);
+                        p.age = 16 + Math.floor(Math.random() * 4); // 16-19 ans
+
+                        // LOGIQUE DE GÉNÉRATION ÉLITE
+                        let minOvr = 68;
+                        let maxBonus = 8;
+
+                        if (oldOvr >= 85) {
+                            minOvr = 76;
+                            maxBonus = 10;
+                        } else if (oldOvr >= 80) {
+                            minOvr = 73;
+                            maxBonus = 8;
+                        } else if (oldOvr >= 75) {
+                            minOvr = 70;
+                        }
+
+                        // Chance de "Golden Boy"
+                        if (Math.random() < 0.05) {
+                            minOvr = 78;
+                            maxBonus = 8;
+                            wonderkidsCount++;
+                        }
+
+                        p.ovr = minOvr + Math.floor(Math.random() * maxBonus);
+
+                        // Vitesse
+                        if (p.pos === 'FWD' || p.pos === 'MID') {
+                            p.spd = 75 + Math.floor(Math.random() * 20);
+                        } else {
+                            p.spd = 65 + Math.floor(Math.random() * 20);
+                        }
+
+                        p.role = 'sub';
+                        p.isStar = p.ovr >= 80;
+                    }
+                }
+            });
+
+            if (totalRetired > 0) {
+                this.state.news.unshift({
+                    id: Date.now() + 50,
+                    text: `${SVGS.globe} MONDE : ${totalRetired} départs en retraite. ${wonderkidsCount > 0 ? wonderkidsCount + " pépites détectées !" : ""}`
+                });
+            }
+        }
+
+        // 5. ÉVOLUTION DE VOS JOUEURS (USER)
+        this.state.players.forEach(p => {
+            p.energy = 100;
+            // A. Vieillissement JOUEUR (+2 ANS)
+            p.age += 2;
+            if (!p.stats) p.stats = this.generatePlayerStats(p.pos, p.ovr).stats;
+
+            // B. PROGRESSION (Sur 2 ans)
+            if (p.age <= 24) {
+                const gain = (p.ovr < p.pot) ? Math.floor(Math.random() * 3) + 1 : 0;
+                Object.keys(p.stats).forEach(k => {
+                    if(Math.random() > 0.5) p.stats[k] += gain;
+                });
+            } else if (p.age <= 29) {
+                if(Math.random() > 0.4) p.stats.def += 1;
+                if(Math.random() > 0.4) p.stats.pas += 1;
+                if(Math.random() > 0.4) p.stats.phy += 1;
+            } else {
+                const physicalLoss = (p.age >= 34) ? 3 : 1;
+                p.stats.pac -= physicalLoss;
+                p.stats.phy -= physicalLoss;
+                p.stats.dri -= 1;
+            }
+
+            // Recalcul OVR
+            let totalStats = 0;
+            Object.keys(p.stats).forEach(k => {
+                p.stats[k] = Math.max(40, Math.min(99, p.stats[k]));
+                totalStats += p.stats[k];
+            });
+            p.ovr = Math.round(totalStats / 6);
+        });
+
+        // 6. Retraites User
+        this.processRetirements();
+
+        // 7. Tirage au sort
+        const n = [...NATIONS_DB].sort(()=>Math.random()-0.5);
+        this.state.groups = this.createGroups(n);
+        const oldStd = this.state.standings;
+        this.state.standings = this.initStd(n, this.state.groups);
+
+        Object.keys(this.state.standings).forEach(k => {
+            if(oldStd[k]) {
+                this.state.standings[k].star = oldStd[k].star;
+                this.state.standings[k].starAge = oldStd[k].starAge;
+                this.state.standings[k].ovr = oldStd[k].ovr;
+            } else {
+                this.state.standings[k].starAge = 25;
+            }
+        });
+
+        this.state.globalResults = [];
+        this.updateUI();
+        this.goToView('inbox');
+        this.toast(`Saison ${this.state.year} lancée !`);
+        this.playSound('stadium');
+    }
 
         getTacticalAdvice(style) {
             // Base de données de conseils variés
@@ -4963,49 +5343,83 @@ startNextSeason() {
 
 
 selectTeam(code) {
-        const teamData = REAL_SQUADS_DB[code];
-        if (!teamData) return this.toast("Erreur : Équipe introuvable");
+    const teamData = REAL_SQUADS_DB[code];
+    if (!teamData) return this.toast("Erreur : Équipe introuvable");
 
-        const nationInfo = NATIONS_DB.find(n => n.code === code);
-        this.state.userTeamCode = code;
-        this.state.userTeamName = nationInfo ? nationInfo.n : code;
+    const nationInfo = NATIONS_DB.find(n => n.code === code);
+    this.state.userTeamCode = code;
+    this.state.userTeamName = nationInfo ? nationInfo.n : code;
 
-        // Charger les joueurs et générer leurs stats complètes
-        this.state.players = teamData.map(p => {
-            const generated = this.generatePlayerStats(p.pos, p.ovr);
-            return {
-                ...p,
-                id: crypto.randomUUID(),
-                energy: 100,
-                stats: generated.stats,
-                style: generated.roleName,
-                pot: this.generatePotential(p.age, p.ovr)
-            };
-        });
+    // Charger les joueurs et générer leurs stats complètes
+    this.state.players = teamData.map(p => {
+        const generated = this.generatePlayerStats(p.pos, p.ovr);
+        return {
+            ...p,
+            id: crypto.randomUUID(),
+            energy: 100,
+            stats: generated.stats,
+            style: generated.roleName,
+            pot: this.generatePotential(p.age, p.ovr)
+        };
+    });
 
-        // Mettre à jour le groupe affiché
-        const myG = this.state.standings[this.state.userTeamName]?.grp || 'A';
-        this.state.viewingGroup = myG;
+    // Mettre à jour le groupe affiché
+    const myG = this.state.standings[this.state.userTeamName]?.grp || 'A';
+    this.state.viewingGroup = myG;
+    this.save();
 
-        this.save();
+    // --- MODIFICATION POUR SÉLECTION AVATAR ---
 
-        // --- CORRECTION DU BLOCAGE ICI ---
-        const teamModal = document.getElementById('team-selection-modal');
-        teamModal.classList.add('hidden');
-        teamModal.style.display = 'none'; // <--- ON FORCE LA DISPARITION DU STYLE INLINE
+    // 1. Cacher le modal de sélection d'équipe
+    const teamModal = document.getElementById('team-selection-modal');
+    teamModal.classList.add('hidden');
+    teamModal.style.display = 'none'; // Sécurité pour forcer le masquage
 
-        const welcomeModal = document.getElementById('welcome-modal');
-        welcomeModal.classList.remove('hidden');
-        welcomeModal.style.display = 'flex'; // <--- ON FORCE L'AFFICHAGE DU SUIVANT
-        // ---------------------------------
+    // 2. Préparer la grille d'avatars (C'est ici que la magie opère)
+    this.renderManagerSelection();
 
-        // Mettre à jour les logos dans le header
-        document.querySelectorAll('.font-teko').forEach(el => {
-            if (el.innerText === 'CIV') el.innerText = code;
-        });
+    // 3. Afficher le modal de bienvenue (Contrat & Avatar)
+    const welcomeModal = document.getElementById('welcome-modal');
+    welcomeModal.classList.remove('hidden');
+    welcomeModal.style.display = 'flex'; // Flex pour centrer le contenu
 
-        this.toast(`Vous avez pris les commandes de : ${this.state.userTeamName}`);
-    }
+    // ------------------------------------------
+
+    // Mise à jour visuelle des logos "CIV" temporaires dans le header
+    document.querySelectorAll('.font-teko').forEach(el => {
+        if (el.innerText === 'CIV') el.innerText = code;
+    });
+
+    this.toast(`Vous avez pris les commandes de : ${this.state.userTeamName}`);
+}
+    // Prépare le menu de sélection d'avatar
+renderManagerSelection() {
+    const grid = document.getElementById('manager-avatars-grid');
+    if(!grid) return;
+    grid.innerHTML = '';
+
+    // On génère 5 options différentes
+    const options = [101, 202, 303, 404, 505]; // Seeds fixes pour avoir de la variété garantie
+
+    // Valeur par défaut
+    this.tempManagerSeed = options[0];
+
+    options.forEach((seed, index) => {
+        const svg = this.generateManagerIcon(seed, 60);
+        const el = document.createElement('div');
+        el.className = `manager-option ${index === 0 ? 'selected' : ''}`;
+        el.innerHTML = svg;
+        el.onclick = () => {
+            // Gestion de la sélection visuelle
+            document.querySelectorAll('.manager-option').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            // Sauvegarde temporaire du choix
+            this.tempManagerSeed = seed;
+            this.playSound('click');
+        };
+        grid.appendChild(el);
+    });
+}
 
 // RETRAITE STRICTE > 35 ANS
 processRetirements() {
@@ -5114,11 +5528,11 @@ while (this.state.players.length < 22) {
             let hash = 0;
             for (let i = 0; i < seedStr.length; i++) hash = seedStr.charCodeAt(i) + ((hash << 5) - hash);
             const safeHash = Math.abs(hash);
-            
+
             // ICI : On utilise les couleurs de l'équipe adverse définie plus haut
-            const mainColor = teamKit.main; 
+            const mainColor = teamKit.main;
             const trimColor = teamKit.trim;
-            
+
             // Gestion réaliste des teintes de peau selon la région de l'équipe
             let skins = ["#5D4037", "#8D6E63", "#4E342E", "#3E2723"]; // Sub-saharien par défaut
             if (teamKit.region === 'NORTH') {
@@ -5126,33 +5540,33 @@ while (this.state.players.length < 22) {
             } else if (teamKit.region === 'MIXED') {
                 skins = ["#E0AC69", "#8D5524", "#5D4037", "#3E2723"]; // Cap Vert / RSA
             }
-            
+
             const skin = skins[safeHash % skins.length];
-            
+
             return `
             <svg viewBox="0 0 64 64" class="player-face" xmlns="http://www.w3.org/2000/svg" style="position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); width: 36px; height: 36px; z-index: 5;">
                 <path d="M12 54 Q32 50, 52 54 V64 H12 Z" fill="${mainColor}" stroke="#111" stroke-width="0.5"/>
                 <path d="M22 38 L22 54 L42 54 L42 38" fill="${skin}"/>
                 <path d="M24 53 L32 60 L40 53" fill="none" stroke="${trimColor}" stroke-width="2"/>
-                
+
                 <defs>
                     <linearGradient id="g-${safeHash}" x1="0" x2="1" y1="0" y2="1">
                         <stop offset="0%" stop-color="${skin}"/> <stop offset="100%" stop-color="${skin}"/>
                     </linearGradient>
                 </defs>
-                
+
                 <path d="M19 16 C19 6, 45 6, 45 16 V26 C45 36, 40 46, 32 46 C24 46, 19 36, 19 26 V16 Z" fill="${skin}" stroke="#221100" stroke-width="0.5"/>
-                
+
                 <path d="M20 27 Q24 25, 28 27 Q24 29, 20 27 Z" fill="#EEE"/>
                 <path d="M36 27 Q40 25, 44 27 Q40 29, 36 27 Z" fill="#EEE"/>
                 <circle cx="24" cy="27" r="1.5" fill="#111"/>
                 <circle cx="40" cy="27" r="1.5" fill="#111"/>
-                
+
                 <path d="M27 41 Q32 44, 37 41" stroke="#3E2723" stroke-width="1.5" fill="none"/>
-                
-                ${ safeHash % 2 === 0 
-                   ? `<path d="M18 20 C18 9, 46 9, 46 20 L46 22 H18 Z" fill="#111"/>` 
-                   : `<path d="M16 16 C14 6, 50 6, 48 16 C52 8, 12 8, 16 16 Z" fill="#111"/>` 
+
+                ${ safeHash % 2 === 0
+                   ? `<path d="M18 20 C18 9, 46 9, 46 20 L46 22 H18 Z" fill="#111"/>`
+                   : `<path d="M16 16 C14 6, 50 6, 48 16 C52 8, 12 8, 16 16 Z" fill="#111"/>`
                 }
             </svg>`;
         };
@@ -5162,7 +5576,7 @@ while (this.state.players.length < 22) {
             const coord = formData.coords[i] || { x: 50, y: 50 };
 
             const card = document.createElement('div');
-            
+
             // Style de la carte (Fond) : On garde le gris neutre pour la carte elle-même
             // pour bien faire ressortir le maillot coloré de l'avatar
             const style = p.isStar
@@ -5171,7 +5585,7 @@ while (this.state.players.length < 22) {
 
             card.style.left = coord.x + '%';
             card.style.top = coord.y + '%';
-            
+
             card.className = `player-card ${style} border shadow-xl transition transform hover:scale-110 z-10`;
 
             card.onclick = (e) => {
@@ -5185,12 +5599,12 @@ while (this.state.players.length < 22) {
 
             card.innerHTML = `
                 ${p.isStar ? '<div class="absolute -top-1.5 -right-1.5 text-[8px] animate-pulse">⭐</div>' : ''}
-                
+
                 ${avatarHTML}
 
                 <div class="card-ovr ${p.isStar ? 'text-red-400' : 'text-slate-400'}" style="position:relative; z-index:10;">${p.ovr}</div>
                 <div class="card-pos" style="position:relative; z-index:10;">${p.pos}</div>
-                
+
                 <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/70 px-1.5 rounded text-[7px] text-white font-bold border border-white/10" style="position:relative; z-index:10; margin-top: auto;">
                     ${p.name.split(' ').pop().substring(0, 8)}
                 </div>
@@ -5731,57 +6145,86 @@ staffs.forEach(st => {
                 html += `</div></div>`;
             }
 
-            // --- SECTION STATS (BUTEURS & MVP) ---
-            const topScorers = (this.state.goalScorers || []).sort((a,b) => b.c - a.c).slice(0, 5);
-            const topPlayers = (this.state.playerRatings || []).filter(p => p.matchs >= 1).map(p => ({ ...p, avg: p.total / p.matchs })).sort((a,b) => b.avg - a.avg).slice(0, 5);
+            // DANS renderCalendar()
 
-            html += `
-                <div class="grid grid-cols-1 gap-4 mb-8">
-                    <div class="glass-panel p-4 rounded-2xl border border-white/5">
-                        <div class="flex items-center gap-2 mb-4 border-b border-white/5 pb-2">
-                            <div class="p-1.5 bg-yellow-500/20 rounded-lg text-yellow-500">${SVGS.boot}</div>
-                            <h3 class="font-teko text-2xl text-white uppercase tracking-wide">Soulier d'Or</h3>
-                        </div>
-                        <div class="space-y-2">
-                            ${topScorers.length === 0 ? '<div class="text-xs text-slate-500 italic text-center py-2">Aucune donnée</div>' : ''}
-                            ${topScorers.map((p, i) => `
-                                <div class="flex items-center justify-between p-2 rounded-lg ${i===0 ? 'bg-gradient-to-r from-yellow-900/20 to-transparent border border-yellow-500/20' : 'bg-slate-800/30'}">
-                                    <div class="flex items-center gap-3">
-                                        <span class="font-teko text-xl w-6 text-center ${i===0?'text-yellow-400':'text-slate-600'}">#${i+1}</span>
-                                        <div class="flex flex-col">
-                                            <span class="text-[10px] font-bold text-white uppercase leading-none truncate max-w-[100px]">${p.n}</span>
-                                            <span class="text-[8px] font-bold text-slate-500 uppercase">${p.t}</span>
-                                        </div>
-                                    </div>
-                                    <span class="font-teko text-xl font-bold ${i===0?'text-yellow-400':'text-slate-400'}">${p.c}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
+// 1. Préparez les données
+const topScorers = (this.state.goalScorers || []).sort((a,b) => b.c - a.c).slice(0, 5);
+const topAssisters = (this.state.assisters || []).sort((a,b) => b.c - a.c).slice(0, 5); // <--- NOUVEAU
+const topPlayers = (this.state.playerRatings || []).filter(p => p.matchs >= 1).map(p => ({ ...p, avg: p.total / p.matchs })).sort((a,b) => b.avg - a.avg).slice(0, 5);
 
-                    <div class="glass-panel p-4 rounded-2xl border border-white/5">
-                        <div class="flex items-center gap-2 mb-4 border-b border-white/5 pb-2">
-                            <div class="p-1.5 bg-blue-500/20 rounded-lg text-blue-400">${SVGS.star}</div>
-                            <h3 class="font-teko text-2xl text-white uppercase tracking-wide">Course au MVP</h3>
+// 2. Générez le HTML
+html += `
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+
+        <div class="glass-panel p-4 rounded-2xl border border-white/5">
+            <div class="flex items-center gap-2 mb-4 border-b border-white/5 pb-2">
+                <div class="p-1.5 bg-yellow-500/20 rounded-lg text-yellow-500">${SVGS.boot}</div>
+                <h3 class="font-teko text-2xl text-white uppercase tracking-wide">Buteurs</h3>
+            </div>
+            <div class="space-y-2">
+                ${topScorers.length === 0 ? '<div class="text-xs text-slate-500 italic text-center py-2">Aucune donnée</div>' : ''}
+                ${topScorers.map((p, i) => `
+                    <div class="flex items-center justify-between p-2 rounded-lg ${i===0 ? 'bg-gradient-to-r from-yellow-900/20 to-transparent border border-yellow-500/20' : 'bg-slate-800/30'}">
+                        <div class="flex items-center gap-3">
+                            <span class="font-teko text-xl w-6 text-center ${i===0?'text-yellow-400':'text-slate-600'}">#${i+1}</span>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold text-white uppercase leading-none truncate max-w-[80px]">${p.n}</span>
+                                <span class="text-[8px] font-bold text-slate-500 uppercase">${p.t}</span>
+                            </div>
                         </div>
-                        <div class="space-y-2">
-                            ${topPlayers.length === 0 ? '<div class="text-xs text-slate-500 italic text-center py-2">Aucune donnée</div>' : ''}
-                            ${topPlayers.map((p, i) => `
-                                <div class="flex items-center justify-between p-2 rounded-lg ${i===0 ? 'bg-gradient-to-r from-blue-900/20 to-transparent border border-blue-500/20' : 'bg-slate-800/30'}">
-                                    <div class="flex items-center gap-3">
-                                        <span class="font-teko text-xl w-6 text-center ${i===0?'text-blue-400':'text-slate-600'}">#${i+1}</span>
-                                        <div class="flex flex-col">
-                                            <span class="text-[10px] font-bold text-white uppercase leading-none truncate max-w-[100px]">${p.n}</span>
-                                            <span class="text-[8px] font-bold text-slate-500 uppercase">${p.t}</span>
-                                        </div>
-                                    </div>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded ${i===0?'bg-blue-500 text-white':'bg-slate-700 text-slate-400'}">${p.avg.toFixed(2)}</span>
-                                </div>
-                            `).join('')}
-                        </div>
+                        <span class="font-teko text-xl font-bold ${i===0?'text-yellow-400':'text-slate-400'}">${p.c}</span>
                     </div>
+                `).join('')}
+            </div>
+        </div>
+
+        <div class="glass-panel p-4 rounded-2xl border border-white/5">
+            <div class="flex items-center gap-2 mb-4 border-b border-white/5 pb-2">
+                <div class="p-1.5 bg-green-500/20 rounded-lg text-green-400">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                 </div>
-            `;
+                <h3 class="font-teko text-2xl text-white uppercase tracking-wide">Passeurs</h3>
+            </div>
+            <div class="space-y-2">
+                ${topAssisters.length === 0 ? '<div class="text-xs text-slate-500 italic text-center py-2">Aucune donnée</div>' : ''}
+                ${topAssisters.map((p, i) => `
+                    <div class="flex items-center justify-between p-2 rounded-lg ${i===0 ? 'bg-gradient-to-r from-green-900/20 to-transparent border border-green-500/20' : 'bg-slate-800/30'}">
+                        <div class="flex items-center gap-3">
+                            <span class="font-teko text-xl w-6 text-center ${i===0?'text-green-400':'text-slate-600'}">#${i+1}</span>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold text-white uppercase leading-none truncate max-w-[80px]">${p.n}</span>
+                                <span class="text-[8px] font-bold text-slate-500 uppercase">${p.t}</span>
+                            </div>
+                        </div>
+                        <span class="font-teko text-xl font-bold ${i===0?'text-green-400':'text-slate-400'}">${p.c}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+
+        <div class="glass-panel p-4 rounded-2xl border border-white/5">
+            <div class="flex items-center gap-2 mb-4 border-b border-white/5 pb-2">
+                <div class="p-1.5 bg-blue-500/20 rounded-lg text-blue-400">${SVGS.star}</div>
+                <h3 class="font-teko text-2xl text-white uppercase tracking-wide">MVP</h3>
+            </div>
+            <div class="space-y-2">
+                ${topPlayers.length === 0 ? '<div class="text-xs text-slate-500 italic text-center py-2">Aucune donnée</div>' : ''}
+                ${topPlayers.map((p, i) => `
+                    <div class="flex items-center justify-between p-2 rounded-lg ${i===0 ? 'bg-gradient-to-r from-blue-900/20 to-transparent border border-blue-500/20' : 'bg-slate-800/30'}">
+                        <div class="flex items-center gap-3">
+                            <span class="font-teko text-xl w-6 text-center ${i===0?'text-blue-400':'text-slate-600'}">#${i+1}</span>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold text-white uppercase leading-none truncate max-w-[80px]">${p.n}</span>
+                                <span class="text-[8px] font-bold text-slate-500 uppercase">${p.t}</span>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${i===0?'bg-blue-500 text-white':'bg-slate-700 text-slate-400'}">${p.avg.toFixed(2)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </div>
+`;
 
             // --- PALMARES (Unique et Corrigé) ---
             const history = this.state.pastWinners || [];
@@ -6027,30 +6470,39 @@ if (this.state.scoutPool.length === 0) {
     l.innerHTML = `<div class="text-center text-slate-600 italic text-xs py-10">Aucun rapport de scout disponible.<br>Lancez une mission ci-dessus.</div>`;
 }
 
-this.state.scoutPool.forEach(p => {
-    const origin = p.ovr >= 79 ? "International" : "Local";
-    const badgeColor = p.ovr >= 79 ? "text-blue-400 border-blue-500/30 bg-blue-500/10" : "text-green-400 border-green-500/30 bg-green-500/10";
+// ... (Le début de la fonction renderScout reste identique jusqu'à l.innerHTML = ...)
 
-    l.innerHTML += `
-        <div class="glass-panel p-3 rounded-xl flex items-center justify-between border border-white/5 hover:bg-slate-800 transition group">
-            <div class="flex items-center gap-3">
-                <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-slate-900 border border-slate-700">
-                    <span class="font-teko text-xl text-white font-bold">${p.ovr}</span>
-                </div>
-                <div>
-                    <div class="font-bold text-white uppercase text-xs mb-0.5">${p.name}</div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${badgeColor} border">${p.pos}</span>
-                        <span class="text-[9px] text-slate-500 uppercase">${p.age} ans • ${origin}</span>
+        this.state.scoutPool.forEach(p => {
+            const origin = p.ovr >= 79 ? "International" : "Local";
+            const badgeColor = p.ovr >= 79 ? "text-blue-400 border-blue-500/30 bg-blue-500/10" : "text-green-400 border-green-500/30 bg-green-500/10";
+
+            l.innerHTML += `
+                <div class="glass-panel p-3 rounded-xl flex items-center justify-between border border-white/5 hover:bg-slate-800 transition group animate-slideIn">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-slate-900 border border-slate-700 shrink-0">
+                            <span class="font-teko text-xl text-white font-bold">${p.ovr}</span>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-bold text-white uppercase text-xs mb-0.5 truncate pr-2">${p.name}</div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${badgeColor} border">${p.pos}</span>
+                                <span class="text-[9px] text-slate-500 uppercase truncate">${p.age} ans • ${origin}</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <button onclick="app.recruit('${p.id}')" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-[9px] font-bold uppercase shadow-md active:scale-95 transition tracking-widest flex items-center gap-1">
-                <span class="hidden group-hover:inline transition-all">+</span> Convoquer
-            </button>
-        </div>`;
-});
-}
+
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="app.recruit('${p.id}')" class="px-3 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-[9px] font-bold uppercase shadow-md active:scale-95 transition tracking-widest flex items-center gap-1">
+                            <span class="hidden sm:inline transition-all">+</span> Recruter
+                        </button>
+
+                        <button onclick="app.dismissScoutTarget('${p.id}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-900 border border-red-500/30 text-red-500 hover:bg-red-900/20 hover:border-red-500 transition shadow-sm active:scale-90">
+                            ✕
+                        </button>
+                    </div>
+                </div>`;
+        });
+    }
        scoutPlayers(type) {
 // 1. Calcul du coût
 let baseCost = type === 'elite' ? 10.0 : 3.0;
@@ -6119,6 +6571,15 @@ this.toast(`Mission terminée (-${finalCost.toFixed(1)} M€)`);
 }
 
         recruit(id) {
+            // --- MODIFICATION : BLOQUER SI LE BANC EST PLEIN (20 MAX) ---
+            const benchCount = this.state.players.filter(p => p.role !== 'starter').length;
+
+            if (benchCount >= 20) {
+                this.playSound('whistle'); // Petit son d'erreur
+                return this.toast("Effectif complet ! (Max 20 remplaçants)");
+            }
+            // ------------------------------------------------------------
+
             const idx = this.state.scoutPool.findIndex(x => x.id === id);
             if (idx > -1) {
                 const p = this.state.scoutPool[idx];
@@ -6142,6 +6603,22 @@ this.toast(`Mission terminée (-${finalCost.toFixed(1)} M€)`);
                 this.toast(`${p.name} a rejoint la sélection !`);
             }
         }
+        // Fonction pour supprimer un joueur de la liste scout sans le recruter
+    dismissScoutTarget(id) {
+        const idx = this.state.scoutPool.findIndex(x => x.id === id);
+
+        if (idx > -1) {
+            // On le retire simplement de la liste
+            this.state.scoutPool.splice(idx, 1)[0];
+
+            this.playSound('click'); // Petit son de validation
+            this.renderScout();      // Mise à jour visuelle immédiate
+            this.save();             // Sauvegarde
+
+            // Petit feedback discret
+            this.toast("Dossier joueur archivé.");
+        }
+    }
 
         toggleLiveCoaching() {
 this.isLiveCoaching = !this.isLiveCoaching;
