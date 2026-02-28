@@ -1133,14 +1133,51 @@
     </main>
 
     <!-- NAVIGATION -->
-    <nav class="bg-[#0f172a] border-t border-slate-800 grid grid-cols-6 items-center z-[100] shrink-0 relative h-16 pb-safe">
-        <button onclick="app.goToView('inbox')" id="nav-inbox" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all"><span id="icon-layout-nav"></span><span class="text-[9px] font-bold uppercase">QG</span></button>
-        <button onclick="app.goToView('squad')" id="nav-squad" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all"><span id="icon-shield-nav"></span><span class="text-[9px] font-bold uppercase">Tactique</span></button>
-        <button onclick="app.goToView('training')" id="nav-training" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all"><span id="icon-zap-nav"></span><span class="text-[9px] font-bold uppercase">Pro</span></button>
-        <button onclick="app.goToView('calendar')" id="nav-calendar" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all"><span id="icon-trophy-nav"></span><span class="text-[9px] font-bold uppercase">CAF</span></button>
-        <button onclick="app.goToView('scout')" id="nav-scout" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all"><span id="icon-search-nav"></span><span class="text-[9px] font-bold uppercase">Scout</span></button>
-        <button onclick="app.goToView('infra')" id="nav-infra" class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-500 transition-all"><span id="icon-home-nav"></span><span class="text-[9px] font-bold uppercase">Ville</span></button>
-    </nav>
+    <nav class="bg-[#0f172a] border-t border-slate-700 grid grid-cols-6 items-center z-[100] shrink-0 relative h-16 pb-safe" role="navigation" aria-label="Menu principal">
+    
+    <button onclick="app.goToView('inbox')" id="nav-inbox" 
+        class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-300 hover:text-white transition-all" 
+        aria-label="Quartier Général">
+        <span id="icon-layout-nav"></span>
+        <span class="text-[11px] font-bold uppercase tracking-tight">QG</span>
+    </button>
+
+    <button onclick="app.goToView('squad')" id="nav-squad" 
+        class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-300 hover:text-white transition-all" 
+        aria-label="Tactique et Équipe">
+        <span id="icon-shield-nav"></span>
+        <span class="text-[11px] font-bold uppercase tracking-tight">Tactique</span>
+    </button>
+
+    <button onclick="app.goToView('training')" id="nav-training" 
+        class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-300 hover:text-white transition-all" 
+        aria-label="Entraînement Pro">
+        <span id="icon-zap-nav"></span>
+        <span class="text-[11px] font-bold uppercase tracking-tight">Pro</span>
+    </button>
+
+    <button onclick="app.goToView('calendar')" id="nav-calendar" 
+        class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-300 hover:text-white transition-all" 
+        aria-label="Compétitions CAF">
+        <span id="icon-trophy-nav"></span>
+        <span class="text-[11px] font-bold uppercase tracking-tight">CAF</span>
+    </button>
+
+    <button onclick="app.goToView('scout')" id="nav-scout" 
+        class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-300 hover:text-white transition-all" 
+        aria-label="Recrutement Scout">
+        <span id="icon-search-nav"></span>
+        <span class="text-[11px] font-bold uppercase tracking-tight">Scout</span>
+    </button>
+
+    <button onclick="app.goToView('infra')" id="nav-infra" 
+        class="btn-nav h-full flex flex-col items-center justify-center gap-1 text-slate-300 hover:text-white transition-all" 
+        aria-label="Infrastructures de la Ville">
+        <span id="icon-home-nav"></span>
+        <span class="text-[11px] font-bold uppercase tracking-tight">Ville</span>
+    </button>
+
+</nav>
     <div id="welcome-modal" class="absolute inset-0 z-[1000] bg-slate-950 flex flex-col items-center justify-center p-8 hidden">
         <div class="w-full max-w-md text-center"> <h1 class="font-teko text-6xl text-white uppercase italic leading-none mb-2">Nouvelle Ère</h1>
             <p class="text-xs text-slate-400 mb-6 uppercase tracking-widest">Identifiez-vous, Coach.</p>
@@ -8540,6 +8577,7 @@ try {
 </body>
 
 </html>
+
 
 
 
