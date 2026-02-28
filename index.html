@@ -59,7 +59,11 @@
             height: 100dvh;
         }
 
-        .font-teko { font-family: 'Teko', sans-serif; }
+        .font-teko {
+    font-family: 'Teko', sans-serif;
+    /* On force l'affichage même si la police n'est pas chargée */
+    font-display: swap; 
+  }
 
         #app-container {
             max-width: 100%; margin: 0 auto;
@@ -8585,6 +8589,7 @@ try {
 </body>
 
 </html>
+
 
 
 
