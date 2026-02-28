@@ -76,6 +76,109 @@
             pointer-events: none;
             z-index: 0;
         }
+/* --- TEXTURES FAÇON FOOTBALL MANAGER --- */
+
+/* La Pelouse : Texture plus granuleuse et réaliste */
+/* --- TEXTURES ET PELOUSE --- */
+.anim-pitch-bg {
+    background:
+        radial-gradient(circle at 50% 120%, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.4) 100%),
+        repeating-linear-gradient(0deg, #2a732d, #2a732d 10%, #246326 10%, #246326 20%);
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.8);
+}
+
+/* --- JETONS 3D (Joueurs et Ballon) --- */
+.player-token {
+    border-radius: 50%;
+    background-image: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(0,0,0,0.2) 100%);
+    box-shadow:
+        inset 0 2px 2px rgba(255,255,255,0.5),
+        inset 0 -2px 3px rgba(0,0,0,0.5),
+        0 4px 4px rgba(0,0,0,0.4);
+    border: 1px solid rgba(0,0,0,0.8) !important;
+}
+
+.ball-token {
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, #a0a0a0 80%, #555555 100%);
+    box-shadow: inset -1px -1px 2px rgba(0,0,0,0.5), 0 5px 5px rgba(0,0,0,0.5);
+    border: none !important;
+}
+
+/* --- CINÉMATIQUES --- */
+@keyframes runWobble {
+    0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+    25% { transform: translate(-50%, -50%) rotate(-8deg) scale(1.05); }
+    75% { transform: translate(-50%, -50%) rotate(8deg) scale(0.95); }
+    100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+}
+.is-running { animation: runWobble 0.35s infinite linear; }
+
+@keyframes ballSpin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(720deg); }
+}
+.is-spinning { animation: ballSpin 0.7s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+
+@keyframes netShake {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.05) translateY(-2px); }
+    50% { transform: scale(0.95) translateY(2px); }
+    75% { transform: scale(1.02) translateY(-1px); }
+    100% { transform: scale(1); }
+}
+.anim-net-shake { animation: netShake 0.3s ease-out; }
+
+/* --- MARQUAGES AU SOL (Géométrie corrigée) --- */
+.anim-goal-line {
+    position: absolute; top: 8%; left: 0; width: 100%;
+    border-top: 2px solid rgba(255, 255, 255, 0.6); z-index: 1;
+}
+
+.anim-goal-net {
+    position: absolute; top: 0; left: 40%; width: 20%; height: 8%;
+    background-image: radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px);
+    background-size: 4px 4px; background-color: rgba(255, 255, 255, 0.15);
+    border: 3px solid white; border-bottom: none; z-index: 1;
+}
+
+.anim-six-yard {
+    position: absolute; top: 8%; left: 35%; width: 30%; height: 8%;
+    border: 2px solid rgba(255, 255, 255, 0.6); border-top: none; z-index: 2;
+}
+
+.anim-penalty-box {
+    position: absolute; top: 8%; left: 20%; width: 60%; height: 25%;
+    border: 2px solid rgba(255, 255, 255, 0.6); border-top: none; z-index: 2;
+}
+
+.anim-corner-arc {
+    position: absolute; top: 8%; width: 25px; height: 25px;
+    border: 2px solid rgba(255, 255, 255, 0.6); z-index: 2;
+}
+.anim-corner-left { left: 0; border-top: none; border-left: none; border-bottom-right-radius: 25px; }
+.anim-corner-right { right: 0; border-top: none; border-right: none; border-bottom-left-radius: 25px; }
+
+.anim-penalty-spot {
+    position: absolute; top: 25%; left: 50%; width: 6px; height: 6px;
+    background-color: rgba(255, 255, 255, 0.6); border-radius: 50%;
+    transform: translate(-50%, -50%); z-index: 2;
+}
+.anim-penalty-arc {
+    position: absolute; top: 33%; left: 50%; width: 20%; height: 12%;
+    border: 2px solid rgba(255, 255, 255, 0.6); border-radius: 50%;
+    transform: translate(-50%, -50%); clip-path: inset(50% 0 0 0); z-index: 2;
+}
+
+/* Animation du filet qui tremble */
+@keyframes netShake {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.05) translateY(-2px); }
+    50% { transform: scale(0.95) translateY(2px); }
+    75% { transform: scale(1.02) translateY(-1px); }
+    100% { transform: scale(1); }
+}
+.anim-net-shake { animation: netShake 0.3s ease-out; }
   /* MISE À JOUR : TERRAIN NEXT-GEN */
         .pitch-container {
             background-color: #1a4d2e; /* Vert de base */
@@ -1110,27 +1213,60 @@ window.crypto.randomUUID = () => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 }
-// --- FONCTION D'ANIMATION DE BUT 2D ---
-// --- MOTEUR D'ANIMATION 2D AVANCÉ ---
+// --- MOTEUR AUDIO (Générateur de sons) ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playMatchSound(type) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+
+    if (type === 'kick') { // Son de frappe "Poum"
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+
+    } else if (type === 'net') { // Son du filet "Chhhh"
+        const bufferSize = audioCtx.sampleRate * 0.25;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass'; filter.frequency.value = 1000;
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+        noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+        noise.start();
+    }
+}
+// --- MOTEUR D'ANIMATION 2D V7 (TERRAIN, FOULE, AUDIO, CÉLÉBRATION) ---
 function playGoalAnimation2D(scorerName, teamColor, goalType) {
     const modal = document.getElementById('goal-animation-modal');
     const title = document.getElementById('goal-title');
     const scorerText = document.getElementById('goal-scorer-name');
-    
-    // Acteurs
-    const att1 = document.getElementById('anim-att1'); // Buteur
-    const att2 = document.getElementById('anim-att2'); // Passeur
-    const def1 = document.getElementById('anim-def1');
-    const def2 = document.getElementById('anim-def2');
-    const gk = document.getElementById('anim-gk');
-    const ball = document.getElementById('anim-ball');
 
-    // Réinitialisation rapide
-    [att1, att2, def1, def2, gk, ball].forEach(el => el.style.transitionDuration = '0ms');
-    att1.style.backgroundColor = teamColor;
-    att2.style.backgroundColor = teamColor;
-    
-    // Préparation Titre
+    // Récupération des 11 Acteurs
+    const att1 = document.getElementById('anim-att1'); const att2 = document.getElementById('anim-att2');
+    const att3 = document.getElementById('anim-att3'); const att4 = document.getElementById('anim-att4');
+    const def1 = document.getElementById('anim-def1'); const def2 = document.getElementById('anim-def2');
+    const def3 = document.getElementById('anim-def3'); const def4 = document.getElementById('anim-def4'); const def5 = document.getElementById('anim-def5');
+    const gk = document.getElementById('anim-gk'); const ball = document.getElementById('anim-ball');
+
+    const allActors = [att1, att2, att3, att4, def1, def2, def3, def4, def5, gk, ball];
+
+    // RÉINITIALISATION GÉNÉRALE
+    allActors.forEach(el => {
+        el.style.transitionDuration = '0ms';
+        el.style.opacity = '1';
+    });
+    [att1, att2, att3, att4].forEach(el => el.style.backgroundColor = teamColor);
+
     title.style.transform = 'scale(0)';
     title.style.color = 'white';
     scorerText.style.opacity = '0';
@@ -1138,133 +1274,402 @@ function playGoalAnimation2D(scorerName, teamColor, goalType) {
 
     modal.classList.remove('hidden');
 
-    // SCÉNARIOS TACTIQUES
+    // SÉLECTION DU SCÉNARIO (1 à 50)
+    let animVariant = 0;
+    let cd = 3000;
+
+    if (goalType === 'freekick') animVariant = Math.floor(Math.random() * 5) + 1;
+    else if (goalType === 'corner' || goalType === 'header' || goalType === 'volley') animVariant = Math.floor(Math.random() * 10) + 6;
+    else if (goalType === 'penalty') animVariant = Math.floor(Math.random() * 5) + 16;
+    else animVariant = Math.floor(Math.random() * 30) + 21;
+
+    // Démarrage de l'animation
+    // Démarrage de l'animation
+    requestAnimationFrame(() => {
     setTimeout(() => {
-        // Durées par défaut des transitions pour l'action
-        [att1, att2, def1, def2, gk, ball].forEach(el => el.style.transitionDuration = '800ms');
-        gk.style.transitionDuration = '400ms';
 
-        if (goalType === 'freekick') {
-            // SCÉNARIO : COUP FRANC MAGIQUE
-            att2.style.opacity = '0'; // Pas de passeur
-            def1.style.top = '25%'; def1.style.left = '45%'; def1.style.opacity = '1'; // Mur
-            def2.style.top = '25%'; def2.style.left = '55%'; def2.style.opacity = '1'; // Mur
-            gk.style.top = '3%'; gk.style.left = '50%';
-            att1.style.top = '45%'; att1.style.left = '50%';
-            ball.style.top = '43%'; ball.style.left = '50%';
+        // --- 1. PHYSIQUE ET TEMPS DE RÉACTION ---
+        allActors.forEach(el => {
+            el.style.transitionTimingFunction = 'cubic-bezier(0.15, 0.85, 0.3, 1)';
 
+            // On passe de 900ms à 2500ms (2,5 secondes de course/action)
+            el.style.transitionDuration = '2500ms';
+
+            if (el.id !== 'anim-ball' && el.id !== 'anim-att1') {
+                // On augmente aussi le délai de réaction (jusqu'à 400ms de retard pour les défenseurs)
+                el.style.transitionDelay = Math.floor(Math.random() * 400) + 'ms';
+            } else {
+                el.style.transitionDelay = '0ms';
+            }
+
+            if (el.id !== 'anim-ball') el.classList.add('is-running');
+        });
+
+        // Le gardien plonge un peu plus vite que les autres, mais moins vite qu'avant
+        gk.style.transitionDuration = '1200ms';
+        gk.style.transitionTimingFunction = 'cubic-bezier(0.1, 0.9, 0.2, 1)';
+
+        playMatchSound('kick');
+
+        // --- 2. CINÉMATIQUE DU BALLON (Rotation et Hauteur) ---
+        ball.classList.add('is-spinning');
+
+        // Le ballon monte en l'air au début du tir...
+        setTimeout(() => { ball.style.transform = 'translate(-50%, -50%) scale(1.6)'; }, 300);
+        // ... et redescend vers le filet vers 2000ms (2 secondes)
+        setTimeout(() => { ball.style.transform = 'translate(-50%, -50%) scale(1)'; }, 2000);
+
+        // --- 3. TREMBLEMENT DU FILET ET FIN DE COURSE ---
+        const netElement = document.querySelector('.anim-goal-net');
+        if(netElement) {
+            netElement.classList.remove('anim-net-shake');
+
+            // Le ballon frappe le filet presque à la fin de l'action (2300ms au lieu de 750ms)
             setTimeout(() => {
-                // Course d'élan et frappe brossée
-                att1.style.top = '44%';
-                ball.style.transitionDuration = '600ms';
-                ball.style.transitionTimingFunction = 'cubic-bezier(0.25, 0.8, 0.25, 1)'; // Effet brossé
-                ball.style.top = '2%'; ball.style.left = '85%'; // Lucarne droite
-                gk.style.left = '75%'; // Gardien trop court
-            }, 1000);
+                playMatchSound('net');
+                netElement.classList.add('anim-net-shake');
 
-        } else if (goalType === 'corner' || goalType === 'header' || goalType === 'volley') {
-            // SCÉNARIO : CENTRE ET TÊTE/REPRISE
-            att2.style.opacity = '1';
-            att2.style.top = '80%'; att2.style.left = '90%'; // Passeur sur l'aile
-            ball.style.top = '80%'; ball.style.left = '88%';
-            
-            def1.style.top = '20%'; def1.style.left = '40%'; def1.style.opacity = '1';
-            def2.style.top = '22%'; def2.style.left = '60%'; def2.style.opacity = '1';
-            gk.style.top = '3%'; gk.style.left = '50%';
-            
-            att1.style.top = '50%'; att1.style.left = '50%'; // Buteur qui arrive lancé
-
-            setTimeout(() => {
-                // Le Centre !
-                ball.style.top = '20%'; ball.style.left = '50%';
-                att1.style.top = '22%'; att1.style.left = '50%'; // Attaquant coupe au premier poteau
-                def1.style.top = '24%'; def1.style.left = '45%'; // Défenseur en retard
-            }, 500);
-
-            setTimeout(() => {
-                // La Tête / Volley !
-                ball.style.transitionDuration = '300ms';
-                ball.style.top = '2%'; ball.style.left = '20%';
-                gk.style.left = '30%';
-            }, 1300);
-
-        } else if (goalType === 'penalty') {
-            // SCÉNARIO : FACE À FACE / PENALTY
-            att2.style.opacity = '0'; def2.style.opacity = '0';
-            def1.style.top = '40%'; def1.style.left = '50%'; def1.style.opacity = '1';
-            gk.style.top = '3%'; gk.style.left = '50%';
-            att1.style.top = '50%'; att1.style.left = '50%';
-            ball.style.top = '35%'; ball.style.left = '50%'; // Balle en profondeur
-
-            setTimeout(() => {
-                // Course
-                att1.style.top = '37%';
-                def1.style.top = '38%'; // Défenseur lâche prise
-            }, 500);
-
-            setTimeout(() => {
-                // Frappe en force
-                ball.style.transitionDuration = '200ms';
-                ball.style.top = '2%'; ball.style.left = '50%'; // Plein centre
-                gk.style.left = '80%'; // Gardien plonge du mauvais côté
-            }, 1100);
-
+                // Fin de l'action
+                allActors.forEach(el => el.classList.remove('is-running'));
+                ball.classList.remove('is-spinning');
+            }, 2300);
+        }
+        //  INTELLIGENCE ARTIFICIELLE DE LA FOULE (Placement auto)
+        if (animVariant >= 1 && animVariant <= 5) {
+            // Coups Francs : Gros mur
+            def3.style.top='25%'; def3.style.left='44%'; def4.style.top='25%'; def4.style.left='56%'; def5.style.top='15%'; def5.style.left='40%';
+            att3.style.top='18%'; att3.style.left='42%'; att4.style.top='45%'; att4.style.left='46%';
+        } else if (animVariant >= 6 && animVariant <= 15) {
+            // Corners & Centres : Surface blindée
+            def3.style.top='22%'; def3.style.left='45%'; def4.style.top='18%'; def4.style.left='55%'; def5.style.top='25%'; def5.style.left='50%';
+            att3.style.top='24%'; att3.style.left='48%'; att4.style.top='19%'; att4.style.left='52%';
+        } else if (animVariant >= 16 && animVariant <= 20) {
+            // Penaltys : Attente autour de la surface
+            def3.style.top='35%'; def3.style.left='35%'; def4.style.top='35%'; def4.style.left='65%'; def5.style.top='35%'; def5.style.left='75%';
+            att3.style.top='35%'; att3.style.left='30%'; att4.style.top='35%'; att4.style.left='70%';
         } else {
-            // SCÉNARIO : NORMAL (TIKI-TAKA & DRIBBLE)
-            att2.style.opacity = '1'; def2.style.opacity = '1';
-            att2.style.top = '60%'; att2.style.left = '30%'; // Passeur
-            ball.style.top = '58%'; ball.style.left = '32%';
-            att1.style.top = '40%'; att1.style.left = '60%'; // Buteur démarqué
-            
-            def1.style.top = '30%'; def1.style.left = '45%';
-            def2.style.top = '45%'; def2.style.left = '55%';
-            gk.style.top = '3%'; gk.style.left = '50%';
-
-            setTimeout(() => {
-                // Passe vers l'attaquant
-                ball.style.top = '42%'; ball.style.left = '58%';
-                att2.style.top = '50%'; att2.style.left = '40%'; // Suit l'action
-                def2.style.top = '42%'; def2.style.left = '50%'; // Défenseur essaie d'intercepter
-            }, 400);
-
-            setTimeout(() => {
-                // Dribble du buteur
-                att1.style.top = '25%'; att1.style.left = '35%';
-                ball.style.top = '23%'; ball.style.left = '37%';
-                def1.style.top = '26%'; def1.style.left = '40%'; // Défenseur 1 éliminé
-            }, 1200);
-
-            setTimeout(() => {
-                // Frappe croisée
-                ball.style.transitionDuration = '300ms';
-                ball.style.top = '2%'; ball.style.left = '80%';
-                gk.style.left = '60%';
-            }, 2000);
+            // Jeu Ouvert : Tactique dispersée
+            if ([30, 27, 44, 46].includes(animVariant)) { // Contre-attaque
+                def3.style.top='60%'; def3.style.left='30%'; def4.style.top='65%'; def4.style.left='70%'; def5.style.opacity='0';
+                att3.style.top='80%'; att3.style.left='50%'; att4.style.opacity='0';
+            } else { // Attaque placée
+                def3.style.top='45%'; def3.style.left='35%'; def4.style.top='42%'; def4.style.left='65%'; def5.style.top='35%'; def5.style.left='50%';
+                att3.style.top='55%'; att3.style.left='30%'; att4.style.top='50%'; att4.style.left='70%';
+            }
         }
 
-        // CÉLÉBRATION (Commune à tous les buts)
+        // Micro-mouvements de la foule (vie)
+        setTimeout(() => {
+            [att3, att4, def3, def4, def5].forEach(el => {
+                if (el.style.opacity !== '0') {
+                    el.style.transitionDuration = '2500ms';
+                    el.style.top = (parseFloat(el.style.top) + (Math.random()*4 - 2)) + '%';
+                    el.style.left = (parseFloat(el.style.left) + (Math.random()*4 - 2)) + '%';
+                }
+            });
+        }, 300);
+
+       switch(animVariant) {
+
+            // === COUPS FRANCS (1-5) ===
+            case 1: // Direct Poteau Droit
+                att2.style.opacity='0'; def1.style.top='25%'; def1.style.left='48%'; def2.style.top='25%'; def2.style.left='52%'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='45%'; att1.style.left='50%'; ball.style.top='43%'; ball.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='800ms'; ball.style.transitionTimingFunction='cubic-bezier(0.2, 0.8, 0.2, 1)'; ball.style.top='2%'; ball.style.left='55%'; gk.style.left='45%'; }, 800); cd=1800; break;
+            case 2: // Décalé
+                def1.style.top='25%'; def1.style.left='45%'; def2.style.top='25%'; def2.style.left='55%'; gk.style.top='9%'; gk.style.left='50%'; att2.style.top='45%'; att2.style.left='45%'; att1.style.top='45%'; att1.style.left='55%'; ball.style.top='43%'; ball.style.left='46%';
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.transitionTimingFunction='linear'; ball.style.top='43%'; ball.style.left='54%'; }, 500);
+                setTimeout(() => { ball.style.transitionDuration='400ms'; ball.style.transitionTimingFunction='ease-out'; ball.style.top='2%'; ball.style.left='45%'; gk.style.left='65%'; }, 900); cd=1800; break;
+            case 3: // Sous le mur
+                att2.style.opacity='0'; def1.style.top='25%'; def1.style.left='50%'; def2.style.top='25%'; def2.style.left='55%'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='45%'; att1.style.left='50%'; ball.style.top='43%'; ball.style.left='50%';
+                setTimeout(() => { def1.style.top='22%'; def2.style.top='22%'; ball.style.transitionDuration='400ms'; ball.style.top='25%'; ball.style.left='48%'; }, 800);
+                setTimeout(() => { ball.style.transitionDuration='300ms'; ball.style.top='2%'; ball.style.left='44%'; gk.style.left='55%'; }, 1200); cd=1700; break;
+            case 4: // Contre-pied (Dévié)
+                att2.style.opacity='0'; def1.style.top='25%'; def1.style.left='48%'; def2.style.top='25%'; def2.style.left='52%'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='45%'; att1.style.left='50%'; ball.style.top='43%'; ball.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='400ms'; ball.style.top='26%'; ball.style.left='52%'; gk.style.left='42%'; }, 500); // GK plonge trop à gauche
+                setTimeout(() => { ball.style.transitionDuration='300ms'; ball.style.top='2%'; ball.style.left='55%'; }, 900); // Balle déviée à droite
+                cd=1500; break;
+            case 5: // Poteau rentrant
+                att2.style.opacity='0'; def1.style.top='20%'; def1.style.left='48%'; def2.style.top='20%'; def2.style.left='52%'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='60%'; att1.style.left='40%'; ball.style.top='58%'; ball.style.left='42%';
+                setTimeout(() => { ball.style.transitionDuration='900ms'; ball.style.top='5%'; ball.style.left='41%'; gk.style.left='45%'; }, 600); // Tape le montant
+                setTimeout(() => { ball.style.transitionDuration='150ms'; ball.style.top='2%'; ball.style.left='44%'; }, 1500);
+                cd=1800; break;
+
+            // === CENTRES & VOLÉES (6-15) ===
+            case 6: // Centre 1er poteau
+                att2.style.top='70%'; att2.style.left='85%'; ball.style.top='70%'; ball.style.left='83%'; def1.style.top='20%'; def1.style.left='45%'; def2.style.top='30%'; def2.style.left='55%'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='40%'; att1.style.left='40%';
+                setTimeout(() => { ball.style.transitionDuration='600ms'; ball.style.transitionTimingFunction='linear'; ball.style.top='15%'; ball.style.left='50%'; att1.style.top='17%'; att1.style.left='50%'; def1.style.top='19%'; def1.style.left='48%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='56%'; gk.style.left='40%'; }, 1100); cd=1600; break;
+            case 7: // Repoussé + Volée
+                att2.style.top='80%'; att2.style.left='10%'; ball.style.top='80%'; ball.style.left='12%'; def1.style.top='15%'; def1.style.left='50%'; def2.style.top='15%'; def2.style.left='45%'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='35%'; att1.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='500ms'; ball.style.top='16%'; ball.style.left='50%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='400ms'; ball.style.top='30%'; ball.style.left='50%'; def1.style.top='18%'; }, 1000);
+                setTimeout(() => { ball.style.transitionDuration='250ms'; ball.style.top='2%'; ball.style.left='45%'; gk.style.left='60%'; }, 1500); cd=2200; break;
+            case 8: // Tête 2ème poteau
+                att2.style.top='60%'; att2.style.left='20%'; ball.style.top='60%'; ball.style.left='22%'; def1.style.top='15%'; def1.style.left='40%'; gk.style.top='9%'; gk.style.left='45%'; att1.style.top='30%'; att1.style.left='70%';
+                setTimeout(() => { ball.style.transitionDuration='800ms'; ball.style.transitionTimingFunction='cubic-bezier(0.2, 0.8, 0.4, 1)'; ball.style.top='10%'; ball.style.left='60%'; att1.style.top='12%'; att1.style.left='60%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='300ms'; ball.style.top='2%'; ball.style.left='55%'; gk.style.left='52%'; }, 1300); cd=1800; break;
+            case 9: // Bicyclette
+                att2.style.top='50%'; att2.style.left='80%'; ball.style.top='50%'; ball.style.left='78%'; def1.style.top='20%'; def1.style.left='50%'; att1.style.top='25%'; att1.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='600ms'; ball.style.transitionTimingFunction='linear'; ball.style.top='22%'; ball.style.left='50%'; att1.style.top='27%'; }, 400);
+                setTimeout(() => { att1.style.transitionDuration='200ms'; att1.style.top='24%'; ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='44%'; gk.style.left='60%'; }, 1100); cd=1600; break;
+            case 10: // Centre ras terre direct
+                att2.style.top='30%'; att2.style.left='85%'; ball.style.top='30%'; ball.style.left='83%'; def1.style.top='15%'; def1.style.left='45%'; att1.style.top='40%'; att1.style.left='40%'; gk.style.top='9%'; gk.style.left='55%';
+                setTimeout(() => { att2.style.top='10%'; ball.style.top='10%'; ball.style.left='80%'; att1.style.top='15%'; att1.style.left='50%'; }, 300);
+                setTimeout(() => { ball.style.transitionDuration='300ms'; ball.style.top='15%'; ball.style.left='52%'; }, 1100);
+                setTimeout(() => { ball.style.transitionDuration='150ms'; ball.style.top='2%'; ball.style.left='48%'; gk.style.left='48%'; }, 1450); cd=1900; break;
+            case 11: // Retrait
+                att2.style.top='15%'; att2.style.left='15%'; ball.style.top='15%'; ball.style.left='17%'; def1.style.top='15%'; def1.style.left='30%'; def2.style.top='20%'; def2.style.left='50%'; att1.style.top='45%'; att1.style.left='50%'; gk.style.top='9%'; gk.style.left='40%';
+                setTimeout(() => { ball.style.transitionDuration='500ms'; ball.style.top='35%'; ball.style.left='48%'; att1.style.top='37%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='250ms'; ball.style.top='2%'; ball.style.left='55%'; gk.style.left='50%'; def2.style.top='30%'; }, 1000); cd=1500; break;
+            case 12: // Tête Plongeante
+                att2.style.top='60%'; att2.style.left='80%'; ball.style.top='58%'; ball.style.left='78%'; def1.style.top='20%'; def1.style.left='45%'; att1.style.top='30%'; att1.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='500ms'; ball.style.top='15%'; ball.style.left='48%'; att1.style.transitionDuration='400ms'; att1.style.top='15%'; att1.style.left='48%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='150ms'; ball.style.top='2%'; ball.style.left='44%'; gk.style.left='55%'; }, 900); cd=1300; break;
+            case 13: // Coup du Scorpion
+                att2.style.top='50%'; att2.style.left='20%'; ball.style.top='50%'; ball.style.left='22%'; def1.style.top='15%'; def1.style.left='50%'; att1.style.top='18%'; att1.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='600ms'; ball.style.top='18%'; ball.style.left='50%'; }, 400);
+                setTimeout(() => { att1.style.transitionDuration='100ms'; att1.style.top='20%'; ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='56%'; gk.style.left='40%'; }, 1000); cd=1500; break;
+            case 14: // Centre fuyant au fond
+                att2.style.top='60%'; att2.style.left='85%'; ball.style.top='58%'; ball.style.left='83%'; def1.style.top='15%'; def1.style.left='50%'; att1.style.top='30%'; att1.style.left='45%'; gk.style.top='9%'; gk.style.left='40%';
+                setTimeout(() => { ball.style.transitionDuration='800ms'; ball.style.top='2%'; ball.style.left='55%'; gk.style.left='48%'; }, 400); cd=1500; break;
+            case 15: // Madjer 1er poteau
+                att2.style.top='20%'; att2.style.left='15%'; ball.style.top='20%'; ball.style.left='17%'; def1.style.top='15%'; def1.style.left='35%'; att1.style.top='15%'; att1.style.left='40%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='300ms'; ball.style.top='15%'; ball.style.left='38%'; }, 300);
+                setTimeout(() => { ball.style.transitionDuration='150ms'; ball.style.top='2%'; ball.style.left='44%'; gk.style.left='45%'; }, 600); cd=1200; break;
+
+            // === PENALTYS (16-20) ===
+            case 16: // Force Centre
+                att2.style.opacity='0'; def2.style.opacity='0'; def1.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='60%'; att1.style.left='50%'; ball.style.top='20%'; ball.style.left='50%';
+                setTimeout(() => { att1.style.transitionTimingFunction='ease-in'; att1.style.top='22%'; }, 500);
+                setTimeout(() => { ball.style.transitionDuration='150ms'; ball.style.top='2%'; ball.style.left='50%'; gk.style.left='60%'; }, 1100); cd=1600; break;
+            case 17: // Panenka
+                att2.style.opacity='0'; def2.style.opacity='0'; def1.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='60%'; att1.style.left='50%'; ball.style.top='20%'; ball.style.left='50%';
+                setTimeout(() => { att1.style.top='22%'; gk.style.left='35%'; }, 500);
+                setTimeout(() => { ball.style.transitionDuration='1200ms'; ball.style.transitionTimingFunction='cubic-bezier(0.2, 0.8, 0.4, 1)'; ball.style.top='2%'; ball.style.left='50%'; }, 1100); cd=2600; break;
+            case 18: // Plat du pied
+                att2.style.opacity='0'; def2.style.opacity='0'; def1.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='60%'; att1.style.left='50%'; ball.style.top='20%'; ball.style.left='50%';
+                setTimeout(() => { att1.style.top='22%'; }, 500);
+                setTimeout(() => { ball.style.transitionDuration='300ms'; ball.style.top='2%'; ball.style.left='56%'; gk.style.left='42%'; }, 1100); cd=1800; break;
+            case 19: // Arrêt + Rebond
+                att2.style.opacity='0'; def2.style.opacity='0'; def1.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='60%'; att1.style.left='50%'; ball.style.top='20%'; ball.style.left='50%';
+                setTimeout(() => { att1.style.top='22%'; }, 500);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='5%'; ball.style.left='48%'; gk.style.left='48%'; gk.style.top='5%'; }, 1100);
+                setTimeout(() => { ball.style.transitionDuration='400ms'; ball.style.top='15%'; ball.style.left='45%'; att1.style.top='17%'; att1.style.left='46%'; }, 1350);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='54%'; gk.style.left='40%'; }, 1850); cd=2300; break;
+            case 20: // Course saccadée
+                att2.style.opacity='0'; def2.style.opacity='0'; def1.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='60%'; att1.style.left='50%'; ball.style.top='20%'; ball.style.left='50%';
+                setTimeout(() => { att1.style.transitionDuration='300ms'; att1.style.top='40%'; }, 200);
+                setTimeout(() => { att1.style.transitionDuration='600ms'; att1.style.transitionTimingFunction='ease-out'; att1.style.top='35%'; gk.style.left='55%'; }, 600);
+                setTimeout(() => { att1.style.transitionDuration='200ms'; att1.style.transitionTimingFunction='ease-in'; att1.style.top='22%'; }, 1200);
+                setTimeout(() => { ball.style.transitionDuration='250ms'; ball.style.top='2%'; ball.style.left='44%'; }, 1400); cd=1900; break;
+
+            // === ACTIONS ET DRIBBLES FLUIDES (21-50) ===
+            case 21: // Dribble Crochet
+                att2.style.opacity='0'; att1.style.top='50%'; att1.style.left='60%'; ball.style.top='48%'; ball.style.left='58%'; def1.style.top='40%'; def1.style.left='55%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.transitionTimingFunction='ease-in-out'; att1.style.top='35%'; att1.style.left='45%'; ball.style.top='33%'; ball.style.left='47%'; def1.style.top='38%'; def1.style.left='60%'; }, 500);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='50%'; gk.style.left='42%'; }, 1300); cd=1800; break;
+            case 22: // Feinte de frappe
+                att2.style.opacity='0'; att1.style.top='60%'; att1.style.left='40%'; ball.style.top='58%'; ball.style.left='42%'; def1.style.top='40%'; def1.style.left='45%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.top='35%'; att1.style.left='45%'; ball.style.top='33%'; ball.style.left='47%'; def1.style.top='36%'; def1.style.left='47%'; }, 400);
+                setTimeout(() => { att1.style.transitionDuration='100ms'; ball.style.transitionDuration='100ms'; att1.style.top='35%'; ball.style.top='33%'; def1.style.transitionDuration='500ms'; def1.style.top='20%'; def1.style.left='60%'; }, 1200);
+                setTimeout(() => { att1.style.transitionDuration='300ms'; att1.style.top='25%'; ball.style.transitionDuration='300ms'; ball.style.top='23%'; }, 1600);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='52%'; gk.style.left='40%'; }, 2000); cd=2500; break;
+            case 23: // Passement de jambes
+                att2.style.opacity='0'; att1.style.top='50%'; att1.style.left='50%'; ball.style.top='48%'; ball.style.left='50%'; def1.style.top='30%'; def1.style.left='50%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.transitionDuration='150ms'; att1.style.left='48%'; ball.style.transitionDuration='0ms'; }, 500);
+                setTimeout(() => { att1.style.left='52%'; }, 650);
+                setTimeout(() => { att1.style.transitionDuration='400ms'; ball.style.transitionDuration='400ms'; att1.style.top='25%'; att1.style.left='40%'; ball.style.top='23%'; ball.style.left='42%'; def1.style.left='55%'; }, 850);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='55%'; gk.style.left='45%'; }, 1350); cd=1800; break;
+            case 24: // Virgule
+                att2.style.opacity='0'; att1.style.top='45%'; att1.style.left='35%'; ball.style.top='43%'; ball.style.left='37%'; def1.style.top='35%'; def1.style.left='40%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='100ms'; ball.style.left='30%'; }, 500);
+                setTimeout(() => { ball.style.left='45%'; ball.style.top='35%'; att1.style.top='37%'; att1.style.left='43%'; def1.style.top='40%'; def1.style.left='30%'; }, 650);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='56%'; gk.style.left='40%'; }, 1100); cd=1600; break;
+            case 25: // Petit Pont
+                att2.style.opacity='0'; att1.style.top='55%'; att1.style.left='50%'; ball.style.top='53%'; ball.style.left='50%'; def1.style.top='40%'; def1.style.left='50%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='400ms'; ball.style.top='30%'; ball.style.left='50%'; att1.style.transitionDuration='400ms'; att1.style.top='35%'; att1.style.left='40%'; }, 400);
+                setTimeout(() => { att1.style.top='32%'; att1.style.left='48%'; def1.style.top='45%'; }, 850);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='45%'; gk.style.left='55%'; }, 1300); cd=1800; break;
+            case 26: // Roulette
+                att2.style.opacity='0'; att1.style.top='50%'; att1.style.left='50%'; ball.style.top='48%'; ball.style.left='50%'; def1.style.top='35%'; def1.style.left='50%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.transitionDuration='200ms'; ball.style.transitionDuration='200ms'; att1.style.top='40%'; att1.style.left='45%'; ball.style.top='40%'; ball.style.left='48%'; }, 400);
+                setTimeout(() => { att1.style.top='33%'; att1.style.left='55%'; ball.style.top='31%'; ball.style.left='53%'; def1.style.top='40%'; def1.style.left='40%'; }, 650);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='45%'; gk.style.left='55%'; }, 1000); cd=1500; break;
+            case 27: // Élimination Gardien
+                att2.style.opacity='0'; def1.style.opacity='0'; def2.style.opacity='0'; att1.style.top='45%'; att1.style.left='50%'; ball.style.top='43%'; ball.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.top='25%'; ball.style.top='23%'; gk.style.top='20%'; }, 400);
+                setTimeout(() => { att1.style.transitionDuration='300ms'; ball.style.transitionDuration='300ms'; att1.style.left='60%'; ball.style.left='60%'; gk.style.top='25%'; }, 1200);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='50%'; gk.style.left='45%'; }, 1700); cd=2200; break;
+            case 28: // Dribble dans la boite
+                att2.style.opacity='0'; att1.style.top='45%'; att1.style.left='50%'; ball.style.top='43%'; ball.style.left='50%'; def1.style.top='30%'; def1.style.left='40%'; def2.style.top='30%'; def2.style.left='60%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { def1.style.top='35%'; def1.style.left='45%'; def2.style.top='35%'; def2.style.left='55%'; }, 300);
+                setTimeout(() => { att1.style.transitionDuration='150ms'; ball.style.transitionDuration='150ms'; att1.style.left='45%'; ball.style.left='45%'; }, 700);
+                setTimeout(() => { att1.style.left='55%'; ball.style.left='55%'; }, 900);
+                setTimeout(() => { att1.style.transitionDuration='300ms'; ball.style.transitionDuration='300ms'; att1.style.top='25%'; att1.style.left='50%'; ball.style.top='23%'; ball.style.left='50%'; def1.style.left='35%'; def2.style.left='65%'; }, 1100);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='48%'; gk.style.left='60%'; }, 1500); cd=2000; break;
+            case 29: // Une-Deux
+                att1.style.top='65%'; att1.style.left='40%'; ball.style.top='63%'; ball.style.left='42%'; att2.style.top='45%'; att2.style.left='50%'; def1.style.top='40%'; def1.style.left='45%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='300ms'; ball.style.transitionTimingFunction='linear'; ball.style.top='47%'; ball.style.left='50%'; att1.style.top='35%'; att1.style.left='35%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='33%'; ball.style.left='37%'; def1.style.top='42%'; def1.style.left='52%'; }, 800);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='56%'; gk.style.left='45%'; }, 1200); cd=1800; break;
+            case 30: // Contre attaque Solo
+                att2.style.opacity='0'; def2.style.opacity='0'; def1.style.top='40%'; def1.style.left='50%'; gk.style.top='9*%'; gk.style.left='50%'; att1.style.top='90%'; att1.style.left='30%'; ball.style.top='88%'; ball.style.left='32%';
+                setTimeout(() => { att1.style.transitionDuration='1200ms'; ball.style.transitionDuration='1200ms'; att1.style.transitionTimingFunction='linear'; ball.style.transitionTimingFunction='linear'; att1.style.top='45%'; att1.style.left='45%'; ball.style.top='43%'; ball.style.left='47%'; }, 300);
+                setTimeout(() => { att1.style.transitionDuration='400ms'; ball.style.transitionDuration='400ms'; att1.style.transitionTimingFunction='ease-out'; ball.style.transitionTimingFunction='ease-out'; att1.style.top='30%'; att1.style.left='55%'; ball.style.top='28%'; ball.style.left='57%'; def1.style.top='45%'; def1.style.left='40%'; }, 1600);
+                setTimeout(() => { ball.style.transitionDuration='250ms'; ball.style.top='2%'; ball.style.left='45%'; gk.style.left='55%'; }, 2200); cd=2800; break;
+            case 31: // Frappe 30m
+                def1.style.top='30%'; def1.style.left='50%'; def2.style.top='30%'; def2.style.left='60%'; att2.style.top='80%'; att2.style.left='40%'; att1.style.top='75%'; att1.style.left='50%'; ball.style.top='73%'; ball.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.top='72%'; }, 200);
+                setTimeout(() => { ball.style.transitionDuration='300ms'; ball.style.top='2%'; ball.style.left='44%'; gk.style.left='40%'; }, 600); cd=1400; break;
+            case 32: // Tiki Taka Rapide
+                att1.style.top='65%'; att1.style.left='40%'; ball.style.top='63%'; ball.style.left='42%'; att2.style.top='50%'; att2.style.left='60%'; def1.style.top='45%'; def1.style.left='45%'; def2.style.top='40%'; def2.style.left='55%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='300ms'; ball.style.transitionTimingFunction='linear'; ball.style.top='52%'; ball.style.left='58%'; att1.style.top='35%'; att1.style.left='45%'; }, 400);
+                setTimeout(() => { ball.style.top='37%'; ball.style.left='45%'; def1.style.top='40%'; def2.style.top='45%'; }, 900);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.transitionTimingFunction='ease-out'; ball.style.top='2%'; ball.style.left='55%'; gk.style.left='60%'; }, 1400); cd=2000; break;
+            case 33: // Maradona Slalom
+                att2.style.opacity='0'; att1.style.top='60%'; att1.style.left='50%'; ball.style.top='58%'; ball.style.left='50%'; def1.style.top='45%'; def1.style.left='50%'; def2.style.top='30%'; def2.style.left='45%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.top='45%'; att1.style.left='55%'; ball.style.top='43%'; ball.style.left='55%'; def1.style.top='48%'; def1.style.left='45%'; }, 400);
+                setTimeout(() => { att1.style.top='30%'; att1.style.left='45%'; ball.style.top='28%'; ball.style.left='45%'; def2.style.top='32%'; def2.style.left='50%'; }, 1100);
+                setTimeout(() => { ball.style.transitionDuration='250ms'; ball.style.top='2%'; ball.style.left='55%'; gk.style.left='40%'; }, 1800); cd=2400; break;
+            case 34: // Renard des surfaces (Double arrêt GK)
+                att2.style.top='40%'; att2.style.left='35%'; ball.style.top='38%'; ball.style.left='37%'; att1.style.top='50%'; att1.style.left='60%'; def1.style.top='20%'; def1.style.left='45%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='300ms'; ball.style.top='5%'; ball.style.left='48%'; gk.style.top='5%'; gk.style.left='48%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='500ms'; ball.style.top='20%'; ball.style.left='55%'; att1.style.top='22%'; att1.style.left='55%'; }, 800);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='50%'; gk.style.top='9%'; }, 1400); cd=1900; break;
+            case 35: // Lob Subtil
+                att2.style.opacity='0'; def1.style.top='80%'; def2.style.opacity='0'; att1.style.top='50%'; att1.style.left='50%'; ball.style.top='48%'; ball.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.top='30%'; ball.style.top='28%'; gk.style.top='15%'; gk.style.transitionDuration='1000ms'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='1400ms'; ball.style.transitionTimingFunction='cubic-bezier(0.2, 0.8, 0.4, 1)'; ball.style.top='2%'; ball.style.left='50%'; }, 1200); cd=3000; break;
+            case 36: // Erreur relance (Pressing)
+                att2.style.opacity='0'; def2.style.opacity='0'; def1.style.top='30%'; def1.style.left='50%'; ball.style.top='28%'; ball.style.left='50%'; att1.style.top='55%'; att1.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.top='32%'; def1.style.left='45%'; }, 400);
+                setTimeout(() => { att1.style.top='30%'; ball.style.top='29%'; ball.style.left='49%'; }, 1000);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='44%'; gk.style.left='60%'; }, 1500); cd=2200; break;
+            case 37: // Passe Laser profondeur
+                att2.style.top='60%'; att2.style.left='35%'; ball.style.top='58%'; ball.style.left='37%'; def1.style.top='40%'; def1.style.left='45%'; def2.style.top='40%'; def2.style.left='55%'; att1.style.top='45%'; att1.style.left='55%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='600ms'; ball.style.transitionTimingFunction='linear'; ball.style.top='20%'; ball.style.left='50%'; }, 400);
+                setTimeout(() => { att1.style.top='22%'; att1.style.left='50%'; def1.style.top='35%'; def2.style.top='35%'; }, 600);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.transitionTimingFunction='ease-out'; ball.style.top='2%'; ball.style.left='45%'; gk.style.left='40%'; }, 1400); cd=1900; break;
+            case 38: // Grand Pont
+                att2.style.opacity='0'; att1.style.top='60%'; att1.style.left='50%'; ball.style.top='58%'; ball.style.left='50%'; def1.style.top='40%'; def1.style.left='50%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='600ms'; ball.style.top='30%'; ball.style.left='60%'; att1.style.transitionDuration='600ms'; att1.style.top='30%'; att1.style.left='40%'; }, 400);
+                setTimeout(() => { att1.style.transitionDuration='300ms'; att1.style.top='28%'; att1.style.left='58%'; def1.style.top='45%'; }, 1000);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='50%'; gk.style.left='60%'; }, 1400); cd=2000; break;
+            case 39: // Sombrero
+                att2.style.opacity='0'; att1.style.top='50%'; att1.style.left='50%'; ball.style.top='48%'; ball.style.left='50%'; def1.style.top='35%'; def1.style.left='50%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='800ms'; ball.style.transitionTimingFunction='cubic-bezier(0.1, 0.8, 0.3, 1)'; ball.style.top='20%'; ball.style.left='50%'; att1.style.transitionDuration='800ms'; att1.style.top='22%'; att1.style.left='55%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='250ms'; ball.style.transitionTimingFunction='linear'; ball.style.top='2%'; ball.style.left='45%'; gk.style.left='35%'; }, 1300);
+                cd=1800; break;
+            case 40: // Frappe Pivot
+                att2.style.top='50%'; att2.style.left='35%'; ball.style.top='48%'; ball.style.left='37%'; def1.style.top='22%'; def1.style.left='50%'; att1.style.top='25%'; att1.style.left='50%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='400ms'; ball.style.top='27%'; ball.style.left='48%'; }, 400);
+                setTimeout(() => { att1.style.transitionDuration='150ms'; att1.style.top='20%'; att1.style.left='45%'; def1.style.left='55%'; }, 900);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='56%'; gk.style.left='40%'; }, 1100); cd=1600; break;
+            case 41: // Trivela
+                att2.style.opacity='0'; def1.style.top='30%'; def1.style.left='55%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%'; att1.style.top='60%'; att1.style.left='40%'; ball.style.top='58%'; ball.style.left='42%';
+                setTimeout(() => { ball.style.transitionDuration='800ms'; ball.style.transitionTimingFunction='cubic-bezier(0, 0.8, 1, 0.2)'; ball.style.top='2%'; ball.style.left='55%'; gk.style.left='40%'; }, 500);
+                cd=1500; break;
+            case 42: // Feinte de corps
+                att2.style.top='60%'; att2.style.left='50%'; ball.style.top='58%'; ball.style.left='50%'; att1.style.top='40%'; att1.style.left='50%'; def1.style.top='35%'; def1.style.left='50%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='800ms'; ball.style.top='25%'; ball.style.left='50%'; att2.style.top='50%'; }, 400);
+                setTimeout(() => { att1.style.transitionDuration='200ms'; att1.style.left='45%'; def1.style.left='45%'; }, 800);
+                setTimeout(() => { att1.style.top='25%'; att1.style.left='48%'; }, 1100);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='55%'; gk.style.left='40%'; }, 1400); cd=1900; break;
+            case 43: // Tir Angle fermé
+                att2.style.opacity='0'; att1.style.top='25%'; att1.style.left='75%'; ball.style.top='25%'; ball.style.left='73%'; def1.style.top='25%'; def1.style.left='60%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.transitionDuration='400ms'; ball.style.transitionDuration='400ms'; att1.style.left='60%'; ball.style.left='58%'; def1.style.top='35%'; }, 500);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='56%'; gk.style.left='45%'; }, 1000);
+                cd=1500; break;
+            case 44: // 2 contre 1
+                att1.style.top='40%'; att1.style.left='45%'; ball.style.top='38%'; ball.style.left='47%'; att2.style.top='40%'; att2.style.left='55%'; def1.style.opacity='0'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.top='20%'; ball.style.top='18%'; att2.style.top='20%'; gk.style.top='15%'; gk.style.left='45%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='20%'; ball.style.left='53%'; }, 1000);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='55%'; gk.style.left='35%'; }, 1300);
+                cd=1800; break;
+            case 45: // Passe Aveugle
+                att2.style.top='50%'; att2.style.left='50%'; ball.style.top='48%'; ball.style.left='52%'; att1.style.top='30%'; att1.style.left='35%'; def1.style.top='40%'; def1.style.left='45%'; def2.style.top='35%'; def2.style.left='40%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att2.style.left='55%'; ball.style.transitionDuration='400ms'; ball.style.top='32%'; ball.style.left='37%'; }, 500);
+                setTimeout(() => { att1.style.top='32%'; def1.style.top='45%'; def2.style.top='40%'; }, 800);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='44%'; gk.style.left='60%'; }, 1200); cd=1700; break;
+            case 46: // Contre Express
+                att2.style.opacity='0'; def2.style.opacity='0'; def1.style.top='40%'; def1.style.left='50%'; ball.style.top='38%'; ball.style.left='50%'; att1.style.top='50%'; att1.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.transitionDuration='200ms'; att1.style.top='40%'; def1.style.left='55%'; ball.style.top='35%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='50%'; gk.style.left='40%'; }, 700); cd=1300; break;
+            case 47: // Longue transversale
+                att2.style.top='80%'; att2.style.left='30%'; ball.style.top='78%'; ball.style.left='32%'; att1.style.top='30%'; att1.style.left='65%'; def1.style.top='20%'; def1.style.left='60%'; def2.style.opacity='0'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='900ms'; ball.style.transitionTimingFunction='cubic-bezier(0.1, 0.8, 0.3, 1)'; ball.style.top='25%'; ball.style.left='63%'; }, 400);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.transitionTimingFunction='linear'; ball.style.top='2%'; ball.style.left='56%'; gk.style.left='60%'; }, 1350); cd=1900; break;
+            case 48: // Tir pointu
+                att2.style.opacity='0'; def1.style.top='30%'; def1.style.left='50%'; def2.style.opacity='0'; att1.style.top='35%'; att1.style.left='50%'; ball.style.top='33%'; ball.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='150ms'; ball.style.top='2%'; ball.style.left='45%'; gk.style.left='55%'; }, 400);
+                cd=1000; break;
+            case 49: // But Casquette
+                att2.style.opacity='0'; def1.style.opacity='0'; def2.style.opacity='0'; att1.style.top='60%'; att1.style.left='50%'; ball.style.top='58%'; ball.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { ball.style.transitionDuration='800ms'; ball.style.top='5%'; ball.style.left='50%'; }, 400);
+                setTimeout(() => { gk.style.top='0%'; ball.style.transitionDuration='400ms'; ball.style.top='2%'; ball.style.left='50%'; }, 1100);
+                cd=2000; break;
+            case 50: // Café Crème (Double Dribble serré)
+                att2.style.opacity='0'; att1.style.top='50%'; att1.style.left='50%'; ball.style.top='48%'; ball.style.left='50%'; def1.style.top='40%'; def1.style.left='50%'; def2.style.top='30%'; def2.style.left='50%'; gk.style.top='9%'; gk.style.left='50%';
+                setTimeout(() => { att1.style.transitionDuration='300ms'; ball.style.transitionDuration='300ms'; att1.style.top='40%'; att1.style.left='45%'; ball.style.top='38%'; ball.style.left='47%'; def1.style.top='45%'; }, 400);
+                setTimeout(() => { att1.style.top='30%'; att1.style.left='55%'; ball.style.top='28%'; ball.style.left='53%'; def2.style.top='35%'; }, 800);
+                setTimeout(() => { ball.style.transitionDuration='200ms'; ball.style.top='2%'; ball.style.left='50%'; gk.style.left='40%'; }, 1200); cd=1800; break;
+        }
+
+        // --- CÉLÉBRATION DE GROUPE OU SOLO ---
         setTimeout(() => {
             title.style.transform = 'scale(1.2)';
             title.style.color = '#f59e0b';
             scorerText.style.opacity = '1';
-            
-            [att1, att2].forEach(el => {
-                el.style.transitionDuration = '1500ms';
-                el.style.top = '85%'; el.style.left = (Math.random() * 40 + 30) + '%';
-            });
-            
-            // Tremblement de l'écran
-            modal.style.transform = 'translate(5px, 5px)';
-            setTimeout(() => modal.style.transform = 'translate(-5px, -5px)', 50);
-            setTimeout(() => modal.style.transform = 'translate(5px, -5px)', 100);
-            setTimeout(() => modal.style.transform = 'translate(0, 0)', 150);
-        }, 2500);
 
-        // Fermeture
+            // 🎲 50% de chance Groupe / 50% Solo
+            const celebrationType = Math.random() < 0.5 ? 'group' : 'solo';
+
+            if (celebrationType === 'group') {
+                [att1, att2, att3, att4].forEach((el, index) => {
+                    if(el.style.opacity !== '0') {
+                        el.style.transitionDuration = '2000ms';
+                        el.style.transitionTimingFunction = 'ease-out';
+                        el.style.top = '85%'; el.style.left = (15 + index * 6) + '%';
+                    }
+                });
+            } else {
+                if(att1.style.opacity !== '0') {
+                    att1.style.transitionDuration = '2000ms';
+                    att1.style.transitionTimingFunction = 'ease-out';
+                    att1.style.top = '85%'; att1.style.left = '15%';
+                }
+                // Les autres sautent de joie sur place
+                [att2, att3, att4].forEach(el => {
+                    if(el.style.opacity !== '0') {
+                        el.style.transitionDuration = '300ms';
+                        el.style.transitionTimingFunction = 'ease-out';
+                        const currentTop = parseFloat(el.style.top) || 50;
+                        el.style.top = (currentTop - 4) + '%';
+                        setTimeout(() => {
+                            el.style.transitionDuration = '300ms';
+                            el.style.transitionTimingFunction = 'ease-in';
+                            el.style.top = currentTop + '%';
+                        }, 300);
+                    }
+                });
+            }
+
+            // Tremblement de l'écran
+            modal.style.transform = 'translate(4px, 4px)';
+            setTimeout(() => modal.style.transform = 'translate(-4px, -4px)', 60);
+            setTimeout(() => modal.style.transform = 'translate(4px, -4px)', 120);
+            setTimeout(() => modal.style.transform = 'translate(0, 0)', 180);
+        }, cd);
+
+        // Fermeture automatique
         setTimeout(() => {
             modal.classList.add('hidden');
-        }, 5000);
+            title.style.color = 'white';
+            title.style.transform = 'scale(0)';
+        }, cd + 3000);
+
     }, 50);
+    });
 }
 const REGIONAL_NAMES = {
 // 1. MAGHREB & ÉGYPTE (Arabophone)
@@ -3930,13 +4335,13 @@ if (Math.random() < 0.70) {
                 // Type de but calculé AVANT l'animation pour le transmettre au moteur 2D
                 const rGoal = Math.random();
                 let gType = 'normal';
-                let icon = SVGS.ball; 
+                let icon = SVGS.ball;
 
                 if (rGoal > 0.96) { gType = 'penalty'; icon = SVGS.target; } // Ajout d'une chance de Pénalty
-                else if (rGoal > 0.90) { gType = 'freekick'; icon = SVGS.target; } 
-                else if (rGoal > 0.82) { gType = 'corner'; icon = SVGS.flag; } 
-                else if (rGoal > 0.72) { gType = 'header'; icon = SVGS.jump; } 
-                else if (rGoal > 0.62) { gType = 'volley'; icon = SVGS.fire; } 
+                else if (rGoal > 0.90) { gType = 'freekick'; icon = SVGS.target; }
+                else if (rGoal > 0.82) { gType = 'corner'; icon = SVGS.flag; }
+                else if (rGoal > 0.72) { gType = 'header'; icon = SVGS.jump; }
+                else if (rGoal > 0.62) { gType = 'volley'; icon = SVGS.fire; }
 
                 // 🎬 L'ANIMATION 2D INTELLIGENTE (Bleu)
                 playGoalAnimation2D(scorer.name, '#3b82f6', gType);
@@ -5479,13 +5884,13 @@ openJobOffersModal() {
 
         // B. CHARGER LA NOUVELLE ÉQUIPE
         let newSquad = this.state.worldPlayers[newCode];
-        
+
         // --- CORRECTION BUG REMPLACEMENT : Génération des IDs manquants ---
         if (newSquad) {
             newSquad.forEach(p => {
                 // L'IA n'avait pas généré d'ID pour ces joueurs, on le fait maintenant
                 if (!p.id) p.id = crypto.randomUUID();
-                
+
                 // On s'assure aussi qu'ils ont toutes leurs stats générées
                 if (!p.stats) {
                     const gen = this.generatePlayerStats(p.pos, p.ovr);
@@ -8066,32 +8471,42 @@ try {
     <div id="job-cards-container" class="mercato-scroll pb-8">
     </div>
 </div>
-<div id="goal-animation-modal" class="fixed inset-0 z-[5000] bg-black/95 flex flex-col justify-center items-center hidden backdrop-blur-md">
-    
-    <h2 id="goal-title" class="text-7xl font-teko text-white uppercase italic mb-6 scale-0 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
-        BUUUUUT !
-    </h2>
-    
-    <div class="relative w-72 h-96 bg-[#1a4d2e] border-4 border-white/80 overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.8)]" style="border-radius: 8px;">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 border-4 border-white/50 border-t-0"></div> 
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-8 border-4 border-white/50 border-t-0"></div>
-        <div class="absolute top-16 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/50 rounded-full"></div>
-        <div class="absolute top-24 left-1/2 -translate-x-1/2 w-32 h-12 border border-white/30 border-t-0 border-b-0 rounded-[50%] opacity-40"></div>
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-2 bg-gray-300 border border-gray-500"></div>
-        <div class="absolute -bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 border-4 border-white/50 rounded-full"></div>
-        <div class="absolute bottom-0 left-0 w-full h-1 border-t-4 border-white/50 border-dashed"></div>
+<div id="goal-animation-modal" class="fixed inset-0 z-[5000] hidden flex flex-col justify-center items-center backdrop-blur-sm bg-black/80">
 
-        <div id="anim-gk" class="absolute w-4 h-4 rounded-full bg-yellow-400 border border-black transition-all shadow-md z-10 -translate-x-1/2 -translate-y-1/2"></div>
-        <div id="anim-def1" class="absolute w-4 h-4 rounded-full bg-slate-300 border border-black transition-all shadow-md z-10 -translate-x-1/2 -translate-y-1/2"></div>
-        <div id="anim-def2" class="absolute w-4 h-4 rounded-full bg-slate-300 border border-black transition-all shadow-md z-10 -translate-x-1/2 -translate-y-1/2"></div>
-        <div id="anim-att1" class="absolute w-4 h-4 rounded-full bg-blue-500 border border-white transition-all shadow-md z-20 -translate-x-1/2 -translate-y-1/2"></div>
-        <div id="anim-att2" class="absolute w-4 h-4 rounded-full bg-blue-500 border border-white transition-all shadow-md z-20 -translate-x-1/2 -translate-y-1/2"></div>
-        <div id="anim-ball" class="absolute w-3 h-3 rounded-full bg-white border border-gray-400 transition-all shadow-sm z-30 -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="relative w-[90%] max-w-md aspect-[3/4] anim-pitch-bg rounded-xl border-4 border-white/20 overflow-hidden shadow-2xl">
+
+        <div class="anim-goal-line"></div>
+        <div class="anim-goal-net"></div>
+
+        <div class="anim-corner-arc anim-corner-left"></div>
+        <div class="anim-corner-arc anim-corner-right"></div>
+
+        <div class="anim-six-yard"></div>
+        <div class="anim-penalty-box"></div>
+
+        <div class="anim-penalty-spot"></div>
+        <div class="anim-penalty-arc"></div>
+
+        <div id="anim-gk" class="player-token absolute w-4 h-4 bg-yellow-400 transition-all z-10 -translate-x-1/2 -translate-y-1/2"></div>
+
+        <div id="anim-def1" class="player-token absolute w-4 h-4 bg-slate-300 transition-all z-10 -translate-x-1/2 -translate-y-1/2"></div>
+        <div id="anim-def2" class="player-token absolute w-4 h-4 bg-slate-300 transition-all z-10 -translate-x-1/2 -translate-y-1/2"></div>
+        <div id="anim-def3" class="player-token absolute w-4 h-4 bg-slate-300 transition-all z-10 -translate-x-1/2 -translate-y-1/2"></div>
+        <div id="anim-def4" class="player-token absolute w-4 h-4 bg-slate-300 transition-all z-10 -translate-x-1/2 -translate-y-1/2"></div>
+        <div id="anim-def5" class="player-token absolute w-4 h-4 bg-slate-300 transition-all z-10 -translate-x-1/2 -translate-y-1/2"></div>
+
+        <div id="anim-att1" class="player-token absolute w-4 h-4 transition-all z-20 -translate-x-1/2 -translate-y-1/2"></div>
+        <div id="anim-att2" class="player-token absolute w-4 h-4 transition-all z-20 -translate-x-1/2 -translate-y-1/2"></div>
+        <div id="anim-att3" class="player-token absolute w-4 h-4 transition-all z-20 -translate-x-1/2 -translate-y-1/2"></div>
+        <div id="anim-att4" class="player-token absolute w-4 h-4 transition-all z-20 -translate-x-1/2 -translate-y-1/2"></div>
+
+        <div id="anim-ball" class="ball-token absolute w-3 h-3 transition-all z-30 -translate-x-1/2 -translate-y-1/2"></div>
     </div>
 
-    <p id="goal-scorer-name" class="text-4xl font-teko text-gold mt-6 opacity-0 transition-opacity duration-500 tracking-wider">
-        NOM DU JOUEUR
-    </p>
+    <div class="mt-6 text-center">
+        <h2 id="goal-title" class="text-4xl font-black text-white italic drop-shadow-lg transition-all duration-500 origin-center scale-0">BUT !</h2>
+        <p id="goal-scorer-name" class="text-xl font-bold text-white mt-2 drop-shadow-md transition-opacity duration-500 opacity-0"></p>
+    </div>
 </div>
 </body>
 
