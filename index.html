@@ -62,7 +62,13 @@
             height: 100vh;
             height: 100dvh;
         }
-
+         @font-face {
+  font-family: 'Teko';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap; /* C'est cette ligne qui répare le délai de 2,3s */
+  src: url('https://fonts.gstatic.com/s/teko/v20/UcCo3FwrK3iLTeHuS_nV.woff2') format('woff2');
+         }
         .font-teko { font-family: 'Teko', sans-serif; }
 
         #app-container {
@@ -8592,4 +8598,5 @@ try {
 </body>
 
 </html>
+
 
