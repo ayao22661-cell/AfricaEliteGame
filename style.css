@@ -1,0 +1,15 @@
+/* 1. Déclaration de la police locale (après avoir mis le fichier .woff2 sur GitHub) */
+@font-face {
+  font-family: 'Teko';
+  src: url('teko.woff2') format('woff2');
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+/* 2. Styles essentiels pour votre titre Q.G. Manager */
+.font-teko { font-family: 'Teko', sans-serif; }
+.text-5xl { font-size: 3rem; line-height: 1; }
+.text-white { color: white; }
+.uppercase { text-transform: uppercase; }
+.italic { font-style: italic; }
+.drop-shadow-lg { filter: drop-shadow(0 10px 8px rgba(0,0,0,0.1)); }
